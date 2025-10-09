@@ -1,0 +1,37 @@
+---
+import { getR2ImageUrl, getR2ImageSrcSet } from '../utils/r2';
+
+interface Props {
+  src: string;
+  alt: string;
+  class?: string;
+  width?: number;
+  height?: number;
+  loading?: 'lazy' | 'eager';
+  responsive?: boolean;
+}
+
+const {
+  src,
+  alt,
+  class: className = '',
+  width,
+  height,
+  loading = 'lazy',
+  responsive = true,
+} = Astro.props;
+
+const imageUrl = getR2ImageUrl(src);
+const srcSet = responsive ? getR2ImageSrcSet(src) : undefined;
+---
+
+<img
+  src={imageUrl}
+  srcset={srcSet}
+  alt={alt}
+  class={className}
+  width={width}
+  height={height}
+  loading={loading}
+  decoding="async"
+/>
