@@ -1,0 +1,34 @@
+---
+/**
+ * Reusable Container component for consistent max-width and padding
+ * Usage: <Container size="lg">...</Container>
+ */
+
+export interface Props {
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  padding?: boolean;
+  class?: string;
+}
+
+const {
+  size = 'lg',
+  padding = true,
+  class: className = '',
+} = Astro.props;
+
+const sizes = {
+  sm: 'max-w-3xl',
+  md: 'max-w-5xl',
+  lg: 'max-w-7xl',
+  xl: 'max-w-[1400px]',
+  full: 'max-w-full',
+};
+
+const paddingClass = padding ? 'px-4 sm:px-6 lg:px-8' : '';
+
+const classes = `${sizes[size]} mx-auto ${paddingClass} ${className}`;
+---
+
+<div class={classes}>
+  <slot />
+</div>

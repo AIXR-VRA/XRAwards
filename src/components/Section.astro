@@ -1,0 +1,37 @@
+---
+/**
+ * Reusable Section component for consistent spacing and backgrounds
+ * Usage: <Section variant="default" spacing="lg">...</Section>
+ */
+
+export interface Props {
+  variant?: 'default' | 'dark' | 'gradient';
+  spacing?: 'sm' | 'md' | 'lg' | 'xl';
+  class?: string;
+}
+
+const {
+  variant = 'default',
+  spacing = 'lg',
+  class: className = '',
+} = Astro.props;
+
+const variants = {
+  default: 'bg-zinc-950',
+  dark: 'bg-zinc-900',
+  gradient: 'bg-gradient-to-b from-zinc-950 to-zinc-900',
+};
+
+const spacings = {
+  sm: 'py-12',
+  md: 'py-16',
+  lg: 'py-20',
+  xl: 'py-28',
+};
+
+const classes = `${variants[variant]} ${spacings[spacing]} ${className}`;
+---
+
+<section class={classes}>
+  <slot />
+</section>

@@ -1,0 +1,116 @@
+---
+import '../styles/globals.css';
+import { ViewTransitions } from 'astro:transitions';
+
+export interface Props {
+	title?: string;
+	description?: string;
+	image?: string;
+	canonical?: string;
+}
+
+const {
+	title = "Your Site Name | Tagline Goes Here",
+	description = "A compelling description of your website that will appear in search results and social media shares. Keep it between 150-160 characters for optimal display.",
+	image = "/og-image.jpg",
+	canonical = Astro.url.href
+} = Astro.props;
+
+const siteName = "Your Site Name";
+const siteTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
+---
+
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		<!-- SEO Meta Tags -->
+		<title>{siteTitle}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonical} />
+		<link rel="sitemap" href="/sitemap-index.xml" />
+
+		<!-- Open Graph / Facebook -->
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonical} />
+		<meta property="og:title" content={siteTitle} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={new URL(image, Astro.url).href} />
+
+		<!-- Twitter -->
+		<meta property="twitter:card" content="summary_large_image" />
+		<meta property="twitter:url" content={canonical} />
+		<meta property="twitter:title" content={siteTitle} />
+		<meta property="twitter:description" content={description} />
+		<meta property="twitter:image" content={new URL(image, Astro.url).href} />
+
+		<!-- Favicon -->
+		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+
+		<!-- Fonts -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link rel="preconnect" href="https://use.typekit.net" crossorigin />
+
+		<!-- Preload fonts for faster loading -->
+		<link
+			rel="preload"
+			href="https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;500;600;700;800&display=swap"
+			as="style"
+			onload="this.onload=null;this.rel='stylesheet'"
+		/>
+		<link
+			rel="preload"
+			href="https://use.typekit.net/mdj4hxh.css"
+			as="style"
+			onload="this.onload=null;this.rel='stylesheet'"
+		/>
+
+		<!-- Fallback for when JS is disabled -->
+		<noscript>
+			<link
+				href="https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;500;600;700;800&display=swap"
+				rel="stylesheet"
+			/>
+			<link rel="stylesheet" href="https://use.typekit.net/mdj4hxh.css" />
+		</noscript>
+
+		<!-- Theme -->
+		<meta name="theme-color" content="#0E0F21" />
+		<meta name="color-scheme" content="dark" />
+
+		<!-- View Transitions for smooth page navigation -->
+		<ViewTransitions />
+
+		<!-- Additional head content from pages -->
+		<slot name="head" />
+	</head>
+	<body class="bg-zinc-950 text-white antialiased">
+		<slot />
+
+		<!-- Scripts -->
+		<script>
+			// Smooth scroll behavior for anchor links
+			document.addEventListener('DOMContentLoaded', function() {
+				const links = document.querySelectorAll('a[href^="#"]');
+				links.forEach(link => {
+					link.addEventListener('click', function(e) {
+						e.preventDefault();
+						const href = (e.currentTarget as HTMLAnchorElement).getAttribute('href');
+						if (href) {
+							const target = document.querySelector(href);
+							if (target) {
+								target.scrollIntoView({ behavior: 'smooth' });
+							}
+						}
+					});
+				});
+			});
+		</script>
+	</body>
+</html>
