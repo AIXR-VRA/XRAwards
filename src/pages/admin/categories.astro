@@ -48,6 +48,23 @@ if (!session) {
       </button>
     </div>
 
+    <!-- Filter -->
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <div class="flex flex-wrap gap-4">
+        <select id="eventFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All Events</option>
+        </select>
+        <select id="visibilityFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All</option>
+          <option value="visible">Visible Only</option>
+          <option value="hidden">Hidden Only</option>
+        </select>
+        <select id="tagFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All Tags</option>
+        </select>
+      </div>
+    </div>
+
     <!-- Categories List -->
     <div id="categoriesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <!-- Loading state -->
@@ -160,12 +177,32 @@ if (!session) {
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
+              Events *
+            </label>
+            <div class="border border-gray-300 rounded-lg p-3 min-h-[80px]">
+              <!-- Selected events display -->
+              <div id="selectedEvents" class="flex flex-wrap gap-2 mb-2"></div>
+
+              <!-- Event selector -->
+              <select
+                id="eventSelector"
+                class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">+ Add an event</option>
+                <!-- Events will be loaded dynamically -->
+              </select>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Select which events this category applies to</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
               Tags
             </label>
             <div class="border border-gray-300 rounded-lg p-3 min-h-[80px]">
               <!-- Selected tags display -->
               <div id="selectedTags" class="flex flex-wrap gap-2 mb-2"></div>
-              
+
               <!-- Tag selector -->
               <select
                 id="tagSelector"
@@ -203,7 +240,25 @@ if (!session) {
 <script>
   let categories: any[] = [];
   let availableTags: any[] = [];
+  let availableEvents: any[] = [];
   let selectedCategoryTags: any[] = [];
+  let selectedCategoryEvents: any[] = [];
+  let filters = { event: '', visibility: '', tag: '' };
+
+  // Load events
+  async function loadEvents() {
+    try {
+      const response = await fetch('/api/events');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      availableEvents = data.events || [];
+      updateEventSelector();
+      populateEventFilter();
+    } catch (error) {
+      console.error('Error loading events:', error);
+    }
+  }
 
   // Load tags
   async function loadTags() {
@@ -211,35 +266,118 @@ if (!session) {
       const response = await fetch('/api/tags');
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
-      
+
       availableTags = data.tags || [];
       updateTagSelector();
+      populateTagFilter();
     } catch (error) {
       console.error('Error loading tags:', error);
     }
+  }
+
+  // Populate event filter dropdown
+  function populateEventFilter() {
+    const eventFilter = document.getElementById('eventFilter') as HTMLSelectElement;
+    if (!eventFilter) return;
+
+    eventFilter.innerHTML = '<option value="">All Events</option>' +
+      availableEvents
+        .map(event => `<option value="${event.id}">${event.event_name} (${event.event_year})</option>`)
+        .join('');
+  }
+
+  // Populate tag filter dropdown
+  function populateTagFilter() {
+    const tagFilter = document.getElementById('tagFilter') as HTMLSelectElement;
+    if (!tagFilter) return;
+
+    tagFilter.innerHTML = '<option value="">All Tags</option>' +
+      availableTags
+        .map(tag => `<option value="${tag.id}">${tag.name}</option>`)
+        .join('');
+  }
+
+  // Get filtered categories
+  function getFilteredCategories() {
+    return categories.filter(category => {
+      // Filter by event
+      if (filters.event) {
+        const hasEvent = category.events?.some((e: any) => e.id === filters.event);
+        if (!hasEvent) return false;
+      }
+
+      // Filter by visibility
+      if (filters.visibility === 'visible' && !category.is_visible) return false;
+      if (filters.visibility === 'hidden' && category.is_visible) return false;
+
+      // Filter by tag
+      if (filters.tag) {
+        const hasTag = category.tags?.some((t: any) => t.id === filters.tag);
+        if (!hasTag) return false;
+      }
+
+      return true;
+    });
+  }
+
+  // Update event selector dropdown
+  function updateEventSelector() {
+    const eventSelector = document.getElementById('eventSelector') as HTMLSelectElement;
+    const selectedIds = selectedCategoryEvents.map(e => e.id);
+
+    eventSelector.innerHTML = '<option value="">+ Add an event</option>' +
+      availableEvents
+        .filter(event => !selectedIds.includes(event.id))
+        .map(event => `<option value="${event.id}">${event.event_name} (${event.event_year})</option>`)
+        .join('');
   }
 
   // Update tag selector dropdown
   function updateTagSelector() {
     const tagSelector = document.getElementById('tagSelector') as HTMLSelectElement;
     const selectedIds = selectedCategoryTags.map(t => t.id);
-    
-    tagSelector.innerHTML = '<option value="">+ Add a tag</option>' + 
+
+    tagSelector.innerHTML = '<option value="">+ Add a tag</option>' +
       availableTags
         .filter(tag => !selectedIds.includes(tag.id))
         .map(tag => `<option value="${tag.id}">${tag.name}</option>`)
         .join('');
   }
 
+  // Render selected events as badges
+  function renderSelectedEvents() {
+    const container = document.getElementById('selectedEvents')!;
+
+    if (selectedCategoryEvents.length === 0) {
+      container.innerHTML = '<p class="text-sm text-gray-400 italic">No events selected</p>';
+      return;
+    }
+
+    container.innerHTML = selectedCategoryEvents.map(event => `
+      <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+        ${event.event_name} (${event.event_year})
+        <button
+          type="button"
+          onclick="removeEvent('${event.id}')"
+          class="hover:bg-green-200 rounded-full p-0.5 transition-colors"
+        >
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </span>
+    `).join('');
+  }
+
   // Render selected tags as badges
   function renderSelectedTags() {
     const container = document.getElementById('selectedTags')!;
-    
+
     if (selectedCategoryTags.length === 0) {
       container.innerHTML = '<p class="text-sm text-gray-400 italic">No tags selected</p>';
       return;
     }
-    
+
     container.innerHTML = selectedCategoryTags.map(tag => `
       <span class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
         ${tag.name}
@@ -256,13 +394,34 @@ if (!session) {
     `).join('');
   }
 
+  // Add event
+  (window as any).addEvent = (eventId: string) => {
+    if (!eventId) return;
+
+    const event = availableEvents.find(e => e.id === eventId);
+    if (!event) return;
+
+    if (!selectedCategoryEvents.find(e => e.id === eventId)) {
+      selectedCategoryEvents.push(event);
+      renderSelectedEvents();
+      updateEventSelector();
+    }
+  };
+
+  // Remove event
+  (window as any).removeEvent = (eventId: string) => {
+    selectedCategoryEvents = selectedCategoryEvents.filter(e => e.id !== eventId);
+    renderSelectedEvents();
+    updateEventSelector();
+  };
+
   // Add tag
   (window as any).addTag = (tagId: string) => {
     if (!tagId) return;
-    
+
     const tag = availableTags.find(t => t.id === tagId);
     if (!tag) return;
-    
+
     if (!selectedCategoryTags.find(t => t.id === tagId)) {
       selectedCategoryTags.push(tag);
       renderSelectedTags();
@@ -277,13 +436,39 @@ if (!session) {
     updateTagSelector();
   };
 
-  // Handle tag selector change
+  // Handle event selector change
   document.addEventListener('DOMContentLoaded', () => {
+    const eventSelector = document.getElementById('eventSelector') as HTMLSelectElement;
+    eventSelector?.addEventListener('change', (e) => {
+      const target = e.target as HTMLSelectElement;
+      (window as any).addEvent(target.value);
+      target.value = '';
+    });
+
     const tagSelector = document.getElementById('tagSelector') as HTMLSelectElement;
     tagSelector?.addEventListener('change', (e) => {
       const target = e.target as HTMLSelectElement;
       (window as any).addTag(target.value);
       target.value = '';
+    });
+
+    // Set up filter event listeners
+    const eventFilter = document.getElementById('eventFilter') as HTMLSelectElement;
+    eventFilter?.addEventListener('change', (e) => {
+      filters.event = (e.target as HTMLSelectElement).value;
+      renderCategories();
+    });
+
+    const visibilityFilter = document.getElementById('visibilityFilter') as HTMLSelectElement;
+    visibilityFilter?.addEventListener('change', (e) => {
+      filters.visibility = (e.target as HTMLSelectElement).value;
+      renderCategories();
+    });
+
+    const tagFilter = document.getElementById('tagFilter') as HTMLSelectElement;
+    tagFilter?.addEventListener('change', (e) => {
+      filters.tag = (e.target as HTMLSelectElement).value;
+      renderCategories();
     });
   });
 
@@ -328,7 +513,8 @@ if (!session) {
   // Render categories
   function renderCategories() {
     const list = document.getElementById('categoriesList')!;
-    
+    const filteredCategories = getFilteredCategories();
+
     if (categories.length === 0) {
       list.innerHTML = `
         <div class="col-span-full text-center py-12">
@@ -338,7 +524,16 @@ if (!session) {
       return;
     }
 
-    list.innerHTML = categories.map(category => `
+    if (filteredCategories.length === 0) {
+      list.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <p class="text-gray-500">No categories match the current filters.</p>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = filteredCategories.map(category => `
       <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-shadow ${!category.is_visible ? 'opacity-60 border-dashed' : ''}">
         <div class="flex items-start justify-between mb-3">
           <div>
@@ -386,14 +581,20 @@ if (!session) {
     form.reset();
     (document.getElementById('categoryId') as HTMLInputElement).value = '';
     selectedCategoryTags = [];
+    selectedCategoryEvents = [];
     renderSelectedTags();
+    renderSelectedEvents();
     updateTagSelector();
+    updateEventSelector();
   }
 
   document.getElementById('addCategoryBtn')!.addEventListener('click', () => {
     selectedCategoryTags = [];
+    selectedCategoryEvents = [];
     renderSelectedTags();
+    renderSelectedEvents();
     updateTagSelector();
+    updateEventSelector();
     openModal('Add Category');
   });
 
@@ -417,6 +618,11 @@ if (!session) {
     selectedCategoryTags = category.tags || [];
     renderSelectedTags();
     updateTagSelector();
+
+    // Set selected events
+    selectedCategoryEvents = category.events || [];
+    renderSelectedEvents();
+    updateEventSelector();
 
     openModal('Edit Category');
   };
@@ -458,7 +664,15 @@ if (!session) {
       sort_order: formData.get('sort_order') ? parseInt(formData.get('sort_order') as string) : 0,
       is_visible: (document.getElementById('is_visible') as HTMLInputElement).checked,
       tag_ids: selectedCategoryTags.map(t => t.id),
+      event_ids: selectedCategoryEvents.map(e => e.id),
     };
+
+    // Validate at least one event is selected
+    if (data.event_ids.length === 0) {
+      modalError.textContent = 'Please select at least one event for this category';
+      modalError.classList.remove('hidden');
+      return;
+    }
 
     try {
       const response = await fetch('/api/categories', {
@@ -479,6 +693,6 @@ if (!session) {
   });
 
   // Initial load
-  loadTags().then(loadCategories);
+  Promise.all([loadEvents(), loadTags()]).then(loadCategories);
 </script>
 
