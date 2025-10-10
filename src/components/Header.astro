@@ -16,7 +16,7 @@ const moreItems = [
 ---
 
 <header class="fixed top-0 left-0 right-0 z-50">
-  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+  <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
     <div id="nav-container" class="flex items-center justify-between h-16 px-6 rounded-2xl border border-white/20 transition-all duration-300">
       <!-- Logo -->
       <div class="shrink-0">
@@ -122,61 +122,78 @@ const moreItems = [
   </nav>
 </header>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const navContainer = document.getElementById('nav-container');
-    const logo = document.getElementById('header-logo') as HTMLImageElement;
-    const navLinks = document.querySelectorAll('.nav-link');
-    const button = document.getElementById('mobile-menu-button');
-    const menu = document.getElementById('mobile-menu');
-    let isMenuOpen = false;
+<script is:inline>
+  (() => {
+    let cleanup = null;
 
-    // Handle scroll for transparent header, logo swap, and text color
-    const handleScroll = () => {
-      // Always show background if mobile menu is open
-      if (isMenuOpen) {
-        navContainer?.classList.add('bg-white', 'shadow-sm', 'border-gray-200');
-        navContainer?.classList.remove('border-white/20');
-        if (logo) logo.src = '/XRA-dark-Logo.svg';
-        navLinks.forEach(link => {
-          link.classList.remove('text-white');
-          link.classList.add('text-dark');
-        });
-        return;
-      }
+    const initHeader = () => {
+      // Clean up previous listeners
+      if (cleanup) cleanup();
 
-      if (window.scrollY > 20) {
-        navContainer?.classList.add('bg-white', 'shadow-sm', 'border-gray-200');
-        navContainer?.classList.remove('border-white/20');
-        if (logo) logo.src = '/XRA-dark-Logo.svg';
-        navLinks.forEach(link => {
-          link.classList.remove('text-white');
-          link.classList.add('text-dark');
-        });
-      } else {
-        navContainer?.classList.remove('bg-white', 'shadow-sm', 'border-gray-200');
-        navContainer?.classList.add('border-white/20');
-        if (logo) logo.src = '/XRA-Logo.svg';
-        navLinks.forEach(link => {
-          link.classList.remove('text-dark');
-          link.classList.add('text-white');
-        });
-      }
+      const navContainer = document.getElementById('nav-container');
+      const logo = document.getElementById('header-logo');
+      const navLinks = document.querySelectorAll('.nav-link');
+      const button = document.getElementById('mobile-menu-button');
+      const menu = document.getElementById('mobile-menu');
+      let isMenuOpen = false;
+
+      // Handle scroll for transparent header, logo swap, and text color
+      const handleScroll = () => {
+        // Always show background if mobile menu is open
+        if (isMenuOpen) {
+          navContainer?.classList.add('bg-white', 'shadow-sm', 'border-gray-200');
+          navContainer?.classList.remove('border-white/20');
+          if (logo) logo.src = '/XRA-dark-Logo.svg';
+          navLinks.forEach(link => {
+            link.classList.remove('text-white');
+            link.classList.add('text-dark');
+          });
+          return;
+        }
+
+        if (window.scrollY > 20) {
+          navContainer?.classList.add('bg-white', 'shadow-sm', 'border-gray-200');
+          navContainer?.classList.remove('border-white/20');
+          if (logo) logo.src = '/XRA-dark-Logo.svg';
+          navLinks.forEach(link => {
+            link.classList.remove('text-white');
+            link.classList.add('text-dark');
+          });
+        } else {
+          navContainer?.classList.remove('bg-white', 'shadow-sm', 'border-gray-200');
+          navContainer?.classList.add('border-white/20');
+          if (logo) logo.src = '/XRA-Logo.svg';
+          navLinks.forEach(link => {
+            link.classList.remove('text-dark');
+            link.classList.add('text-white');
+          });
+        }
+      };
+
+      // Mobile menu toggle handler
+      const handleMenuClick = () => {
+        const expanded = button.getAttribute('aria-expanded') === 'true';
+        button.setAttribute('aria-expanded', (!expanded).toString());
+        menu?.classList.toggle('hidden');
+        isMenuOpen = !isMenuOpen;
+        handleScroll(); // Update styling when menu toggles
+      };
+
+      // Initial check
+      handleScroll();
+
+      // Add event listeners
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      button?.addEventListener('click', handleMenuClick);
+
+      // Store cleanup function
+      cleanup = () => {
+        window.removeEventListener('scroll', handleScroll);
+        button?.removeEventListener('click', handleMenuClick);
+      };
     };
 
-    // Initial check
-    handleScroll();
-
-    // Listen to scroll events
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    // Mobile menu toggle
-    button?.addEventListener('click', () => {
-      const expanded = button.getAttribute('aria-expanded') === 'true';
-      button.setAttribute('aria-expanded', (!expanded).toString());
-      menu?.classList.toggle('hidden');
-      isMenuOpen = !isMenuOpen;
-      handleScroll(); // Update styling when menu toggles
-    });
-  });
+    // Initialize on page load (both initial and after view transitions)
+    document.addEventListener('astro:page-load', initHeader);
+  })();
 </script>

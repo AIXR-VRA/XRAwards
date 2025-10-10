@@ -33,7 +33,7 @@ export const Hero: React.FC<HeroProps> = ({
         />
       )}
       
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div className="text-center">
           {subtitle && (
             <p className="text-lg mb-4 text-gray-200">{subtitle}</p>

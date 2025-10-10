@@ -151,21 +151,9 @@ p {
   background-color: #2d15a8 !important;
 }
 
-/* Links - but not buttons, nav links, or dropdown links */
-a:not(.btn):not(.nav-link):not(.dropdown-link):not([class*="px-"][class*="py-"][class*="rounded"]) {
-  color: var(--color-accent-blue);
+/* Links - Default styles removed to allow Tailwind utility classes to work properly */
+a {
   text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-a:not(.btn):not(.nav-link):not(.dropdown-link):not([class*="px-"][class*="py-"][class*="rounded"]):hover {
-  color: var(--color-primary);
-  text-decoration: underline;
-}
-
-a:not(.btn):not(.nav-link):not(.dropdown-link):not([class*="px-"][class*="py-"][class*="rounded"]):focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
 }
 
 /* Buttons */
