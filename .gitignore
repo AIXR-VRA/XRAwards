@@ -1,5 +1,7 @@
 # build output
 dist/
+.output/
+
 # generated types
 .astro/
 
@@ -12,13 +14,21 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-
 # environment variables
 .env
-.env.production
+.env.local
+.env.production.local
+.env*.local
 
 # macOS-specific files
 .DS_Store
 
-# jetbrains setting folder
+# IDE
+.vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# Playwright
+.playwright-mcp/

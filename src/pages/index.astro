@@ -5,135 +5,365 @@ import Footer from '../components/Footer.astro';
 ---
 
 <Layout
-  title="Welcome to Your Site"
-  description="This is a template description. Replace this with your actual site description for better SEO."
+  title="AIXR XR Awards - Recognizing Excellence in VR, AR & MR"
+  description="The AIXR XR Awards sit at the heart of recognising excellence in virtual and augmented reality. Now part of United XR, we've joined forces with AWE and Stereopsia's European XR Awards to expand our global reach."
 >
   <script type="application/ld+json" slot="head">
 {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "@id": "https://yoursite.com/#organization",
-  "name": "Your Company Name",
-  "alternateName": "Your Brand",
-  "url": "https://yoursite.com",
+  "@id": "https://xrawards.aixr.org/#organization",
+  "name": "AIXR XR Awards",
+  "alternateName": "XR Awards",
+  "url": "https://xrawards.aixr.org",
   "logo": {
     "@type": "ImageObject",
-    "url": "https://yoursite.com/og-image.jpg",
+    "url": "https://xrawards.aixr.org/logo.svg",
     "width": "1200",
     "height": "630"
   },
-  "description": "Your company description goes here.",
+  "description": "The AIXR XR Awards sit at the heart of recognising excellence in virtual and augmented reality.",
   "knowsAbout": [
-    "Industry 1",
-    "Industry 2",
-    "Service 1",
-    "Service 2"
+    "Virtual Reality",
+    "Augmented Reality",
+    "Mixed Reality",
+    "XR Technology",
+    "Awards Ceremony"
   ]
 }
   </script>
 
   <Header />
 
-  <main class="pt-16 min-h-screen">
+  <main class="min-h-screen">
     <!-- Hero Section -->
-    <section class="py-20 px-4">
-      <div class="max-w-4xl mx-auto text-center">
-        <h1 class="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-          Welcome to Your Template
-        </h1>
-        <p class="text-xl md:text-2xl text-zinc-300 mb-8">
-          A modern, fast, and SEO-optimized Astro template
-        </p>
-        <p class="text-lg text-zinc-400 max-w-2xl mx-auto mb-8">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-        </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <a
-            href="/contact"
-            class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-zinc-900 bg-white hover:bg-zinc-100 transition-colors"
-          >
-            Get Started
-          </a>
-          <a
-            href="/about"
-            class="inline-flex items-center justify-center px-8 py-3 border border-zinc-700 text-base font-medium rounded-md text-white hover:bg-zinc-800 transition-colors"
-          >
-            Learn More
-          </a>
+    <section class="hero">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div class="text-center">
+          <p class="text-lg mb-4 text-light">Brussels, Belgium | 09 Dec 2025</p>
+          <h1 class="text-6xl font-bold mb-6">
+            AIXR XR Awards joins United XR to create the largest global celebration of VR & AR.
+          </h1>
+          <p class="text-xl mb-8 max-w-4xl mx-auto text-light">
+            The AIXR XR Awards sit at the heart of recognising excellence in virtual and augmented reality. Now part of United XR, we've joined forces with AWE and Stereopsia's European XR Awards to expand our global reach.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="https://app.aixr.org/e/20a6e09d-7e86-488d-8436-1cd162d0f5df" class="btn btn-primary btn-lg">
+              Nominate Now
+            </a>
+            <a href="/categories" class="btn btn-outline btn-lg">
+              View Categories
+            </a>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="py-20 px-4 bg-zinc-900">
-      <div class="max-w-7xl mx-auto">
-        <div class="text-center mb-16">
-          <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
-            Key Features
-          </h2>
-          <p class="text-lg text-zinc-400 max-w-2xl mx-auto">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit
+    <!-- Sponsors Section -->
+    <section class="section bg-light">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl font-bold mb-4">Thank you to our sponsors</h2>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center justify-items-center">
+          <div class="opacity-80 hover:opacity-100 transition-opacity">
+            <div class="h-12 w-24 bg-gray-300 rounded flex items-center justify-center">PICO</div>
+          </div>
+          <div class="opacity-80 hover:opacity-100 transition-opacity">
+            <div class="h-12 w-24 bg-gray-300 rounded flex items-center justify-center">Niantic</div>
+          </div>
+          <div class="opacity-80 hover:opacity-100 transition-opacity">
+            <div class="h-12 w-24 bg-gray-300 rounded flex items-center justify-center">MGW</div>
+          </div>
+          <div class="opacity-80 hover:opacity-100 transition-opacity">
+            <div class="h-12 w-24 bg-gray-300 rounded flex items-center justify-center">Bird&Bird</div>
+          </div>
+          <div class="opacity-80 hover:opacity-100 transition-opacity">
+            <div class="h-12 w-24 bg-gray-300 rounded flex items-center justify-center">TroposAR</div>
+          </div>
+          <div class="opacity-80 hover:opacity-100 transition-opacity">
+            <div class="h-12 w-24 bg-gray-300 rounded flex items-center justify-center">XRAI</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Global Categories Section -->
+    <section class="section">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl font-bold mb-4">Global Categories</h2>
+          <p class="text-lg text-secondary max-w-3xl mx-auto mb-8">
+            Celebrating the most impactful XR solutions across the world. Recognising innovation, effectiveness, and real-world results.
+          </p>
+          <a href="/categories" class="btn btn-outline">View All Categories</a>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="category-card">
+            <h3 class="text-lg font-semibold mb-2">Healthcare</h3>
+          </div>
+          <div class="category-card">
+            <h3 class="text-lg font-semibold mb-2">Education</h3>
+          </div>
+          <div class="category-card">
+            <h3 class="text-lg font-semibold mb-2">Enterprise</h3>
+          </div>
+          <div class="category-card">
+            <h3 class="text-lg font-semibold mb-2">Content Creator</h3>
+          </div>
+          <div class="category-card">
+            <h3 class="text-lg font-semibold mb-2">Rising Company</h3>
+          </div>
+          <div class="category-card">
+            <h3 class="text-lg font-semibold mb-2">Best Company</h3>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- European Categories Section -->
+    <section class="section bg-light">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl font-bold mb-4">European Categories</h2>
+          <p class="text-lg text-secondary max-w-3xl mx-auto mb-8">
+            Honouring creative excellence in XR entertainment from across Europe. Focused on artistry, design, and audience impact.
+          </p>
+          <a href="/categories" class="btn btn-outline">View All Categories</a>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="category-card">
+            <h3 class="text-lg font-semibold mb-2">Art Experience</h3>
+          </div>
+          <div class="category-card">
+            <h3 class="text-lg font-semibold mb-2">Art Direction</h3>
+          </div>
+          <div class="category-card">
+            <h3 class="text-lg font-semibold mb-2">Animation</h3>
+          </div>
+          <div class="category-card">
+            <h3 class="text-lg font-semibold mb-2">UX Design</h3>
+          </div>
+          <div class="category-card">
+            <h3 class="text-lg font-semibold mb-2">360 Content</h3>
+          </div>
+          <div class="category-card">
+            <h3 class="text-lg font-semibold mb-2">Technical</h3>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2025 Key Dates Section -->
+    <section class="section">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl font-bold mb-4">2025 Key Dates</h2>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="text-center">
+            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <span class="text-white font-bold">13</span>
+            </div>
+            <h4 class="text-lg font-semibold mb-2">13 May 2025</h4>
+            <p class="text-secondary">Nominations Open</p>
+          </div>
+          <div class="text-center">
+            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <span class="text-white font-bold">15</span>
+            </div>
+            <h4 class="text-lg font-semibold mb-2">15 July 2025</h4>
+            <p class="text-secondary">Nomination Briefing</p>
+          </div>
+          <div class="text-center">
+            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <span class="text-white font-bold">09</span>
+            </div>
+            <h4 class="text-lg font-semibold mb-2">09 Sept 2025</h4>
+            <p class="text-secondary">Nominations Close</p>
+          </div>
+          <div class="text-center">
+            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <span class="text-white font-bold">23</span>
+            </div>
+            <h4 class="text-lg font-semibold mb-2">23 Sept 2025</h4>
+            <p class="text-secondary">Finalists Announced</p>
+          </div>
+          <div class="text-center">
+            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <span class="text-white font-bold">25</span>
+            </div>
+            <h4 class="text-lg font-semibold mb-2">25 Sep - 09 Oct</h4>
+            <p class="text-secondary">Judging Period</p>
+          </div>
+          <div class="text-center">
+            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <span class="text-white font-bold">09</span>
+            </div>
+            <h4 class="text-lg font-semibold mb-2">09 Dec 2025</h4>
+            <p class="text-secondary">Awards Ceremony</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Winners Showcase Section -->
+    <section class="section bg-light">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl font-bold mb-4">Explore Award Winning Companies</h2>
+          <p class="text-lg text-secondary max-w-3xl mx-auto mb-8">
+            The impact of becoming a finalist at the XR Awards Gala
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/winners-and-finalists-2024" class="btn btn-primary">2024 Winners</a>
+            <a href="/xr-awards-2024" class="btn btn-outline">Relive the 2024 night</a>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="card">
+            <div class="aspect-video bg-gray-200"></div>
+            <div class="p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="h-8 w-16 bg-gray-300 rounded"></div>
+                <span class="text-sm text-secondary">2024</span>
+              </div>
+              <h3 class="text-xl font-semibold text-dark mb-2">Apple – Apple Vision Pro</h3>
+              <h4 class="text-sm font-medium text-primary uppercase tracking-wide">XR Head-Mounted-Display of the Year</h4>
+            </div>
+          </div>
+          <div class="card">
+            <div class="aspect-video bg-gray-200"></div>
+            <div class="p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="h-8 w-16 bg-gray-300 rounded"></div>
+                <span class="text-sm text-secondary">2024</span>
+              </div>
+              <h3 class="text-xl font-semibold text-dark mb-2">Qualcomm</h3>
+              <h4 class="text-sm font-medium text-primary uppercase tracking-wide">Outstanding XR Company of the Year</h4>
+            </div>
+          </div>
+          <div class="card">
+            <div class="aspect-video bg-gray-200"></div>
+            <div class="p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="h-8 w-16 bg-gray-300 rounded"></div>
+                <span class="text-sm text-secondary">2024</span>
+              </div>
+              <h3 class="text-xl font-semibold text-dark mb-2">Meta & Sanzaru Games – Asgard's Wrath 2</h3>
+              <h4 class="text-sm font-medium text-primary uppercase tracking-wide">XR Game of the Year</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Judges Section -->
+    <section class="section">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl font-bold mb-4">Over 70 Expert Judges</h2>
+          <p class="text-lg text-secondary max-w-4xl mx-auto mb-8">
+            Our judging panel is made up of industry-leading creatives in virtual reality. We have gathered experts in various sectors of XR, from academics, journalists, and creative directors to founders and C-Suite executives.
           </p>
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- Feature 1 -->
-          <div class="p-6 bg-zinc-800 rounded-lg border border-zinc-700">
-            <div class="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-white mb-2">Fast Performance</h3>
-            <p class="text-zinc-400">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Optimized for speed.
-            </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          <div class="text-center">
+            <div class="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4"></div>
+            <h3 class="text-lg font-semibold text-dark mb-1">Sonya Haskins</h3>
+            <p class="text-sm font-medium text-primary mb-1">Head of Programming</p>
+            <p class="text-sm text-secondary">AWE</p>
           </div>
-
-          <!-- Feature 2 -->
-          <div class="p-6 bg-zinc-800 rounded-lg border border-zinc-700">
-            <div class="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-white mb-2">SEO Optimized</h3>
-            <p class="text-zinc-400">
-              Built-in SEO features including meta tags, structured data, and sitemaps.
-            </p>
+          <div class="text-center">
+            <div class="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4"></div>
+            <h3 class="text-lg font-semibold text-dark mb-1">Jeremy Dalton</h3>
+            <p class="text-sm font-medium text-primary mb-1">Head of Immersive Technologies</p>
+            <p class="text-sm text-secondary">PwC</p>
           </div>
+          <div class="text-center">
+            <div class="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4"></div>
+            <h3 class="text-lg font-semibold text-dark mb-1">Karina Arteaga</h3>
+            <p class="text-sm font-medium text-primary mb-1">Business Strategy & Operations</p>
+            <p class="text-sm text-secondary">Meta</p>
+          </div>
+          <div class="text-center">
+            <div class="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4"></div>
+            <h3 class="text-lg font-semibold text-dark mb-1">David Smith</h3>
+            <p class="text-sm font-medium text-primary mb-1">CCO</p>
+            <p class="text-sm text-secondary">The Glimpse Group & NYVR</p>
+          </div>
+        </div>
+        
+        <div class="text-center">
+          <a href="/judges" class="btn btn-primary">See the Full Judging Panel</a>
+        </div>
+      </div>
+    </section>
 
-          <!-- Feature 3 -->
-          <div class="p-6 bg-zinc-800 rounded-lg border border-zinc-700">
-            <div class="w-12 h-12 bg-pink-500/10 rounded-lg flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-              </svg>
+    <!-- Testimonials Section -->
+    <section class="section bg-light">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl font-bold mb-4">What they say</h2>
+          <p class="text-lg text-secondary max-w-3xl mx-auto">
+            Hear from previous attendees about their experience with the AIXR XR Awards and European XR Awards.
+          </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="card">
+            <div class="mb-4">
+              <div class="h-8 w-16 bg-gray-300 rounded"></div>
             </div>
-            <h3 class="text-xl font-semibold text-white mb-2">Fully Customizable</h3>
-            <p class="text-zinc-400">
-              Easy to customize with Tailwind CSS and modern component architecture.
-            </p>
+            <blockquote class="text-lg text-dark mb-4 leading-relaxed">
+              "The AIXR XR Awards is a very important event for us and we're so excited to see all the great companies participating."
+            </blockquote>
+            <div class="text-sm text-secondary">
+              <span class="font-medium">— Google</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="mb-4">
+              <div class="h-8 w-16 bg-gray-300 rounded"></div>
+            </div>
+            <blockquote class="text-lg text-dark mb-4 leading-relaxed">
+              "Some of XR's biggest luminaries in attendance all there to celebrate some of the outstanding milestones in the industry."
+            </blockquote>
+            <div class="text-sm text-secondary">
+              <span class="font-medium">— VR Scout</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="mb-4">
+              <div class="h-8 w-16 bg-gray-300 rounded"></div>
+            </div>
+            <blockquote class="text-lg text-dark mb-4 leading-relaxed">
+              "A great event that brings the XR community together to celebrate each other's success."
+            </blockquote>
+            <div class="text-sm text-secondary">
+              <span class="font-medium">— Meta</span>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- CTA Section -->
-    <section class="py-20 px-4">
-      <div class="max-w-4xl mx-auto text-center">
-        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
-          Ready to Get Started?
+    <section class="section">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-4xl font-bold mb-4">
+          Building the future of extended reality, together.
         </h2>
-        <p class="text-lg text-zinc-400 mb-8">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Start your journey today.
-        </p>
-        <a
-          href="/contact"
-          class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-zinc-900 bg-white hover:bg-zinc-100 transition-colors"
-        >
-          Contact Us
-        </a>
+        <p class="text-lg text-secondary mb-8">Join us this year!</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/winners-and-finalists-2024" class="btn btn-primary btn-lg">2024 Winners</a>
+          <a href="/xr-awards-2025" class="btn btn-outline btn-lg">XR Awards 2025</a>
+        </div>
       </div>
     </section>
   </main>

@@ -1,44 +1,76 @@
 ---
-// Header component with navigation
+// Header component with navigation - TechTO style
 const navigation = [
-  { name: 'Home', href: '/' },
+  { name: 'Events', href: '/events' },
+  { name: 'Categories', href: '/categories' },
+  { name: 'Winners', href: '/winners' },
+  { name: 'Judges', href: '/judges' },
+];
+
+const moreItems = [
+  { name: 'Archive', href: '/archive' },
   { name: 'About', href: '/about' },
-  { name: 'Services', href: '/services' },
+  { name: 'Sponsors', href: '/sponsors' },
   { name: 'Contact', href: '/contact' },
 ];
 ---
 
-<header class="fixed top-0 left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800">
+<header class="bg-white border-b border-gray-200 sticky top-0 z-50">
   <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
       <!-- Logo -->
       <div class="flex-shrink-0">
-        <a href="/" class="text-xl font-bold text-white hover:text-zinc-300 transition-colors">
-          Your Logo
+        <a href="/" class="flex items-center">
+          <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mr-2">
+            <span class="text-white font-bold text-sm">XR</span>
+          </div>
+          <span class="text-xl font-bold text-dark">XR Awards</span>
         </a>
       </div>
 
       <!-- Desktop Navigation -->
-      <div class="hidden md:block">
-        <div class="ml-10 flex items-center space-x-8">
-          {navigation.map((item) => (
-            <a
-              href={item.href}
-              class="text-zinc-300 hover:text-white transition-colors text-sm font-medium"
-            >
-              {item.name}
-            </a>
-          ))}
+      <div class="hidden md:flex items-center space-x-8">
+        {navigation.map((item) => (
+          <a
+            href={item.href}
+            class="text-dark hover:text-primary transition-colors text-sm font-medium py-2"
+          >
+            {item.name}
+          </a>
+        ))}
+        
+        <!-- More Dropdown -->
+        <div class="relative group">
+          <button class="flex items-center text-dark hover:text-primary transition-colors text-sm font-medium py-2">
+            More
+            <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <!-- Dropdown Menu -->
+          <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <div class="py-2">
+              {moreItems.map((item) => (
+                <a
+                  href={item.href}
+                  class="block px-4 py-2 text-sm text-dark hover:bg-gray-50 transition-colors"
+                >
+                  {item.name}
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- CTA Button -->
       <div class="hidden md:block">
         <a
-          href="/contact"
-          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-zinc-900 bg-white hover:bg-zinc-100 transition-colors"
+          href="https://app.aixr.org/e/20a6e09d-7e86-488d-8436-1cd162d0f5df"
+          class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors"
         >
-          Get Started
+          Nominate Now
         </a>
       </div>
 
@@ -47,7 +79,7 @@ const navigation = [
         <button
           type="button"
           id="mobile-menu-button"
-          class="inline-flex items-center justify-center p-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          class="inline-flex items-center justify-center p-2 rounded-md text-dark hover:text-primary hover:bg-gray-100 transition-colors"
           aria-expanded="false"
           aria-label="Toggle navigation menu"
         >
@@ -64,16 +96,24 @@ const navigation = [
         {navigation.map((item) => (
           <a
             href={item.href}
-            class="block px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
+            class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:text-primary hover:bg-gray-50 transition-colors"
+          >
+            {item.name}
+          </a>
+        ))}
+        {moreItems.map((item) => (
+          <a
+            href={item.href}
+            class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:text-primary hover:bg-gray-50 transition-colors"
           >
             {item.name}
           </a>
         ))}
         <a
-          href="/contact"
-          class="block px-3 py-2 rounded-md text-base font-medium text-zinc-900 bg-white hover:bg-zinc-100 transition-colors text-center mt-4"
+          href="https://app.aixr.org/e/20a6e09d-7e86-488d-8436-1cd162d0f5df"
+          class="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary hover:bg-primary-dark transition-colors text-center mt-4"
         >
-          Get Started
+          Nominate Now
         </a>
       </div>
     </div>
