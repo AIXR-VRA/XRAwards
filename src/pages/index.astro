@@ -5,6 +5,7 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import KeyDates from '../components/sections/KeyDates.astro';
+import CTAFooter from '../components/CTAFooter.astro';
 import { supabase } from '../utils/supabase';
 
 // Fetch active event details
@@ -427,18 +428,7 @@ const { data: judges } = await supabase
     </section>
 
     <!-- CTA Section -->
-    <section class="section">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-4xl font-bold mb-4">
-          Building the future of extended reality, together.
-        </h2>
-        <p class="text-lg text-secondary mb-8">Join us this year!</p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <a href="/winners-and-finalists-2024" class="btn btn-primary btn-lg">2024 Winners</a>
-          <a href="/xr-awards-2025" class="btn btn-outline btn-lg">XR Awards 2025</a>
-        </div>
-      </div>
-    </section>
+    <CTAFooter />
   </main>
 
   <Footer />

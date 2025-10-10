@@ -8,6 +8,7 @@ export const prerender = true;
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import CTAFooter from '../components/CTAFooter.astro';
 import { createClient } from '@supabase/supabase-js';
 import { nl2br } from '../utils/helpers';
 
@@ -108,45 +109,7 @@ if (error) {
     </section>
 
     <!-- CTA Section -->
-    <section class="py-16 bg-[#0E1022]">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
-          <!-- Left Content -->
-          <div class="flex-1">
-            <h2 class="text-white mb-3" style="font-size: 26px; font-weight: 600;">
-              Ready to Submit Your Entry?
-            </h2>
-            <!-- Zigzag Decoration -->
-            <div class="mb-6">
-              <svg width="95" height="12" viewBox="0 0 95 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 6L8 0L16 6L24 0L32 6L40 0L48 6L56 0L64 6L72 0L80 6L88 0L95 6" stroke="#FF7733" stroke-width="2" stroke-linejoin="miter"/>
-              </svg>
-            </div>
-            <p class="text-gray-300 text-base md:text-lg max-w-xl">
-              Register interest for all events updates, including the announcement of the winners.
-            </p>
-          </div>
-          
-          <!-- Right Form -->
-          <div class="flex-1 w-full lg:max-w-md">
-            <form class="flex flex-col sm:flex-row gap-3">
-              <input
-                type="email"
-                placeholder="Email"
-                class="flex-1 px-4 py-3 rounded-md bg-transparent border border-white/20 text-white placeholder-gray-400 focus:outline-hidden focus:border-white/40 transition-colors"
-                required
-              />
-              <button
-                type="submit"
-                class="px-6 py-3 bg-[#4923EB] text-white font-semibold rounded-md hover:bg-[#3a1bbd] transition-colors whitespace-nowrap"
-              >
-                Stay up to date
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </section>
+    <CTAFooter />
   </main>
 
   <Footer />
