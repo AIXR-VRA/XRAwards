@@ -1,0 +1,263 @@
+import type { APIRoute } from 'astro';
+import { createServerClient } from '@supabase/ssr';
+
+/**
+ * API endpoint for managing event details
+ * GET    - Retrieve all events
+ * POST   - Create new event
+ * PUT    - Update existing event
+ * DELETE - Delete event
+ */
+
+export const GET: APIRoute = async ({ cookies }) => {
+  const supabase = createServerClient(
+    import.meta.env.SUPABASE_URL,
+    import.meta.env.SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        get(key: string) {
+          return cookies.get(key)?.value;
+        },
+        set(key: string, value: string, options: any) {
+          cookies.set(key, value, options);
+        },
+        remove(key: string, options: any) {
+          cookies.delete(key, options);
+        },
+      },
+    }
+  );
+
+  try {
+    const { data: events, error } = await supabase
+      .from('event_details')
+      .select('*')
+      .order('event_year', { ascending: false });
+
+    if (error) throw error;
+
+    return new Response(JSON.stringify({ events }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error: any) {
+    return new Response(
+      JSON.stringify({ error: error.message || 'Failed to fetch events' }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
+};
+
+export const POST: APIRoute = async ({ request, cookies }) => {
+  const supabase = createServerClient(
+    import.meta.env.SUPABASE_URL,
+    import.meta.env.SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        get(key: string) {
+          return cookies.get(key)?.value;
+        },
+        set(key: string, value: string, options: any) {
+          cookies.set(key, value, options);
+        },
+        remove(key: string, options: any) {
+          cookies.delete(key, options);
+        },
+      },
+    }
+  );
+
+  // Check authentication
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  try {
+    const body = await request.json();
+
+    const eventData = {
+      event_name: body.event_name,
+      event_year: body.event_year,
+      location: body.location,
+      organizer_name: body.organizer_name,
+      description: body.description,
+      nominations_open: body.nominations_open,
+      nominations_close: body.nominations_close,
+      finalists_announced: body.finalists_announced,
+      judging_period_start: body.judging_period_start,
+      judging_period_end: body.judging_period_end,
+      awards_ceremony: body.awards_ceremony,
+      nomination_portal_url: body.nomination_portal_url,
+      tickets_portal_url: body.tickets_portal_url,
+      is_active: body.is_active || false,
+    };
+
+    const { data, error } = await supabase
+      .from('event_details')
+      .insert(eventData)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return new Response(JSON.stringify({ event: data }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error: any) {
+    return new Response(
+      JSON.stringify({ error: error.message || 'Failed to create event' }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
+};
+
+export const PUT: APIRoute = async ({ request, cookies }) => {
+  const supabase = createServerClient(
+    import.meta.env.SUPABASE_URL,
+    import.meta.env.SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        get(key: string) {
+          return cookies.get(key)?.value;
+        },
+        set(key: string, value: string, options: any) {
+          cookies.set(key, value, options);
+        },
+        remove(key: string, options: any) {
+          cookies.delete(key, options);
+        },
+      },
+    }
+  );
+
+  // Check authentication
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  try {
+    const body = await request.json();
+    const { id, ...eventData } = body;
+
+    if (!id) {
+      return new Response(JSON.stringify({ error: 'Event ID is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const updateData = {
+      event_name: eventData.event_name,
+      event_year: eventData.event_year,
+      location: eventData.location,
+      organizer_name: eventData.organizer_name,
+      description: eventData.description,
+      nominations_open: eventData.nominations_open,
+      nominations_close: eventData.nominations_close,
+      finalists_announced: eventData.finalists_announced,
+      judging_period_start: eventData.judging_period_start,
+      judging_period_end: eventData.judging_period_end,
+      awards_ceremony: eventData.awards_ceremony,
+      nomination_portal_url: eventData.nomination_portal_url,
+      tickets_portal_url: eventData.tickets_portal_url,
+      is_active: eventData.is_active || false,
+    };
+
+    const { data, error } = await supabase
+      .from('event_details')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return new Response(JSON.stringify({ event: data }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error: any) {
+    return new Response(
+      JSON.stringify({ error: error.message || 'Failed to update event' }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
+};
+
+export const DELETE: APIRoute = async ({ request, cookies }) => {
+  const supabase = createServerClient(
+    import.meta.env.SUPABASE_URL,
+    import.meta.env.SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        get(key: string) {
+          return cookies.get(key)?.value;
+        },
+        set(key: string, value: string, options: any) {
+          cookies.set(key, value, options);
+        },
+        remove(key: string, options: any) {
+          cookies.delete(key, options);
+        },
+      },
+    }
+  );
+
+  // Check authentication
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  try {
+    const { id } = await request.json();
+
+    if (!id) {
+      return new Response(JSON.stringify({ error: 'Event ID is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { error } = await supabase
+      .from('event_details')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error: any) {
+    return new Response(
+      JSON.stringify({ error: error.message || 'Failed to delete event' }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
+};

@@ -4,6 +4,15 @@ export const prerender = true; // Static page for better performance
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import KeyDates from '../components/sections/KeyDates.astro';
+import { supabase } from '../utils/supabase';
+
+// Fetch active event details
+const { data: eventDetails } = await supabase
+  .from('event_details')
+  .select('*')
+  .eq('is_active', true)
+  .single();
 ---
 
 <Layout
@@ -45,7 +54,11 @@ import Footer from '../components/Footer.astro';
       <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-32 w-full">
         <div class="max-w-3xl">
           <!-- Date and Location -->
-          <p class="text-sm md:text-base text-white mb-8 font-mono">Brussels, Belgium <span class="text-orange-500">|</span> 09 Dec 2025</p>
+          <p class="text-sm md:text-base text-white mb-8 font-mono">
+            {eventDetails?.location || 'Brussels, Belgium'}
+            <span class="text-orange-500">|</span>
+            {eventDetails?.awards_ceremony ? new Date(eventDetails.awards_ceremony).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '09 Dec 2025'}
+          </p>
           
           <!-- Main Branding -->
           <div class="mb-8">
@@ -96,8 +109,8 @@ import Footer from '../components/Footer.astro';
           
           <!-- CTA Button -->
           <div>
-            <a 
-              href="https://app.aixr.org/e/20a6e09d-7e86-488d-8436-1cd162d0f5df" 
+            <a
+              href={eventDetails?.nomination_portal_url || 'https://app.aixr.org/e/20a6e09d-7e86-488d-8436-1cd162d0f5df'}
               class="inline-flex items-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors text-base md:text-lg"
             >
               Nominate Now
@@ -212,127 +225,28 @@ import Footer from '../components/Footer.astro';
       </div>
     </section>
 
-    <!-- Global Categories Section -->
-    <section class="section">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-          <h2 class="text-4xl font-bold mb-4">Global Categories</h2>
-          <p class="text-lg text-secondary max-w-3xl mx-auto mb-8">
-            Celebrating the most impactful XR solutions across the world. Recognising innovation, effectiveness, and real-world results.
-          </p>
-          <a href="/categories" class="btn btn-outline">View All Categories</a>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div class="category-card">
-            <h3 class="text-lg font-semibold mb-2">Healthcare</h3>
+    <!-- Key Dates Section -->
+    {eventDetails && (
+      <section class="section">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold mb-4">{eventDetails.event_year} Key Dates</h2>
           </div>
-          <div class="category-card">
-            <h3 class="text-lg font-semibold mb-2">Education</h3>
-          </div>
-          <div class="category-card">
-            <h3 class="text-lg font-semibold mb-2">Enterprise</h3>
-          </div>
-          <div class="category-card">
-            <h3 class="text-lg font-semibold mb-2">Content Creator</h3>
-          </div>
-          <div class="category-card">
-            <h3 class="text-lg font-semibold mb-2">Rising Company</h3>
-          </div>
-          <div class="category-card">
-            <h3 class="text-lg font-semibold mb-2">Best Company</h3>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- European Categories Section -->
-    <section class="section bg-light">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-          <h2 class="text-4xl font-bold mb-4">European Categories</h2>
-          <p class="text-lg text-secondary max-w-3xl mx-auto mb-8">
-            Honouring creative excellence in XR entertainment from across Europe. Focused on artistry, design, and audience impact.
-          </p>
-          <a href="/categories" class="btn btn-outline">View All Categories</a>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div class="category-card">
-            <h3 class="text-lg font-semibold mb-2">Art Experience</h3>
-          </div>
-          <div class="category-card">
-            <h3 class="text-lg font-semibold mb-2">Art Direction</h3>
-          </div>
-          <div class="category-card">
-            <h3 class="text-lg font-semibold mb-2">Animation</h3>
-          </div>
-          <div class="category-card">
-            <h3 class="text-lg font-semibold mb-2">UX Design</h3>
-          </div>
-          <div class="category-card">
-            <h3 class="text-lg font-semibold mb-2">360 Content</h3>
-          </div>
-          <div class="category-card">
-            <h3 class="text-lg font-semibold mb-2">Technical</h3>
+          <div class="max-w-xl mx-auto">
+            <KeyDates
+              year={eventDetails.event_year}
+              nominationsOpen={eventDetails.nominations_open}
+              nominationsClose={eventDetails.nominations_close}
+              finalistsAnnounced={eventDetails.finalists_announced}
+              judgingPeriodStart={eventDetails.judging_period_start}
+              judgingPeriodEnd={eventDetails.judging_period_end}
+              awardsCeremony={eventDetails.awards_ceremony}
+            />
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- 2025 Key Dates Section -->
-    <section class="section">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-          <h2 class="text-4xl font-bold mb-4">2025 Key Dates</h2>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div class="text-center">
-            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-              <span class="text-white font-bold">13</span>
-            </div>
-            <h4 class="text-lg font-semibold mb-2">13 May 2025</h4>
-            <p class="text-secondary">Nominations Open</p>
-          </div>
-          <div class="text-center">
-            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-              <span class="text-white font-bold">15</span>
-            </div>
-            <h4 class="text-lg font-semibold mb-2">15 July 2025</h4>
-            <p class="text-secondary">Nomination Briefing</p>
-          </div>
-          <div class="text-center">
-            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-              <span class="text-white font-bold">09</span>
-            </div>
-            <h4 class="text-lg font-semibold mb-2">09 Sept 2025</h4>
-            <p class="text-secondary">Nominations Close</p>
-          </div>
-          <div class="text-center">
-            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-              <span class="text-white font-bold">23</span>
-            </div>
-            <h4 class="text-lg font-semibold mb-2">23 Sept 2025</h4>
-            <p class="text-secondary">Finalists Announced</p>
-          </div>
-          <div class="text-center">
-            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-              <span class="text-white font-bold">25</span>
-            </div>
-            <h4 class="text-lg font-semibold mb-2">25 Sep - 09 Oct</h4>
-            <p class="text-secondary">Judging Period</p>
-          </div>
-          <div class="text-center">
-            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-              <span class="text-white font-bold">09</span>
-            </div>
-            <h4 class="text-lg font-semibold mb-2">09 Dec 2025</h4>
-            <p class="text-secondary">Awards Ceremony</p>
-          </div>
-        </div>
-      </div>
-    </section>
+      </section>
+    )}
 
     <!-- Winners Showcase Section -->
     <section class="section bg-light">

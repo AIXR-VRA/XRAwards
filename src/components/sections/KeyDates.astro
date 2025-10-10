@@ -1,0 +1,126 @@
+---
+interface Props {
+  year: number;
+  nominationsOpen?: string;
+  nominationsClose?: string;
+  finalistsAnnounced?: string;
+  judgingPeriodStart?: string;
+  judgingPeriodEnd?: string;
+  awardsCeremony?: string;
+}
+
+const {
+  year,
+  nominationsOpen,
+  nominationsClose,
+  finalistsAnnounced,
+  judgingPeriodStart,
+  judgingPeriodEnd,
+  awardsCeremony,
+} = Astro.props;
+
+const formatDate = (dateStr: string | undefined): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = date.toLocaleString('en-US', { month: 'short' });
+  const yearNum = date.getFullYear();
+  return `${day} ${month} ${yearNum}`;
+};
+
+const getDay = (dateStr: string | undefined): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.getDate().toString().padStart(2, '0');
+};
+
+const getMonth = (dateStr: string | undefined): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleString('en-US', { month: 'short' });
+};
+
+interface KeyDate {
+  date: string;
+  label: string;
+  sublabel?: string;
+  color: 'pink' | 'purple' | 'cyan' | 'orange';
+}
+
+const keyDates: KeyDate[] = [
+  nominationsOpen && {
+    date: nominationsOpen,
+    label: formatDate(nominationsOpen),
+    sublabel: 'Nominations Open',
+    color: 'pink' as const,
+  },
+  nominationsClose && {
+    date: nominationsClose,
+    label: formatDate(nominationsClose),
+    sublabel: 'Nominations Close\n(Late Fees Apply)',
+    color: 'pink' as const,
+  },
+  finalistsAnnounced && {
+    date: finalistsAnnounced,
+    label: formatDate(finalistsAnnounced),
+    sublabel: 'Finalists Announced',
+    color: 'cyan' as const,
+  },
+  judgingPeriodStart && judgingPeriodEnd && {
+    date: judgingPeriodStart,
+    label: `${getDay(judgingPeriodStart)} ${getMonth(judgingPeriodStart)} - ${getDay(judgingPeriodEnd)} ${getMonth(judgingPeriodEnd)}`,
+    sublabel: 'Judging Period',
+    color: 'orange' as const,
+  },
+  awardsCeremony && {
+    date: awardsCeremony,
+    label: formatDate(awardsCeremony),
+    sublabel: 'Awards Ceremony',
+    color: 'purple' as const,
+  },
+].filter(Boolean) as KeyDate[];
+
+const colorClasses = {
+  pink: 'bg-pink-500',
+  purple: 'bg-purple-500',
+  cyan: 'bg-cyan-500',
+  orange: 'bg-orange-500',
+};
+---
+
+<div class="bg-[#1e1b3c] text-white py-12 px-6 rounded-lg">
+  <h3 class="text-xl font-semibold mb-8 text-right">{year} Key Dates</h3>
+
+  <div class="space-y-6">
+    {keyDates.map((item) => (
+      <div class="flex items-center gap-4">
+        <!-- Icon circle -->
+        <div class={`w-12 h-12 ${colorClasses[item.color]} rounded-full flex items-center justify-center flex-shrink-0`}>
+          <svg
+            class="w-6 h-6 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width={2}
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+        </div>
+
+        <!-- Date and label -->
+        <div class="flex-1">
+          <div class="text-base font-semibold">
+            {item.label}
+          </div>
+          <div class="text-sm text-white/70 whitespace-pre-line">
+            {item.sublabel}
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>

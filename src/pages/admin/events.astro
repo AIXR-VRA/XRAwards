@@ -1,0 +1,527 @@
+---
+/**
+ * Admin Event Details Management Page
+ */
+import AdminLayout from '../../components/admin/AdminLayout.astro';
+import { createServerClient } from '@supabase/ssr';
+
+// Check authentication
+const supabase = createServerClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY,
+  {
+    cookies: {
+      get(key: string) {
+        return Astro.cookies.get(key)?.value;
+      },
+      set(key: string, value: string, options: any) {
+        Astro.cookies.set(key, value, options);
+      },
+      remove(key: string, options: any) {
+        Astro.cookies.delete(key, options);
+      },
+    },
+  }
+);
+
+const { data: { session } } = await supabase.auth.getSession();
+
+// Redirect if not authenticated
+if (!session) {
+  return Astro.redirect('/admin/login');
+}
+---
+
+<AdminLayout title="Event Details" activePage="events" session={session}>
+  <div class="space-y-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Event Details</h1>
+        <p class="mt-2 text-gray-600">Manage event information and key dates</p>
+      </div>
+      <button
+        id="addEventBtn"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+      >
+        + Add Event
+      </button>
+    </div>
+
+    <!-- Events List -->
+    <div id="eventsList" class="grid grid-cols-1 gap-6">
+      <!-- Loading state -->
+      <div class="col-span-full text-center py-12">
+        <p class="text-gray-500">Loading events...</p>
+      </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="eventModal" class="hidden fixed inset-0 bg-black/50 items-center justify-center z-50 p-4 overflow-y-auto">
+      <div class="bg-white rounded-lg max-w-3xl w-full p-6 my-8">
+        <div class="flex items-center justify-between mb-6">
+          <h2 id="modalTitle" class="text-xl font-semibold text-gray-900">Add Event</h2>
+          <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form id="eventForm" class="space-y-6">
+          <input type="hidden" id="eventId" name="id" />
+
+          <!-- Basic Info Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Basic Information</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="event_name" class="block text-sm font-medium text-gray-700 mb-1">
+                  Event Name *
+                </label>
+                <input
+                  type="text"
+                  id="event_name"
+                  name="event_name"
+                  required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., United XR Awards 2025"
+                />
+              </div>
+
+              <div>
+                <label for="event_year" class="block text-sm font-medium text-gray-700 mb-1">
+                  Event Year *
+                </label>
+                <input
+                  type="number"
+                  id="event_year"
+                  name="event_year"
+                  required
+                  min="2020"
+                  max="2100"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="2025"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="location" class="block text-sm font-medium text-gray-700 mb-1">
+                  Location *
+                </label>
+                <input
+                  type="text"
+                  id="location"
+                  name="location"
+                  required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Brussels, Belgium"
+                />
+              </div>
+
+              <div>
+                <label for="organizer_name" class="block text-sm font-medium text-gray-700 mb-1">
+                  Organizer Name
+                </label>
+                <input
+                  type="text"
+                  id="organizer_name"
+                  name="organizer_name"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., AIXR"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                rows="3"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="Brief description of the event..."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Key Dates Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Key Dates</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="nominations_open" class="block text-sm font-medium text-gray-700 mb-1">
+                  Nominations Open
+                </label>
+                <input
+                  type="date"
+                  id="nominations_open"
+                  name="nominations_open"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label for="nominations_close" class="block text-sm font-medium text-gray-700 mb-1">
+                  Nominations Close
+                </label>
+                <input
+                  type="date"
+                  id="nominations_close"
+                  name="nominations_close"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label for="finalists_announced" class="block text-sm font-medium text-gray-700 mb-1">
+                  Finalists Announced
+                </label>
+                <input
+                  type="date"
+                  id="finalists_announced"
+                  name="finalists_announced"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label for="awards_ceremony" class="block text-sm font-medium text-gray-700 mb-1">
+                  Awards Ceremony
+                </label>
+                <input
+                  type="date"
+                  id="awards_ceremony"
+                  name="awards_ceremony"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label for="judging_period_start" class="block text-sm font-medium text-gray-700 mb-1">
+                  Judging Period Start
+                </label>
+                <input
+                  type="date"
+                  id="judging_period_start"
+                  name="judging_period_start"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label for="judging_period_end" class="block text-sm font-medium text-gray-700 mb-1">
+                  Judging Period End
+                </label>
+                <input
+                  type="date"
+                  id="judging_period_end"
+                  name="judging_period_end"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Portal Links Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Portal Links</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="nomination_portal_url" class="block text-sm font-medium text-gray-700 mb-1">
+                  Nomination Portal URL
+                </label>
+                <input
+                  type="url"
+                  id="nomination_portal_url"
+                  name="nomination_portal_url"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://..."
+                />
+              </div>
+
+              <div>
+                <label for="tickets_portal_url" class="block text-sm font-medium text-gray-700 mb-1">
+                  Tickets Portal URL
+                </label>
+                <input
+                  type="url"
+                  id="tickets_portal_url"
+                  name="tickets_portal_url"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Status -->
+          <div>
+            <label class="flex items-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input
+                type="checkbox"
+                id="is_active"
+                name="is_active"
+                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <div>
+                <span class="text-sm font-medium text-gray-700">Set as Active Event</span>
+                <p class="text-xs text-gray-500">Only one event can be active at a time. This will be shown on the homepage.</p>
+              </div>
+            </label>
+          </div>
+
+          <div id="modalError" class="hidden text-red-600 text-sm"></div>
+
+          <div class="flex space-x-3 pt-4">
+            <button
+              type="submit"
+              class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              id="cancelBtn"
+              class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  let events: any[] = [];
+
+  // Format date for display
+  function formatDate(dateStr: string | null): string {
+    if (!dateStr) return 'Not set';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  // Load events
+  async function loadEvents() {
+    try {
+      const response = await fetch('/api/events');
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error);
+
+      events = data.events || [];
+      renderEvents();
+    } catch (error: any) {
+      const list = document.getElementById('eventsList')!;
+      list.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <p class="text-red-600">Error loading events: ${error.message}</p>
+        </div>
+      `;
+    }
+  }
+
+  // Helper to escape HTML for safe display
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Render events
+  function renderEvents() {
+    const list = document.getElementById('eventsList')!;
+
+    if (events.length === 0) {
+      list.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <p class="text-gray-500">No events yet. Add your first event!</p>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = events.map(event => `
+      <div class="bg-white border ${event.is_active ? 'border-blue-500 border-2' : 'border-gray-200'} rounded-lg p-6 hover:shadow-sm transition-shadow">
+        <div class="flex items-start justify-between mb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-xl font-semibold text-gray-900">${escapeHtml(event.event_name)}</h3>
+              ${event.is_active ? '<span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">Active</span>' : ''}
+            </div>
+            <p class="text-sm text-gray-600 mt-1">${escapeHtml(event.location)} | ${event.event_year}</p>
+            ${event.organizer_name ? `<p class="text-xs text-gray-500 mt-1">Organized by ${escapeHtml(event.organizer_name)}</p>` : ''}
+          </div>
+        </div>
+
+        ${event.description ? `<p class="text-sm text-gray-600 mb-4">${escapeHtml(event.description)}</p>` : ''}
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
+          <div>
+            <p class="text-xs text-gray-500">Nominations Open</p>
+            <p class="text-sm font-medium text-gray-900">${formatDate(event.nominations_open)}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Nominations Close</p>
+            <p class="text-sm font-medium text-gray-900">${formatDate(event.nominations_close)}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Finalists Announced</p>
+            <p class="text-sm font-medium text-gray-900">${formatDate(event.finalists_announced)}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Judging Period</p>
+            <p class="text-sm font-medium text-gray-900">${formatDate(event.judging_period_start)} - ${formatDate(event.judging_period_end)}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Awards Ceremony</p>
+            <p class="text-sm font-medium text-gray-900">${formatDate(event.awards_ceremony)}</p>
+          </div>
+        </div>
+
+        <div class="flex space-x-2 pt-4 border-t border-gray-100">
+          <button
+            onclick="editEvent('${event.id}')"
+            class="flex-1 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          >
+            Edit
+          </button>
+          <button
+            onclick="deleteEvent('${event.id}', '${escapeHtml(event.event_name)}')"
+            class="flex-1 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Modal controls
+  const modal = document.getElementById('eventModal')!;
+  const modalTitle = document.getElementById('modalTitle')!;
+  const form = document.getElementById('eventForm') as HTMLFormElement;
+  const modalError = document.getElementById('modalError')!;
+
+  function openModal(title: string) {
+    modalTitle.textContent = title;
+    modalError.classList.add('hidden');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    form.reset();
+    (document.getElementById('eventId') as HTMLInputElement).value = '';
+  }
+
+  document.getElementById('addEventBtn')!.addEventListener('click', () => {
+    openModal('Add Event');
+  });
+
+  document.getElementById('closeModalBtn')!.addEventListener('click', closeModal);
+  document.getElementById('cancelBtn')!.addEventListener('click', closeModal);
+
+  // Edit event
+  (window as any).editEvent = (id: string) => {
+    const event = events.find(e => e.id === id);
+    if (!event) return;
+
+    (document.getElementById('eventId') as HTMLInputElement).value = event.id;
+    (document.getElementById('event_name') as HTMLInputElement).value = event.event_name;
+    (document.getElementById('event_year') as HTMLInputElement).value = event.event_year?.toString() || '';
+    (document.getElementById('location') as HTMLInputElement).value = event.location || '';
+    (document.getElementById('organizer_name') as HTMLInputElement).value = event.organizer_name || '';
+    (document.getElementById('description') as HTMLTextAreaElement).value = event.description || '';
+    (document.getElementById('nominations_open') as HTMLInputElement).value = event.nominations_open || '';
+    (document.getElementById('nominations_close') as HTMLInputElement).value = event.nominations_close || '';
+    (document.getElementById('finalists_announced') as HTMLInputElement).value = event.finalists_announced || '';
+    (document.getElementById('judging_period_start') as HTMLInputElement).value = event.judging_period_start || '';
+    (document.getElementById('judging_period_end') as HTMLInputElement).value = event.judging_period_end || '';
+    (document.getElementById('awards_ceremony') as HTMLInputElement).value = event.awards_ceremony || '';
+    (document.getElementById('nomination_portal_url') as HTMLInputElement).value = event.nomination_portal_url || '';
+    (document.getElementById('tickets_portal_url') as HTMLInputElement).value = event.tickets_portal_url || '';
+    (document.getElementById('is_active') as HTMLInputElement).checked = event.is_active !== false;
+
+    openModal('Edit Event');
+  };
+
+  // Delete event
+  (window as any).deleteEvent = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+
+    try {
+      const response = await fetch('/api/events', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      await loadEvents();
+    } catch (error: any) {
+      alert('Error deleting event: ' + error.message);
+    }
+  };
+
+  // Form submit
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    modalError.classList.add('hidden');
+
+    const formData = new FormData(form);
+    const id = formData.get('id') as string;
+
+    const data = {
+      id: id || undefined,
+      event_name: formData.get('event_name'),
+      event_year: parseInt(formData.get('event_year') as string),
+      location: formData.get('location'),
+      organizer_name: formData.get('organizer_name') || null,
+      description: formData.get('description') || null,
+      nominations_open: formData.get('nominations_open') || null,
+      nominations_close: formData.get('nominations_close') || null,
+      finalists_announced: formData.get('finalists_announced') || null,
+      judging_period_start: formData.get('judging_period_start') || null,
+      judging_period_end: formData.get('judging_period_end') || null,
+      awards_ceremony: formData.get('awards_ceremony') || null,
+      nomination_portal_url: formData.get('nomination_portal_url') || null,
+      tickets_portal_url: formData.get('tickets_portal_url') || null,
+      is_active: (document.getElementById('is_active') as HTMLInputElement).checked,
+    };
+
+    try {
+      const response = await fetch('/api/events', {
+        method: id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+
+      closeModal();
+      await loadEvents();
+    } catch (error: any) {
+      modalError.textContent = error.message;
+      modalError.classList.remove('hidden');
+    }
+  });
+
+  // Initial load
+  loadEvents();
+</script>

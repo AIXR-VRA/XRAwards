@@ -54,12 +54,13 @@ export const GET: APIRoute = async ({ cookies }) => {
       );
     }
 
-    // Fetch finalists with their categories and tags
+    // Fetch finalists with their categories, event details, and tags
     const { data, error } = await supabase
       .from('finalists')
       .select(`
         *,
         categories(*),
+        event_details(*),
         finalist_tags (
           tag_id,
           tags (*)
@@ -101,19 +102,19 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { title, organization, description, category_id, image_url, website_url, is_winner, year, placement, tag_ids } = body;
+    const { title, organization, description, category_id, event_id, image_url, website_url, is_winner, placement, tag_ids } = body;
 
-    if (!title || !category_id) {
+    if (!title || !category_id || !event_id) {
       return new Response(
-        JSON.stringify({ error: 'Title and category are required' }),
+        JSON.stringify({ error: 'Title, category, and event are required' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     const { data, error } = await supabase
       .from('finalists')
-      .insert({ title, organization, description, category_id, image_url, website_url, is_winner, year, placement })
-      .select('*, categories(*)')
+      .insert({ title, organization, description, category_id, event_id, image_url, website_url, is_winner, placement })
+      .select('*, categories(*), event_details(*)')
       .single();
 
     if (error) throw error;
@@ -158,7 +159,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { id, title, organization, description, category_id, image_url, website_url, is_winner, year, placement, tag_ids } = body;
+    const { id, title, organization, description, category_id, event_id, image_url, website_url, is_winner, placement, tag_ids } = body;
 
     if (!id) {
       return new Response(
@@ -169,9 +170,9 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
 
     const { data, error } = await supabase
       .from('finalists')
-      .update({ title, organization, description, category_id, image_url, website_url, is_winner, year, placement })
+      .update({ title, organization, description, category_id, event_id, image_url, website_url, is_winner, placement })
       .eq('id', id)
-      .select('*, categories(*)')
+      .select('*, categories(*), event_details(*)')
       .single();
 
     if (error) throw error;
