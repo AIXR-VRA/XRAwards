@@ -1,0 +1,203 @@
+---
+/**
+ * Public Judges Page
+ * Shows all visible judges for the active event
+ */
+export const prerender = true;
+
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { supabase } from '../utils/supabase';
+
+// Fetch active event details
+const { data: eventDetails } = await supabase
+  .from('event_details')
+  .select('*')
+  .eq('is_active', true)
+  .single();
+
+// Fetch all judges for the active event with their tags
+const { data: judges } = await supabase
+  .from('judges')
+  .select(`
+    id,
+    first_name,
+    last_name,
+    job_title,
+    organization,
+    profile_image_url,
+    sort_order,
+    judge_events!inner(event_id),
+    judge_tags(
+      tags(
+        id,
+        name
+      )
+    )
+  `)
+  .eq('judge_events.event_id', eventDetails?.id)
+  .eq('is_visible', true)
+  .order('sort_order', { ascending: true })
+  .order('last_name', { ascending: true });
+---
+
+<Layout
+  title="Expert Judges - AIXR XR Awards"
+  description="Meet our expert judging panel for the AIXR XR Awards, featuring industry-leading creatives in virtual and augmented reality."
+>
+  <Header />
+
+  <main class="min-h-screen bg-white">
+    <!-- Judges Header -->
+    <section class="relative bg-[#0E1022] pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <!-- Left Ring - Offset Up with Gradient -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <!-- Right Ring - Offset Down with Gradient -->
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+
+      <!-- Content -->
+      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="judge-title text-white mb-6">
+          Expert Judges
+        </h1>
+
+        <!-- Decorative Dots -->
+        <div class="flex justify-center gap-2 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        </div>
+
+        <p class="judge-subtitle text-white">
+          Our judging panel is made up of industry-leading creatives in virtual reality
+        </p>
+      </div>
+    </section>
+
+    <!-- Judges Grid -->
+    <section class="py-16 md:py-20" style="background-color: #F2F2F2;">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {judges && judges.length > 0 ? (
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {judges.map((judge) => (
+              <div class="judge-card bg-white rounded-xl overflow-hidden group shadow-sm hover:shadow-lg transition-shadow duration-300">
+                {/* Judge Image */}
+                <div class="relative aspect-square overflow-hidden bg-gray-100">
+                  {judge.profile_image_url ? (
+                    <img
+                      src={judge.profile_image_url}
+                      alt={`${judge.first_name} ${judge.last_name}`}
+                      class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                    />
+                  ) : (
+                    <div class="w-full h-full bg-gray-200 transition-transform duration-500 ease-out group-hover:scale-110"></div>
+                  )}
+
+                  {/* Tag Pills - positioned at top */}
+                  {judge.judge_tags && judge.judge_tags.length > 0 && (
+                    <div class="absolute top-3 left-3 flex flex-wrap gap-2">
+                      {judge.judge_tags.map((judgeTag) => (
+                        judgeTag.tags && (
+                          <span class="px-3 py-1 bg-purple-600 text-white text-xs font-medium rounded-full uppercase tracking-wide">
+                            {judgeTag.tags.name}
+                          </span>
+                        )
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Judge Info - left aligned */}
+                <div class="p-5">
+                  <h3 class="text-lg font-bold text-gray-900 mb-2">{judge.first_name} {judge.last_name}</h3>
+                  <p class="text-sm font-medium text-gray-700 mb-1">{judge.job_title}</p>
+                  <p class="text-sm text-gray-600">{judge.organization}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div class="text-center py-12">
+            <p class="text-gray-500 text-lg">
+              Judges will be announced soon. Stay tuned!
+            </p>
+          </div>
+        )}
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 bg-[#0E1022]">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+          <!-- Left Content -->
+          <div class="flex-1">
+            <h2 class="text-white mb-3" style="font-size: 26px; font-weight: 600;">
+              Ready to Submit Your Entry?
+            </h2>
+            <!-- Zigzag Decoration -->
+            <div class="mb-6">
+              <svg width="95" height="12" viewBox="0 0 95 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 6L8 0L16 6L24 0L32 6L40 0L48 6L56 0L64 6L72 0L80 6L88 0L95 6" stroke="#FF7733" stroke-width="2" stroke-linejoin="miter"/>
+              </svg>
+            </div>
+            <p class="text-gray-300 text-base md:text-lg max-w-xl">
+              Register interest for all events updates, including the announcement of the winners.
+            </p>
+          </div>
+
+          <!-- Right Form -->
+          <div class="flex-1 w-full lg:max-w-md">
+            <form class="flex flex-col sm:flex-row gap-3">
+              <input
+                type="email"
+                placeholder="Email"
+                class="flex-1 px-4 py-3 rounded-md bg-transparent border border-white/20 text-white placeholder-gray-400 focus:outline-hidden focus:border-white/40 transition-colors"
+                required
+              />
+              <button
+                type="submit"
+                class="px-6 py-3 bg-[#4923EB] text-white font-semibold rounded-md hover:bg-[#3a1bbd] transition-colors whitespace-nowrap"
+              >
+                Stay up to date
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .judge-title {
+    font-size: 35px;
+    font-weight: 600;
+  }
+
+  .judge-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  .judge-card {
+    transition: transform 0.3s ease;
+  }
+
+  .judge-card:hover {
+    transform: translateY(-4px);
+  }
+</style>
