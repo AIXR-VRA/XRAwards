@@ -9,10 +9,18 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/node": "^9.4.5",
+    "@astrojs/react": "^4.4.0",
     "@astrojs/sitemap": "^3.4.1",
+    "@aws-sdk/client-s3": "^3.907.0",
+    "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.0",
     "@tailwindcss/vite": "^4.0.0",
-    "astro": "^5.8.0"
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.1",
+    "astro": "^5.8.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "vite": "^7.1.9"
