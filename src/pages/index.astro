@@ -275,49 +275,79 @@ const { data: judges } = await supabase
     <!-- Winners Showcase Section -->
     <section class="section bg-light">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-          <h2 class="text-4xl font-bold mb-4">Explore Award Winning Companies</h2>
-          <p class="text-lg text-secondary max-w-3xl mx-auto mb-8">
-            The impact of becoming a finalist at the XR Awards Gala
-          </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/winners-and-finalists-2024" class="btn btn-primary">2024 Winners</a>
-            <a href="/xr-awards-2024" class="btn btn-outline">Relive the 2024 night</a>
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12">
+          <div class="mb-6 md:mb-0">
+            <h2 class="text-4xl font-bold mb-4 text-left">Explore Award Winning Companies</h2>
+            <p class="text-lg text-secondary text-left max-w-2xl">
+              The impact of becoming a finalist at the XR Awards Gala
+            </p>
+          </div>
+          <div class="flex gap-4 ml-auto">
+            <a href="/winners-and-finalists-2024" class="inline-flex items-center px-4 py-2 bg-white text-dark text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors">2024 Winners</a>
+            <a href="/xr-awards-2024" class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors">Relive the 2024 night</a>
           </div>
         </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div class="card">
-            <div class="aspect-video bg-gray-200"></div>
-            <div class="p-6">
-              <div class="flex items-center justify-between mb-4">
-                <div class="h-8 w-16 bg-gray-300 rounded"></div>
-                <span class="text-sm text-secondary">2024</span>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Left Column: 2 images stacked -->
+          <div class="grid grid-rows-2 gap-6">
+            <!-- Apple Vision Pro -->
+            <div class="relative group overflow-hidden rounded-2xl aspect-[16/10]">
+              <img
+                src="https://images.unsplash.com/photo-1591799265444-d66432b91588?w=800&h=500&fit=crop"
+                alt="Apple Vision Pro"
+                class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+              <div class="absolute bottom-0 left-0 p-6 text-white">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="bg-white/20 backdrop-blur-sm rounded-lg p-2 w-12 h-12 flex items-center justify-center">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                    </svg>
+                  </div>
+                </div>
+                <h3 class="text-xl font-bold mb-1">Apple – Apple Vision Pro</h3>
+                <p class="text-sm text-white/90">XR Head-Mounted-Display of the Year</p>
               </div>
-              <h3 class="text-xl font-semibold text-dark mb-2">Apple – Apple Vision Pro</h3>
-              <h4 class="text-sm font-medium text-primary uppercase tracking-wide">XR Head-Mounted-Display of the Year</h4>
+            </div>
+
+            <!-- Qualcomm -->
+            <div class="relative group overflow-hidden rounded-2xl aspect-[16/10]">
+              <img
+                src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=500&fit=crop"
+                alt="Qualcomm"
+                class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+              <div class="absolute bottom-0 left-0 p-6 text-white">
+                <div class="flex items-center gap-3 mb-3">
+                  <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2L2 7v10l10 5 10-5V7z"/>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-bold mb-1">Qualcomm</h3>
+                <p class="text-sm text-white/90">Outstanding XR Company of the Year</p>
+              </div>
             </div>
           </div>
-          <div class="card">
-            <div class="aspect-video bg-gray-200"></div>
-            <div class="p-6">
-              <div class="flex items-center justify-between mb-4">
-                <div class="h-8 w-16 bg-gray-300 rounded"></div>
-                <span class="text-sm text-secondary">2024</span>
+
+          <!-- Right Column: 1 full height image -->
+          <div class="relative group overflow-hidden rounded-2xl">
+            <img
+              src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&h=1000&fit=crop"
+              alt="Meta & Sanzaru Games – Asgard's Wrath 2"
+              class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 p-6 text-white">
+              <div class="flex items-center gap-3 mb-3">
+                <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M14.5 2c-1.5 0-2.7 1.1-3 2.5h-3c-.3-1.4-1.5-2.5-3-2.5-1.7 0-3 1.3-3 3s1.3 3 3 3c1.5 0 2.7-1.1 3-2.5h3c.3 1.4 1.5 2.5 3 2.5 1.7 0 3-1.3 3-3s-1.3-3-3-3zm-9 16c-1.5 0-2.7 1.1-3 2.5h-3c-.3-1.4-1.5-2.5-3-2.5-1.7 0-3 1.3-3 3s1.3 3 3 3c1.5 0 2.7-1.1 3-2.5h3c.3 1.4 1.5 2.5 3 2.5 1.7 0 3-1.3 3-3s-1.3-3-3-3z"/>
+                </svg>
               </div>
-              <h3 class="text-xl font-semibold text-dark mb-2">Qualcomm</h3>
-              <h4 class="text-sm font-medium text-primary uppercase tracking-wide">Outstanding XR Company of the Year</h4>
-            </div>
-          </div>
-          <div class="card">
-            <div class="aspect-video bg-gray-200"></div>
-            <div class="p-6">
-              <div class="flex items-center justify-between mb-4">
-                <div class="h-8 w-16 bg-gray-300 rounded"></div>
-                <span class="text-sm text-secondary">2024</span>
-              </div>
-              <h3 class="text-xl font-semibold text-dark mb-2">Meta & Sanzaru Games – Asgard's Wrath 2</h3>
-              <h4 class="text-sm font-medium text-primary uppercase tracking-wide">XR Game of the Year</h4>
+              <h3 class="text-2xl font-bold mb-1">Meta & Sanzaru Games – Asgard's Wrath 2</h3>
+              <p class="text-base text-white/90">XR Game of the Year</p>
             </div>
           </div>
         </div>
@@ -325,11 +355,23 @@ const { data: judges } = await supabase
     </section>
 
     <!-- Judges Section -->
-    <section class="section">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
+    <section class="section relative overflow-hidden">
+      <!-- Grid Pattern Background -->
+      <div class="absolute inset-0 judges-grid-wrapper" style="perspective: 1000px;">
+        <div class="absolute judges-grid" style="top: -150%; left: -100%; right: -100%; bottom: -100%; background-image:
+          repeating-linear-gradient(0deg, transparent, transparent 58px, rgba(73, 35, 235, 0.15) 58px, rgba(73, 35, 235, 0.15) 60px),
+          repeating-linear-gradient(90deg, transparent, transparent 58px, rgba(73, 35, 235, 0.15) 58px, rgba(73, 35, 235, 0.15) 60px),
+          radial-gradient(circle at center, rgba(73, 35, 235, 0.3) 1px, transparent 1px);
+          background-size: 60px 60px, 60px 60px, 10px 10px;
+          background-position: center center;
+          transform: rotateX(55deg) rotateZ(-8deg);
+          transform-origin: center center;"></div>
+      </div>
+
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="text-left mb-12">
           <h2 class="text-4xl font-bold mb-4">Over 70 Expert Judges</h2>
-          <p class="text-lg text-secondary max-w-4xl mx-auto mb-8">
+          <p class="text-lg text-secondary max-w-4xl mb-8">
             Our judging panel is made up of industry-leading creatives in virtual reality. We have gathered experts in various sectors of XR, from academics, journalists, and creative directors to founders and C-Suite executives.
           </p>
         </div>
@@ -374,53 +416,131 @@ const { data: judges } = await supabase
         </div>
 
         <div class="text-center">
-          <a href="/judges" class="btn btn-primary">See the Full Judging Panel</a>
+          <a href="/judges" class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors">See the Full Judging Panel</a>
         </div>
       </div>
     </section>
 
     <!-- Testimonials Section -->
-    <section class="section bg-light">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-          <h2 class="text-4xl font-bold mb-4">What they say</h2>
-          <p class="text-lg text-secondary max-w-3xl mx-auto">
+    <section class="relative bg-[#0E1022] py-20 md:py-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <!-- Left Ring - Offset Up with Gradient -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <!-- Right Ring - Offset Down with Gradient -->
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+
+      <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-left mb-8">
+          <h2 class="text-4xl font-bold mb-4 text-white">What they say</h2>
+          <p class="text-base text-white/80 max-w-3xl">
             Hear from previous attendees about their experience with the AIXR XR Awards and European XR Awards.
           </p>
+
+          <!-- Decorative Dots -->
+          <div class="flex gap-2 mt-6">
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          </div>
         </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div class="card">
-            <div class="mb-4">
-              <div class="h-8 w-16 bg-gray-300 rounded"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
+          <!-- Google Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <svg class="h-8 w-auto text-white" viewBox="0 0 272 92" fill="currentColor">
+                <text x="0" y="60" font-family="Arial, sans-serif" font-size="60" font-weight="bold">Google</text>
+              </svg>
             </div>
-            <blockquote class="text-lg text-dark mb-4 leading-relaxed">
-              "The AIXR XR Awards is a very important event for us and we're so excited to see all the great companies participating."
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              The AIXR XR Awards is a very important event for us and we're so excited to see all the great companies participating.
             </blockquote>
-            <div class="text-sm text-secondary">
+            <div class="text-sm text-white/70">
               <span class="font-medium">— Google</span>
             </div>
           </div>
-          <div class="card">
-            <div class="mb-4">
-              <div class="h-8 w-16 bg-gray-300 rounded"></div>
+
+          <!-- VR Scout Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <svg class="h-8 w-auto text-white" viewBox="0 0 272 92" fill="currentColor">
+                <text x="0" y="60" font-family="Arial, sans-serif" font-size="48" font-weight="bold">VR SCOUT</text>
+              </svg>
             </div>
-            <blockquote class="text-lg text-dark mb-4 leading-relaxed">
-              "Some of XR's biggest luminaries in attendance all there to celebrate some of the outstanding milestones in the industry."
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              Some of XR's biggest luminaries in attendance all there to celebrate some of the outstanding milestones in the industry.
             </blockquote>
-            <div class="text-sm text-secondary">
+            <div class="text-sm text-white/70">
               <span class="font-medium">— VR Scout</span>
             </div>
           </div>
-          <div class="card">
-            <div class="mb-4">
-              <div class="h-8 w-16 bg-gray-300 rounded"></div>
+
+          <!-- Meta Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <svg class="h-8 w-auto text-white" viewBox="0 0 272 92" fill="currentColor">
+                <text x="0" y="60" font-family="Arial, sans-serif" font-size="60" font-weight="bold">Meta</text>
+              </svg>
             </div>
-            <blockquote class="text-lg text-dark mb-4 leading-relaxed">
-              "A great event that brings the XR community together to celebrate each other's success."
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              A great event that brings the XR community together to celebrate each other's success.
             </blockquote>
-            <div class="text-sm text-secondary">
+            <div class="text-sm text-white/70">
               <span class="font-medium">— Meta</span>
+            </div>
+          </div>
+
+          <!-- Cloudhead Games Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <svg class="h-8 w-auto text-white" viewBox="0 0 272 92" fill="currentColor">
+                <text x="0" y="30" font-family="Arial, sans-serif" font-size="28" font-weight="bold">CLOUDHEAD GAMES</text>
+              </svg>
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              The AIXR XR Awards is a fun and sophisticated event that truly connected all facets of this burgeoning industry.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— Cloudhead Games</span>
+            </div>
+          </div>
+
+          <!-- Magnopus Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <svg class="h-8 w-auto text-white" viewBox="0 0 272 92" fill="currentColor">
+                <text x="0" y="60" font-family="Arial, sans-serif" font-size="48" font-weight="bold">MAGNOPUS</text>
+              </svg>
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              Can't thank the judges, the organisers and the community enough for the passion that has gone into this event.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— Magnopus</span>
+            </div>
+          </div>
+
+          <!-- Virtualware Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <svg class="h-8 w-auto text-white" viewBox="0 0 272 92" fill="currentColor">
+                <text x="0" y="60" font-family="Arial, sans-serif" font-size="42" font-weight="bold">VIRTUALWARE</text>
+              </svg>
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              The celebration of the Oscars in Virtual & Augmented reality. Unforgettable red carpet night.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— Virtualware</span>
             </div>
           </div>
         </div>
@@ -462,5 +582,20 @@ const { data: judges } = await supabase
 
   .group:hover .feature-arrow {
     transform: rotate(45deg);
+  }
+
+  /* Grid perspective - remove on mobile */
+  @media (max-width: 768px) {
+    .judges-grid-wrapper {
+      perspective: none !important;
+    }
+
+    .judges-grid {
+      transform: none !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+    }
   }
 </style>
