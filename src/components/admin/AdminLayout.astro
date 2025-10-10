@@ -6,7 +6,7 @@
 
 interface Props {
   title: string;
-  activePage?: 'dashboard' | 'upload' | 'categories' | 'finalists' | 'tags' | 'events';
+  activePage?: 'dashboard' | 'upload' | 'categories' | 'finalists' | 'tags' | 'events' | 'sponsors' | 'judges';
   session: {
     user: {
       email?: string;
@@ -22,6 +22,8 @@ const navItems = [
   { id: 'upload', label: 'Media Upload', href: '/admin/upload' },
   { id: 'categories', label: 'Categories', href: '/admin/categories' },
   { id: 'finalists', label: 'Finalists', href: '/admin/finalists' },
+  { id: 'sponsors', label: 'Sponsors', href: '/admin/sponsors' },
+  { id: 'judges', label: 'Judges', href: '/admin/judges' },
   { id: 'tags', label: 'Tags', href: '/admin/tags' },
 ];
 ---

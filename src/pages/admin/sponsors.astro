@@ -1,0 +1,714 @@
+---
+/**
+ * Admin Sponsors Management Page
+ */
+import AdminLayout from '../../components/admin/AdminLayout.astro';
+import { createServerClient } from '@supabase/ssr';
+
+// Check authentication
+const supabase = createServerClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY,
+  {
+    cookies: {
+      get(key: string) {
+        return Astro.cookies.get(key)?.value;
+      },
+      set(key: string, value: string, options: any) {
+        Astro.cookies.set(key, value, options);
+      },
+      remove(key: string, options: any) {
+        Astro.cookies.delete(key, options);
+      },
+    },
+  }
+);
+
+const { data: { session } } = await supabase.auth.getSession();
+
+// Redirect if not authenticated
+if (!session) {
+  return Astro.redirect('/admin/login');
+}
+---
+
+<AdminLayout title="Sponsors" activePage="sponsors" session={session}>
+  <div class="space-y-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Sponsors</h1>
+        <p class="mt-2 text-gray-600">Manage event and category sponsors</p>
+      </div>
+      <button
+        id="addSponsorBtn"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+      >
+        + Add Sponsor
+      </button>
+    </div>
+
+    <!-- Filter -->
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <div class="flex flex-wrap gap-4">
+        <select id="eventFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All Events</option>
+        </select>
+        <select id="categoryFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All Categories</option>
+        </select>
+        <select id="visibilityFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All</option>
+          <option value="visible">Visible Only</option>
+          <option value="hidden">Hidden Only</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Sponsors List -->
+    <div id="sponsorsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Loading state -->
+      <div class="col-span-full text-center py-12">
+        <p class="text-gray-500">Loading sponsors...</p>
+      </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="sponsorModal" class="hidden fixed inset-0 bg-black/50 items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+          <h2 id="modalTitle" class="text-xl font-semibold text-gray-900">Add Sponsor</h2>
+          <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form id="sponsorForm" class="space-y-4">
+          <input type="hidden" id="sponsorId" name="id" />
+
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+              Name *
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., Acme Corporation"
+            />
+          </div>
+
+          <div>
+            <label for="tagline" class="block text-sm font-medium text-gray-700 mb-1">
+              Tagline
+            </label>
+            <input
+              type="text"
+              id="tagline"
+              name="tagline"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., Powering the Future of XR"
+            />
+          </div>
+
+          <div>
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows="3"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              placeholder="Brief description of the sponsor..."
+            ></textarea>
+          </div>
+
+          <div>
+            <label for="website_url" class="block text-sm font-medium text-gray-700 mb-1">
+              Website URL
+            </label>
+            <input
+              type="url"
+              id="website_url"
+              name="website_url"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              placeholder="https://example.com"
+            />
+          </div>
+
+          <div>
+            <label for="logo_url" class="block text-sm font-medium text-gray-700 mb-1">
+              Logo URL
+            </label>
+            <input
+              type="url"
+              id="logo_url"
+              name="logo_url"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              placeholder="https://example.com/logo.png"
+            />
+            <p class="text-xs text-gray-500 mt-1">URL to sponsor logo image</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-1">
+                Display Order
+              </label>
+              <input
+                type="number"
+                id="sort_order"
+                name="sort_order"
+                min="0"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="0"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Visibility
+              </label>
+              <label class="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  id="is_visible"
+                  name="is_visible"
+                  checked
+                  class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span class="text-sm text-gray-700">Show publicly</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Events *
+            </label>
+            <div class="border border-gray-300 rounded-lg p-3 min-h-[80px]">
+              <!-- Selected events display -->
+              <div id="selectedEvents" class="flex flex-wrap gap-2 mb-2"></div>
+
+              <!-- Event selector -->
+              <select
+                id="eventSelector"
+                class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">+ Add an event</option>
+              </select>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Select which events this sponsor is associated with</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Categories
+              <span class="text-xs text-gray-500 font-normal">(optional)</span>
+            </label>
+            <div class="border border-gray-300 rounded-lg p-3 min-h-[80px]">
+              <!-- Selected categories display -->
+              <div id="selectedCategories" class="flex flex-wrap gap-2 mb-2"></div>
+
+              <!-- Category selector -->
+              <select
+                id="categorySelector"
+                class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">+ Add a category</option>
+              </select>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Optionally link to specific categories</p>
+          </div>
+
+          <div id="modalError" class="hidden text-red-600 text-sm"></div>
+
+          <div class="flex space-x-3 pt-4">
+            <button
+              type="submit"
+              class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              id="cancelBtn"
+              class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  let sponsors: any[] = [];
+  let availableEvents: any[] = [];
+  let availableCategories: any[] = [];
+  let selectedSponsorEvents: any[] = [];
+  let selectedSponsorCategories: any[] = [];
+  let filters = { event: '', category: '', visibility: '' };
+
+  // Load events
+  async function loadEvents() {
+    try {
+      const response = await fetch('/api/events');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      availableEvents = data.events || [];
+      updateEventSelector();
+      populateEventFilter();
+    } catch (error) {
+      console.error('Error loading events:', error);
+    }
+  }
+
+  // Load categories
+  async function loadCategories() {
+    try {
+      const response = await fetch('/api/categories');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      availableCategories = data.categories || [];
+      updateCategorySelector();
+      populateCategoryFilter();
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  }
+
+  // Populate event filter dropdown
+  function populateEventFilter() {
+    const eventFilter = document.getElementById('eventFilter') as HTMLSelectElement;
+    if (!eventFilter) return;
+
+    eventFilter.innerHTML = '<option value="">All Events</option>' +
+      availableEvents
+        .map(event => `<option value="${event.id}">${event.event_name} (${event.event_year})</option>`)
+        .join('');
+  }
+
+  // Populate category filter dropdown
+  function populateCategoryFilter() {
+    const categoryFilter = document.getElementById('categoryFilter') as HTMLSelectElement;
+    if (!categoryFilter) return;
+
+    categoryFilter.innerHTML = '<option value="">All Categories</option>' +
+      availableCategories
+        .map(category => `<option value="${category.id}">${category.name}</option>`)
+        .join('');
+  }
+
+  // Get filtered sponsors
+  function getFilteredSponsors() {
+    return sponsors.filter(sponsor => {
+      // Filter by event
+      if (filters.event) {
+        const hasEvent = sponsor.events?.some((e: any) => e.id === filters.event);
+        if (!hasEvent) return false;
+      }
+
+      // Filter by category
+      if (filters.category) {
+        const hasCategory = sponsor.categories?.some((c: any) => c.id === filters.category);
+        if (!hasCategory) return false;
+      }
+
+      // Filter by visibility
+      if (filters.visibility === 'visible' && !sponsor.is_visible) return false;
+      if (filters.visibility === 'hidden' && sponsor.is_visible) return false;
+
+      return true;
+    });
+  }
+
+  // Update event selector dropdown
+  function updateEventSelector() {
+    const eventSelector = document.getElementById('eventSelector') as HTMLSelectElement;
+    const selectedIds = selectedSponsorEvents.map(e => e.id);
+
+    eventSelector.innerHTML = '<option value="">+ Add an event</option>' +
+      availableEvents
+        .filter(event => !selectedIds.includes(event.id))
+        .map(event => `<option value="${event.id}">${event.event_name} (${event.event_year})</option>`)
+        .join('');
+  }
+
+  // Update category selector dropdown
+  function updateCategorySelector() {
+    const categorySelector = document.getElementById('categorySelector') as HTMLSelectElement;
+    const selectedIds = selectedSponsorCategories.map(c => c.id);
+
+    categorySelector.innerHTML = '<option value="">+ Add a category</option>' +
+      availableCategories
+        .filter(category => !selectedIds.includes(category.id))
+        .map(category => `<option value="${category.id}">${category.name}</option>`)
+        .join('');
+  }
+
+  // Render selected events as badges
+  function renderSelectedEvents() {
+    const container = document.getElementById('selectedEvents')!;
+
+    if (selectedSponsorEvents.length === 0) {
+      container.innerHTML = '<p class="text-sm text-gray-400 italic">No events selected</p>';
+      return;
+    }
+
+    container.innerHTML = selectedSponsorEvents.map(event => `
+      <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+        ${event.event_name} (${event.event_year})
+        <button
+          type="button"
+          onclick="removeEvent('${event.id}')"
+          class="hover:bg-green-200 rounded-full p-0.5 transition-colors"
+        >
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </span>
+    `).join('');
+  }
+
+  // Render selected categories as badges
+  function renderSelectedCategories() {
+    const container = document.getElementById('selectedCategories')!;
+
+    if (selectedSponsorCategories.length === 0) {
+      container.innerHTML = '<p class="text-sm text-gray-400 italic">No categories selected</p>';
+      return;
+    }
+
+    container.innerHTML = selectedSponsorCategories.map(category => `
+      <span class="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+        ${category.name}
+        <button
+          type="button"
+          onclick="removeCategory('${category.id}')"
+          class="hover:bg-purple-200 rounded-full p-0.5 transition-colors"
+        >
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </span>
+    `).join('');
+  }
+
+  // Add event
+  (window as any).addEvent = (eventId: string) => {
+    if (!eventId) return;
+
+    const event = availableEvents.find(e => e.id === eventId);
+    if (!event) return;
+
+    if (!selectedSponsorEvents.find(e => e.id === eventId)) {
+      selectedSponsorEvents.push(event);
+      renderSelectedEvents();
+      updateEventSelector();
+    }
+  };
+
+  // Remove event
+  (window as any).removeEvent = (eventId: string) => {
+    selectedSponsorEvents = selectedSponsorEvents.filter(e => e.id !== eventId);
+    renderSelectedEvents();
+    updateEventSelector();
+  };
+
+  // Add category
+  (window as any).addCategory = (categoryId: string) => {
+    if (!categoryId) return;
+
+    const category = availableCategories.find(c => c.id === categoryId);
+    if (!category) return;
+
+    if (!selectedSponsorCategories.find(c => c.id === categoryId)) {
+      selectedSponsorCategories.push(category);
+      renderSelectedCategories();
+      updateCategorySelector();
+    }
+  };
+
+  // Remove category
+  (window as any).removeCategory = (categoryId: string) => {
+    selectedSponsorCategories = selectedSponsorCategories.filter(c => c.id !== categoryId);
+    renderSelectedCategories();
+    updateCategorySelector();
+  };
+
+  // Handle selector changes
+  document.addEventListener('DOMContentLoaded', () => {
+    const eventSelector = document.getElementById('eventSelector') as HTMLSelectElement;
+    eventSelector?.addEventListener('change', (e) => {
+      const target = e.target as HTMLSelectElement;
+      (window as any).addEvent(target.value);
+      target.value = '';
+    });
+
+    const categorySelector = document.getElementById('categorySelector') as HTMLSelectElement;
+    categorySelector?.addEventListener('change', (e) => {
+      const target = e.target as HTMLSelectElement;
+      (window as any).addCategory(target.value);
+      target.value = '';
+    });
+
+    // Set up filter event listeners
+    const eventFilter = document.getElementById('eventFilter') as HTMLSelectElement;
+    eventFilter?.addEventListener('change', (e) => {
+      filters.event = (e.target as HTMLSelectElement).value;
+      renderSponsors();
+    });
+
+    const categoryFilter = document.getElementById('categoryFilter') as HTMLSelectElement;
+    categoryFilter?.addEventListener('change', (e) => {
+      filters.category = (e.target as HTMLSelectElement).value;
+      renderSponsors();
+    });
+
+    const visibilityFilter = document.getElementById('visibilityFilter') as HTMLSelectElement;
+    visibilityFilter?.addEventListener('change', (e) => {
+      filters.visibility = (e.target as HTMLSelectElement).value;
+      renderSponsors();
+    });
+  });
+
+  // Load sponsors
+  async function loadSponsors() {
+    try {
+      const response = await fetch('/api/sponsors');
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error);
+
+      sponsors = data.sponsors || [];
+      renderSponsors();
+    } catch (error: any) {
+      const list = document.getElementById('sponsorsList')!;
+      list.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <p class="text-red-600">Error loading sponsors: ${error.message}</p>
+        </div>
+      `;
+    }
+  }
+
+  // Helper to escape HTML for safe display
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Helper to convert newlines to HTML
+  function nl2br(text: string | null | undefined): string {
+    if (!text) return '';
+    const paragraphs = text.split(/\n\n+/);
+    return paragraphs
+      .map(para => para.trim())
+      .filter(para => para.length > 0)
+      .map(para => `<p class="mb-3 last:mb-0">${escapeHtml(para).replace(/\n/g, '<br>')}</p>`)
+      .join('');
+  }
+
+  // Render sponsors
+  function renderSponsors() {
+    const list = document.getElementById('sponsorsList')!;
+    const filteredSponsors = getFilteredSponsors();
+
+    if (sponsors.length === 0) {
+      list.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <p class="text-gray-500">No sponsors yet. Add your first sponsor!</p>
+        </div>
+      `;
+      return;
+    }
+
+    if (filteredSponsors.length === 0) {
+      list.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <p class="text-gray-500">No sponsors match the current filters.</p>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = filteredSponsors.map(sponsor => `
+      <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-shadow ${!sponsor.is_visible ? 'opacity-60 border-dashed' : ''}">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex-1">
+            ${sponsor.logo_url ? `<img src="${escapeHtml(sponsor.logo_url)}" alt="${escapeHtml(sponsor.name)}" class="h-12 w-auto mb-3 object-contain" />` : ''}
+            <h3 class="text-lg font-semibold text-gray-900">${escapeHtml(sponsor.name)}</h3>
+            ${sponsor.tagline ? `<p class="text-sm text-gray-500 italic mt-1">${escapeHtml(sponsor.tagline)}</p>` : ''}
+            ${sponsor.website_url ? `<a href="${escapeHtml(sponsor.website_url)}" target="_blank" class="text-xs text-blue-600 hover:underline break-all">${escapeHtml(sponsor.website_url)}</a>` : ''}
+            ${!sponsor.is_visible ? '<p class="text-xs text-orange-600 font-medium mt-1">Hidden from public</p>' : ''}
+          </div>
+          <span class="text-xs text-gray-400">Order: ${sponsor.sort_order || 0}</span>
+        </div>
+        ${sponsor.description ? `<div class="text-sm text-gray-600 mb-4">${nl2br(sponsor.description)}</div>` : ''}
+        <div class="flex space-x-2 pt-4 border-t border-gray-100">
+          <button
+            onclick="editSponsor('${sponsor.id}')"
+            class="flex-1 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          >
+            Edit
+          </button>
+          <button
+            onclick="deleteSponsor('${sponsor.id}', '${escapeHtml(sponsor.name)}')"
+            class="flex-1 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Modal controls
+  const modal = document.getElementById('sponsorModal')!;
+  const modalTitle = document.getElementById('modalTitle')!;
+  const form = document.getElementById('sponsorForm') as HTMLFormElement;
+  const modalError = document.getElementById('modalError')!;
+
+  function openModal(title: string) {
+    modalTitle.textContent = title;
+    modalError.classList.add('hidden');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    form.reset();
+    (document.getElementById('sponsorId') as HTMLInputElement).value = '';
+    selectedSponsorEvents = [];
+    selectedSponsorCategories = [];
+    renderSelectedEvents();
+    renderSelectedCategories();
+    updateEventSelector();
+    updateCategorySelector();
+  }
+
+  document.getElementById('addSponsorBtn')!.addEventListener('click', () => {
+    selectedSponsorEvents = [];
+    selectedSponsorCategories = [];
+    renderSelectedEvents();
+    renderSelectedCategories();
+    updateEventSelector();
+    updateCategorySelector();
+    openModal('Add Sponsor');
+  });
+
+  document.getElementById('closeModalBtn')!.addEventListener('click', closeModal);
+  document.getElementById('cancelBtn')!.addEventListener('click', closeModal);
+
+  // Edit sponsor
+  (window as any).editSponsor = (id: string) => {
+    const sponsor = sponsors.find(s => s.id === id);
+    if (!sponsor) return;
+
+    (document.getElementById('sponsorId') as HTMLInputElement).value = sponsor.id;
+    (document.getElementById('name') as HTMLInputElement).value = sponsor.name;
+    (document.getElementById('tagline') as HTMLInputElement).value = sponsor.tagline || '';
+    (document.getElementById('description') as HTMLTextAreaElement).value = sponsor.description || '';
+    (document.getElementById('website_url') as HTMLInputElement).value = sponsor.website_url || '';
+    (document.getElementById('logo_url') as HTMLInputElement).value = sponsor.logo_url || '';
+    (document.getElementById('sort_order') as HTMLInputElement).value = sponsor.sort_order?.toString() || '0';
+    (document.getElementById('is_visible') as HTMLInputElement).checked = sponsor.is_visible !== false;
+
+    // Set selected events
+    selectedSponsorEvents = sponsor.events || [];
+    renderSelectedEvents();
+    updateEventSelector();
+
+    // Set selected categories
+    selectedSponsorCategories = sponsor.categories || [];
+    renderSelectedCategories();
+    updateCategorySelector();
+
+    openModal('Edit Sponsor');
+  };
+
+  // Delete sponsor
+  (window as any).deleteSponsor = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+
+    try {
+      const response = await fetch('/api/sponsors', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      await loadSponsors();
+    } catch (error: any) {
+      alert('Error deleting sponsor: ' + error.message);
+    }
+  };
+
+  // Form submit
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    modalError.classList.add('hidden');
+
+    const formData = new FormData(form);
+    const id = formData.get('id') as string;
+
+    const data = {
+      id: id || undefined,
+      name: formData.get('name'),
+      tagline: formData.get('tagline') || null,
+      description: formData.get('description') || null,
+      website_url: formData.get('website_url') || null,
+      logo_url: formData.get('logo_url') || null,
+      sort_order: formData.get('sort_order') ? parseInt(formData.get('sort_order') as string) : 0,
+      is_visible: (document.getElementById('is_visible') as HTMLInputElement).checked,
+      event_ids: selectedSponsorEvents.map(e => e.id),
+      category_ids: selectedSponsorCategories.map(c => c.id),
+    };
+
+    // Validate at least one event is selected
+    if (data.event_ids.length === 0) {
+      modalError.textContent = 'Please select at least one event for this sponsor';
+      modalError.classList.remove('hidden');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/sponsors', {
+        method: id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+
+      closeModal();
+      await loadSponsors();
+    } catch (error: any) {
+      modalError.textContent = error.message;
+      modalError.classList.remove('hidden');
+    }
+  });
+
+  // Initial load
+  Promise.all([loadEvents(), loadCategories()]).then(loadSponsors);
+</script>
+

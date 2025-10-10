@@ -1,0 +1,311 @@
+/**
+ * Sponsors API Endpoint
+ * GET /api/sponsors - List all sponsors
+ * POST /api/sponsors - Create a sponsor
+ * PUT /api/sponsors - Update a sponsor
+ * DELETE /api/sponsors - Delete a sponsor
+ */
+
+import type { APIRoute } from 'astro';
+import { createServerClient } from '@supabase/ssr';
+
+// Helper to initialize Supabase client
+function getSupabaseClient(cookies: any) {
+  return createServerClient(
+    import.meta.env.SUPABASE_URL,
+    import.meta.env.SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        get(key: string) {
+          return cookies.get(key)?.value;
+        },
+        set(key: string, value: string, options: any) {
+          cookies.set(key, value, options);
+        },
+        remove(key: string, options: any) {
+          cookies.delete(key, options);
+        },
+      },
+    }
+  );
+}
+
+// Helper to check authentication
+async function checkAuth(cookies: any) {
+  const supabase = getSupabaseClient(cookies);
+  const { data: { session }, error } = await supabase.auth.getSession();
+
+  if (error || !session) {
+    return { authenticated: false, supabase, session: null };
+  }
+
+  return { authenticated: true, supabase, session };
+}
+
+// GET - List all sponsors
+export const GET: APIRoute = async ({ cookies }) => {
+  try {
+    const { authenticated, supabase } = await checkAuth(cookies);
+
+    if (!authenticated) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Fetch sponsors with their events and categories
+    const { data, error } = await supabase
+      .from('sponsors')
+      .select(`
+        *,
+        sponsor_events (
+          event_id,
+          event_details (*)
+        ),
+        sponsor_categories (
+          category_id,
+          categories (*)
+        )
+      `)
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+
+    // Transform the data to include events and categories arrays
+    const sponsorsWithRelations = data?.map(sponsor => ({
+      ...sponsor,
+      events: sponsor.sponsor_events?.map((se: any) => se.event_details) || [],
+      categories: sponsor.sponsor_categories?.map((sc: any) => sc.categories) || []
+    }));
+
+    return new Response(
+      JSON.stringify({ sponsors: sponsorsWithRelations }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('GET sponsors error:', error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to fetch sponsors' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+};
+
+// POST - Create a sponsor
+export const POST: APIRoute = async ({ request, cookies }) => {
+  try {
+    const { authenticated, supabase } = await checkAuth(cookies);
+
+    if (!authenticated) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const body = await request.json();
+    const { name, tagline, description, website_url, logo_url, sort_order, is_visible, event_ids, category_ids } = body;
+
+    if (!name) {
+      return new Response(
+        JSON.stringify({ error: 'Name is required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!event_ids || event_ids.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'At least one event is required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { data, error } = await supabase
+      .from('sponsors')
+      .insert({ name, tagline, description, website_url, logo_url, sort_order, is_visible })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Add events (required)
+    if (event_ids && event_ids.length > 0) {
+      const eventInserts = event_ids.map((event_id: string) => ({
+        sponsor_id: data.id,
+        event_id,
+      }));
+
+      const { error: eventError } = await supabase
+        .from('sponsor_events')
+        .insert(eventInserts);
+
+      if (eventError) console.error('Error adding events:', eventError);
+    }
+
+    // Add categories (optional)
+    if (category_ids && category_ids.length > 0) {
+      const categoryInserts = category_ids.map((category_id: string) => ({
+        sponsor_id: data.id,
+        category_id,
+      }));
+
+      const { error: categoryError } = await supabase
+        .from('sponsor_categories')
+        .insert(categoryInserts);
+
+      if (categoryError) console.error('Error adding categories:', categoryError);
+    }
+
+    return new Response(
+      JSON.stringify({ sponsor: data, message: 'Sponsor created successfully' }),
+      { status: 201, headers: { 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('POST sponsors error:', error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to create sponsor' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+};
+
+// PUT - Update a sponsor
+export const PUT: APIRoute = async ({ request, cookies }) => {
+  try {
+    const { authenticated, supabase } = await checkAuth(cookies);
+
+    if (!authenticated) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const body = await request.json();
+    const { id, name, tagline, description, website_url, logo_url, sort_order, is_visible, event_ids, category_ids } = body;
+
+    if (!id) {
+      return new Response(
+        JSON.stringify({ error: 'ID is required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (event_ids !== undefined && event_ids.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'At least one event is required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { data, error } = await supabase
+      .from('sponsors')
+      .update({ name, tagline, description, website_url, logo_url, sort_order, is_visible })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Update events if provided
+    if (event_ids !== undefined) {
+      // Delete existing event associations
+      await supabase
+        .from('sponsor_events')
+        .delete()
+        .eq('sponsor_id', id);
+
+      // Add new events
+      if (event_ids.length > 0) {
+        const eventInserts = event_ids.map((event_id: string) => ({
+          sponsor_id: id,
+          event_id,
+        }));
+
+        const { error: eventError } = await supabase
+          .from('sponsor_events')
+          .insert(eventInserts);
+
+        if (eventError) console.error('Error updating events:', eventError);
+      }
+    }
+
+    // Update categories if provided
+    if (category_ids !== undefined) {
+      // Delete existing categories
+      await supabase
+        .from('sponsor_categories')
+        .delete()
+        .eq('sponsor_id', id);
+
+      // Add new categories
+      if (category_ids.length > 0) {
+        const categoryInserts = category_ids.map((category_id: string) => ({
+          sponsor_id: id,
+          category_id,
+        }));
+
+        const { error: categoryError } = await supabase
+          .from('sponsor_categories')
+          .insert(categoryInserts);
+
+        if (categoryError) console.error('Error updating categories:', categoryError);
+      }
+    }
+
+    return new Response(
+      JSON.stringify({ sponsor: data, message: 'Sponsor updated successfully' }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('PUT sponsors error:', error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to update sponsor' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+};
+
+// DELETE - Delete a sponsor
+export const DELETE: APIRoute = async ({ request, cookies }) => {
+  try {
+    const { authenticated, supabase } = await checkAuth(cookies);
+
+    if (!authenticated) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const body = await request.json();
+    const { id } = body;
+
+    if (!id) {
+      return new Response(
+        JSON.stringify({ error: 'ID is required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { error } = await supabase
+      .from('sponsors')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return new Response(
+      JSON.stringify({ message: 'Sponsor deleted successfully' }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('DELETE sponsors error:', error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to delete sponsor' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+};
+
