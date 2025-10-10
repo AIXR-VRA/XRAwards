@@ -111,30 +111,106 @@ import Footer from '../components/Footer.astro';
       <div class="absolute bottom-1/4 left-10 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl"></div>
     </section>
 
-    <!-- Sponsors Section -->
-    <section class="section bg-light">
+    <!-- About Section with Feature Cards -->
+    <section class="py-16 md:py-24 bg-white">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-          <h2 class="text-4xl font-bold mb-4">Thank you to our sponsors</h2>
+        <!-- Introductory Text -->
+        <div class="max-w-3xl mb-12">
+          <p class="text-base md:text-lg text-gray-800 mb-6 leading-relaxed">
+            The AiXR XR Awards sit at the heart of recognising excellence in virtual and augmented reality. Now part of United XR, we've joined forces with AWE and Stereopsia's European XR Awards to expand our global reach. For the first time, we're combining awards into a single <strong class="font-semibold">XR Awards Gala</strong>.
+          </p>
+          <p class="text-base md:text-lg text-gray-800 mb-8 leading-relaxed">
+            More than just a red carpet event, it's a culmination of year-round international efforts to spotlight outstanding work and connect the most influential voices across the industry.
+          </p>
+          <p class="text-sm md:text-base text-gray-600 mb-12">
+            This is your moment. Be part of it.
+          </p>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center justify-items-center">
-          <div class="opacity-80 hover:opacity-100 transition-opacity">
-            <div class="h-12 w-24 bg-gray-300 rounded flex items-center justify-center">PICO</div>
+
+        <!-- Feature Cards -->
+        <div class="flex flex-col md:flex-row gap-16 mb-16">
+          <!-- Card 1: What's new for 2025? -->
+          <a href="#" class="group relative w-full md:w-[44%] aspect-video mb-12">
+            <img 
+              src="https://picsum.photos/600/340" 
+              alt="What's new for 2025?"
+              class="w-full h-full object-cover rounded-lg"
+            />
+            <div class="feature-banner absolute bottom-12 left-12 -right-6 rounded-md p-6">
+              <div class="flex items-center justify-between">
+                <p class="text-white text-base md:text-lg font-medium pr-4">What's new for 2025?</p>
+                <div class="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 group-hover:bg-white/30 transition-colors flex-shrink-0 feature-arrow">
+                  <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </a>
+
+          <!-- Card 2: See 2024 Highlights -->
+          <a href="#" class="group relative w-full md:w-[44%] aspect-video mb-12">
+            <img 
+              src="https://picsum.photos/600/340?random=2" 
+              alt="See 2024 Highlights"
+              class="w-full h-full object-cover rounded-lg"
+            />
+            <div class="feature-banner absolute bottom-12 left-12 -right-6 rounded-md p-6">
+              <div class="flex items-center justify-between">
+                <p class="text-white text-base md:text-lg font-medium pr-4">See 2024 Highlights</p>
+                <div class="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 group-hover:bg-white/30 transition-colors flex-shrink-0 feature-arrow">
+                  <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <!-- Sponsors -->
+        <div class="text-left mb-8">
+          <p class="text-sm text-gray-600">Thank you to our sponsors</p>
+        </div>
+        
+        <!-- Sponsor Logos - Row 1 -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-8 items-center mb-6">
+          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
+            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">PICO</div>
           </div>
-          <div class="opacity-80 hover:opacity-100 transition-opacity">
-            <div class="h-12 w-24 bg-gray-300 rounded flex items-center justify-center">Niantic</div>
+          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
+            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">Niantic</div>
           </div>
-          <div class="opacity-80 hover:opacity-100 transition-opacity">
-            <div class="h-12 w-24 bg-gray-300 rounded flex items-center justify-center">MGW</div>
+          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
+            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">MGW</div>
           </div>
-          <div class="opacity-80 hover:opacity-100 transition-opacity">
-            <div class="h-12 w-24 bg-gray-300 rounded flex items-center justify-center">Bird&Bird</div>
+          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
+            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">Bird&Bird</div>
           </div>
-          <div class="opacity-80 hover:opacity-100 transition-opacity">
-            <div class="h-12 w-24 bg-gray-300 rounded flex items-center justify-center">TroposAR</div>
+          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
+            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">TroposAR</div>
           </div>
-          <div class="opacity-80 hover:opacity-100 transition-opacity">
-            <div class="h-12 w-24 bg-gray-300 rounded flex items-center justify-center">XRAI</div>
+        </div>
+        
+        <!-- Sponsor Logos - Row 2 -->
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-8 items-center">
+          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
+            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">XRAI</div>
+          </div>
+          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
+            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">UploadVR</div>
+          </div>
+          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
+            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">Sidequest</div>
+          </div>
+          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
+            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">Noetic</div>
+          </div>
+          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
+            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">AWE</div>
+          </div>
+          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
+            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">Norcat</div>
           </div>
         </div>
       </div>
@@ -422,3 +498,34 @@ import Footer from '../components/Footer.astro';
 
   <Footer />
 </Layout>
+
+<style>
+  .feature-banner {
+    background: linear-gradient(135deg, #4A1B5C 0%, #3A1447 100%);
+    position: relative;
+    z-index: 1;
+  }
+
+  .feature-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #5A2B6C 0%, #4A1857 100%);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+
+  .group:hover .feature-banner::before {
+    opacity: 1;
+  }
+
+  .feature-arrow {
+    transition: transform 0.3s ease;
+  }
+
+  .group:hover .feature-arrow {
+    transform: rotate(45deg);
+  }
+</style>
