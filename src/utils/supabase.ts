@@ -55,12 +55,12 @@ export function handleSupabaseError(error: any): string {
 
 /**
  * Type helper for Supabase database types
- * 
+ *
  * Generate types from your Supabase schema:
  * ```bash
  * supabase gen types typescript --project-id your-project-id > src/utils/database.types.ts
  * ```
- * 
+ *
  * Then import and use:
  * ```typescript
  * import type { Database } from './database.types';
@@ -68,4 +68,27 @@ export function handleSupabaseError(error: any): string {
  * ```
  */
 export type Database = any; // Replace with generated types
+
+/**
+ * Get the active event from the database
+ * @returns Promise with the active event data or null
+ */
+export async function getActiveEvent() {
+  const { data: activeEvent } = await supabase
+    .from('event_details')
+    .select('*')
+    .eq('is_active', true)
+    .single();
+
+  return activeEvent;
+}
+
+/**
+ * Get the active event year
+ * @returns Promise with the active event year or 2024 as fallback
+ */
+export async function getActiveEventYear(): Promise<number> {
+  const activeEvent = await getActiveEvent();
+  return activeEvent?.event_year || 2024;
+}
 

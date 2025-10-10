@@ -1,0 +1,310 @@
+---
+/**
+ * Winners and Finalists Page - By Year
+ * URL: /winners-and-finalists-2024
+ * Single page showing all finalists and winners for a specific year organized by category
+ */
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CTAFooter from '../components/CTAFooter.astro';
+import { createClient } from '@supabase/supabase-js';
+import { nl2br } from '../utils/helpers';
+
+export const prerender = true;
+
+// Get all event years for static generation
+export async function getStaticPaths() {
+  const supabase = createClient(
+    import.meta.env.SUPABASE_URL,
+    import.meta.env.SUPABASE_ANON_KEY
+  );
+
+  const { data: events } = await supabase
+    .from('event_details')
+    .select('event_year')
+    .order('event_year', { ascending: false });
+
+  return (events || []).map((event) => ({
+    params: { year: event.event_year.toString() },
+  }));
+}
+
+const { year } = Astro.params;
+
+const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY
+);
+
+// Get the event for this year
+const { data: event } = await supabase
+  .from('event_details')
+  .select('*')
+  .eq('event_year', parseInt(year))
+  .single();
+
+if (!event) {
+  return Astro.redirect('/404');
+}
+
+// Get categories for this event
+const { data: categoryEvents } = await supabase
+  .from('category_events')
+  .select(`
+    category_id,
+    categories (
+      id,
+      name,
+      slug,
+      description,
+      additional_info,
+      is_visible,
+      sort_order
+    )
+  `)
+  .eq('event_id', event.id);
+
+const categories = categoryEvents
+  ?.map(ce => ce.categories)
+  .filter(cat => cat?.is_visible)
+  .sort((a, b) => (a?.sort_order || 0) - (b?.sort_order || 0)) || [];
+
+// Fetch finalists for this event
+const { data: allFinalists } = await supabase
+  .from('finalists')
+  .select('*')
+  .eq('event_id', event.id)
+  .order('is_winner', { ascending: false })
+  .order('placement', { ascending: true });
+
+// Group finalists by category
+const categoriesWithFinalists = categories.map(category => {
+  const categoryFinalists = allFinalists?.filter(f => f.category_id === category.id) || [];
+  const winners = categoryFinalists.filter(f => f.is_winner);
+  const finalists = categoryFinalists.filter(f => !f.is_winner);
+  const mainWinner = winners.find(w => w.placement === 1) || winners[0];
+
+  return {
+    ...category,
+    finalists: categoryFinalists,
+    winners,
+    nonWinners: finalists,
+    mainWinner
+  };
+}).filter(cat => cat.finalists.length > 0);
+---
+
+<Layout
+  title={`Winners & Finalists ${year} - AIXR XR Awards`}
+  description={`View all finalists and winners from the ${year} AIXR XR Awards.`}
+>
+  <Header />
+
+  <main class="min-h-screen bg-white">
+    <!-- Page Header -->
+    <section class="relative bg-[#0E1022] pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+
+      <!-- Content -->
+      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="page-title text-white mb-6">
+          Winners & Finalists {year}
+        </h1>
+
+        <!-- Decorative Dots -->
+        <div class="flex justify-center gap-2 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        </div>
+
+        <p class="page-subtitle text-gray-300">
+          {event.description || 'Celebrating excellence in XR innovation across all categories'}
+        </p>
+      </div>
+    </section>
+
+    <!-- Categories Section -->
+    {categoriesWithFinalists.map((category, index) => (
+      <section class={`py-16 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+            <!-- Left Column - Title, Description & Social -->
+            <div class="lg:col-span-5">
+              <h2 class="category-section-title text-gray-900 mb-3">
+                {category.name}
+              </h2>
+
+              {category.description && (
+                <p class="text-sm text-gray-500 mb-6 italic">
+                  {category.description}
+                </p>
+              )}
+
+              {category.additional_info && (
+                <div class="prose prose-sm max-w-none text-gray-700 mb-6">
+                  <div set:html={nl2br(category.additional_info)} />
+                </div>
+              )}
+
+              <!-- Social Share Icons -->
+              <div class="flex gap-2">
+                <a href="#" class="w-9 h-9 flex items-center justify-center bg-[#0077B5] text-white rounded hover:opacity-80 transition-opacity" aria-label="Share on LinkedIn">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                </a>
+                <a href="#" class="w-9 h-9 flex items-center justify-center bg-[#000000] text-white rounded hover:opacity-80 transition-opacity" aria-label="Share on X">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </a>
+                <a href="#" class="w-9 h-9 flex items-center justify-center bg-[#1877F2] text-white rounded hover:opacity-80 transition-opacity" aria-label="Share on Facebook">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                </a>
+                <a href="#" class="w-9 h-9 flex items-center justify-center bg-[#FF4500] text-white rounded hover:opacity-80 transition-opacity" aria-label="Share on Reddit">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
+                </a>
+                <a href="#" class="w-9 h-9 flex items-center justify-center bg-[#25D366] text-white rounded hover:opacity-80 transition-opacity" aria-label="Share on WhatsApp">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                </a>
+              </div>
+            </div>
+
+            <!-- Right Column - Winner Card -->
+            <div class="lg:col-span-7">
+              {category.mainWinner && (
+                <div class="winner-card rounded-2xl overflow-hidden shadow-lg">
+                  <!-- Winner Header with Gradient -->
+                  <div class="winner-gradient p-8 md:p-10 relative min-h-[240px] flex items-center">
+                    <!-- Decorative Plant Element -->
+                    <div class="absolute right-0 top-0 bottom-0 w-48 opacity-70">
+                      <svg class="absolute right-8 top-1/2 -translate-y-1/2 h-full w-auto" viewBox="0 0 200 400" fill="none">
+                        <!-- Plant stem and leaves -->
+                        <path d="M100 50 Q95 100 100 150 Q105 200 100 250 Q95 300 100 350" stroke="black" stroke-width="8" fill="none"/>
+                        <ellipse cx="75" cy="80" rx="35" ry="50" fill="black" transform="rotate(-30 75 80)"/>
+                        <ellipse cx="125" cy="120" rx="35" ry="50" fill="black" transform="rotate(30 125 120)"/>
+                        <ellipse cx="70" cy="160" rx="35" ry="50" fill="black" transform="rotate(-25 70 160)"/>
+                        <ellipse cx="130" cy="200" rx="35" ry="50" fill="black" transform="rotate(25 130 200)"/>
+                        <ellipse cx="75" cy="240" rx="35" ry="50" fill="black" transform="rotate(-30 75 240)"/>
+                        <ellipse cx="125" cy="280" rx="35" ry="50" fill="black" transform="rotate(30 125 280)"/>
+                        <ellipse cx="70" cy="320" rx="35" ry="50" fill="black" transform="rotate(-35 70 320)"/>
+                      </svg>
+                    </div>
+
+                    <div class="relative z-10 max-w-2xl">
+                      <h3 class="text-2xl md:text-3xl font-semibold text-white mb-3">
+                        Winner: {category.mainWinner.title}
+                      </h3>
+                      <p class="text-lg md:text-xl text-white/95 mb-6">
+                        By {category.mainWinner.organization}
+                      </p>
+                      {category.mainWinner.website_url ? (
+                        <a
+                          href={category.mainWinner.website_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="inline-block px-8 py-3 bg-[#D4A574] text-black text-sm font-bold rounded-full hover:bg-[#C39563] transition-colors"
+                        >
+                          >>> REGISTER INTEREST FOR {parseInt(year) + 1}
+                        </a>
+                      ) : (
+                        <span class="inline-block px-8 py-3 bg-[#D4A574] text-black text-sm font-bold rounded-full">
+                          >>> REGISTER INTEREST FOR {parseInt(year) + 1}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <!-- All Finalists Grid -->
+          {category.finalists.length > 0 && (
+            <div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+                {category.finalists.map((finalist) => (
+                  <div class="finalist-card">
+                    <div class="aspect-square bg-gray-100 rounded-2xl overflow-hidden mb-4">
+                      {finalist.image_url ? (
+                        <img
+                          src={finalist.image_url}
+                          alt={finalist.title}
+                          class="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div class="w-full h-full flex items-center justify-center">
+                          <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h3 class="text-base font-bold text-gray-900 mb-2 leading-tight">{finalist.title}</h3>
+                      {finalist.organization && (
+                        <p class="text-sm text-[#4923EB] mb-2 leading-tight font-medium">{finalist.organization}</p>
+                      )}
+                      {finalist.description && (
+                        <p class="text-sm text-gray-700 leading-relaxed">{finalist.description}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    ))}
+
+    <!-- CTA Section -->
+    <CTAFooter />
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .page-title {
+    font-size: 42px;
+    font-weight: 600;
+  }
+
+  .page-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  .category-section-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .winner-gradient {
+    background: linear-gradient(90deg, #0077BE 0%, #5B3FE4 50%, #8B2FD9 100%);
+  }
+
+  .winner-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .winner-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  .finalist-card {
+    transition: all 0.3s ease;
+  }
+</style>

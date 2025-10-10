@@ -1,9 +1,15 @@
 ---
 // Header component with navigation - transparent until scroll
+import { getActiveEventYear } from '../utils/supabase';
+
+// Get active event year for winners link
+const eventYear = await getActiveEventYear();
+const winnersUrl = `/winners-and-finalists-${eventYear}`;
+
 const navigation = [
   { name: 'Events', href: '/events' },
   { name: 'Categories', href: '/categories' },
-  { name: 'Winners', href: '/winners' },
+  { name: 'Winners', href: winnersUrl },
   { name: 'Judges', href: '/judges' },
 ];
 
