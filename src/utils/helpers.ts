@@ -89,3 +89,21 @@ export function debounce<T extends (...args: any[]) => any>(
 export function formatNumber(num: number): string {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
+
+/**
+ * Convert newlines to HTML breaks and paragraphs
+ * Double newlines become paragraph breaks, single newlines become <br>
+ */
+export function nl2br(text: string | null | undefined): string {
+  if (!text) return '';
+  
+  // Split by double newlines to identify paragraphs
+  const paragraphs = text.split(/\n\n+/);
+  
+  // For each paragraph, convert single newlines to <br>
+  return paragraphs
+    .map(para => para.trim())
+    .filter(para => para.length > 0)
+    .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
