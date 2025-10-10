@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/Documents/ShareX/Screenshots/2025-10/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

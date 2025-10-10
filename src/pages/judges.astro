@@ -108,7 +108,7 @@ const { data: judges } = await supabase
                     <div class="absolute top-3 left-3 flex flex-wrap gap-2">
                       {judge.judge_tags.map((judgeTag) => (
                         judgeTag.tags && (
-                          <span class="px-3 py-1 bg-purple-600 text-white text-xs font-medium rounded-full uppercase tracking-wide">
+                          <span class="px-3 py-1 text-white text-xs font-medium rounded-full uppercase tracking-wide" style="background-color: rgb(147 51 234);">
                             {judgeTag.tags.name}
                           </span>
                         )
@@ -118,10 +118,10 @@ const { data: judges } = await supabase
                 </div>
 
                 {/* Judge Info - left aligned */}
-                <div class="p-5">
-                  <h3 class="text-lg font-bold text-gray-900 mb-2">{judge.first_name} {judge.last_name}</h3>
-                  <p class="text-sm font-medium text-gray-700 mb-1">{judge.job_title}</p>
-                  <p class="text-sm text-gray-600">{judge.organization}</p>
+                <div class="p-5 text-left">
+                  <h3 class="text-lg font-bold text-gray-900" style="margin-bottom: 8px;">{judge.first_name} {judge.last_name}</h3>
+                  <p class="text-sm font-medium text-gray-700" style="margin: 0;">{judge.job_title}</p>
+                  <p class="text-sm text-gray-600" style="margin: 0; margin-top: 2px;">{judge.organization}</p>
                 </div>
               </div>
             ))}
