@@ -13,6 +13,30 @@ const { data: eventDetails } = await supabase
   .select('*')
   .eq('is_active', true)
   .single();
+
+// Fetch first 4 judges for the active event with their tags
+const { data: judges } = await supabase
+  .from('judges')
+  .select(`
+    id,
+    first_name,
+    last_name,
+    job_title,
+    organization,
+    profile_image_url,
+    sort_order,
+    judge_events!inner(event_id),
+    judge_tags(
+      tags(
+        id,
+        name
+      )
+    )
+  `)
+  .eq('judge_events.event_id', eventDetails?.id)
+  .eq('is_visible', true)
+  .order('sort_order', { ascending: true })
+  .limit(4);
 ---
 
 <Layout
@@ -227,23 +251,22 @@ const { data: eventDetails } = await supabase
 
     <!-- Key Dates Section -->
     {eventDetails && (
-      <section class="section">
+      <section class="section" style="background-color: #0E1022;">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="text-center mb-12">
-            <h2 class="text-4xl font-bold mb-4">{eventDetails.event_year} Key Dates</h2>
+          <div class="mb-16">
+            <h2 class="text-4xl font-bold mb-4 text-white">{eventDetails.event_year} Key Dates</h2>
+            <p class="text-lg text-gray-400">Mark your calendar for these important milestones in the awards journey</p>
           </div>
 
-          <div class="max-w-xl mx-auto">
-            <KeyDates
-              year={eventDetails.event_year}
-              nominationsOpen={eventDetails.nominations_open}
-              nominationsClose={eventDetails.nominations_close}
-              finalistsAnnounced={eventDetails.finalists_announced}
-              judgingPeriodStart={eventDetails.judging_period_start}
-              judgingPeriodEnd={eventDetails.judging_period_end}
-              awardsCeremony={eventDetails.awards_ceremony}
-            />
-          </div>
+          <KeyDates
+            year={eventDetails.event_year}
+            nominationsOpen={eventDetails.nominations_open}
+            nominationsClose={eventDetails.nominations_close}
+            finalistsAnnounced={eventDetails.finalists_announced}
+            judgingPeriodStart={eventDetails.judging_period_start}
+            judgingPeriodEnd={eventDetails.judging_period_end}
+            awardsCeremony={eventDetails.awards_ceremony}
+          />
         </div>
       </section>
     )}
@@ -309,34 +332,46 @@ const { data: eventDetails } = await supabase
             Our judging panel is made up of industry-leading creatives in virtual reality. We have gathered experts in various sectors of XR, from academics, journalists, and creative directors to founders and C-Suite executives.
           </p>
         </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          <div class="text-center">
-            <div class="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4"></div>
-            <h3 class="text-lg font-semibold text-dark mb-1">Sonya Haskins</h3>
-            <p class="text-sm font-medium text-primary mb-1">Head of Programming</p>
-            <p class="text-sm text-secondary">AWE</p>
-          </div>
-          <div class="text-center">
-            <div class="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4"></div>
-            <h3 class="text-lg font-semibold text-dark mb-1">Jeremy Dalton</h3>
-            <p class="text-sm font-medium text-primary mb-1">Head of Immersive Technologies</p>
-            <p class="text-sm text-secondary">PwC</p>
-          </div>
-          <div class="text-center">
-            <div class="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4"></div>
-            <h3 class="text-lg font-semibold text-dark mb-1">Karina Arteaga</h3>
-            <p class="text-sm font-medium text-primary mb-1">Business Strategy & Operations</p>
-            <p class="text-sm text-secondary">Meta</p>
-          </div>
-          <div class="text-center">
-            <div class="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4"></div>
-            <h3 class="text-lg font-semibold text-dark mb-1">David Smith</h3>
-            <p class="text-sm font-medium text-primary mb-1">CCO</p>
-            <p class="text-sm text-secondary">The Glimpse Group & NYVR</p>
-          </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {judges && judges.map((judge) => (
+            <div class="relative bg-gray-900 rounded-2xl overflow-hidden group">
+              {/* Judge Image */}
+              <div class="relative aspect-square overflow-hidden">
+                {judge.profile_image_url ? (
+                  <img
+                    src={judge.profile_image_url}
+                    alt={`${judge.first_name} ${judge.last_name}`}
+                    class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                  />
+                ) : (
+                  <div class="w-full h-full bg-gray-700 transition-transform duration-500 ease-out group-hover:scale-110"></div>
+                )}
+
+                {/* Tag Pills - positioned at top */}
+                {judge.judge_tags && judge.judge_tags.length > 0 && (
+                  <div class="absolute top-3 left-3 flex flex-wrap gap-2">
+                    {judge.judge_tags.map((judgeTag) => (
+                      judgeTag.tags && (
+                        <span class="px-3 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-full uppercase tracking-wide">
+                          {judgeTag.tags.name}
+                        </span>
+                      )
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Judge Info - left aligned */}
+              <div class="p-5 text-left">
+                <h3 class="text-xl font-bold text-white mb-2">{judge.first_name} {judge.last_name}</h3>
+                <p class="text-sm font-medium text-gray-300 mb-1">{judge.job_title}</p>
+                <p class="text-sm text-gray-400">{judge.organization}</p>
+              </div>
+            </div>
+          ))}
         </div>
-        
+
         <div class="text-center">
           <a href="/judges" class="btn btn-primary">See the Full Judging Panel</a>
         </div>
