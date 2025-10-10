@@ -1,0 +1,137 @@
+---
+/**
+ * Admin Dashboard Home
+ */
+import AdminLayout from '../../components/admin/AdminLayout.astro';
+import { createServerClient } from '@supabase/ssr';
+
+// Check authentication
+const supabase = createServerClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY,
+  {
+    cookies: {
+      get(key: string) {
+        return Astro.cookies.get(key)?.value;
+      },
+      set(key: string, value: string, options: any) {
+        Astro.cookies.set(key, value, options);
+      },
+      remove(key: string, options: any) {
+        Astro.cookies.delete(key, options);
+      },
+    },
+  }
+);
+
+const { data: { session } } = await supabase.auth.getSession();
+
+// Redirect if not authenticated
+if (!session) {
+  return Astro.redirect('/admin/login');
+}
+---
+
+<AdminLayout title="Dashboard" activePage="dashboard" session={session}>
+  <div class="space-y-8">
+    <!-- Header -->
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+      <p class="mt-2 text-gray-600">Manage your XR Awards website</p>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Media Upload Card -->
+      <a
+        href="/admin/upload"
+        class="bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-2xl">
+            📸
+          </div>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-1">Media Upload</h3>
+        <p class="text-sm text-gray-600">Upload images to R2 storage</p>
+      </a>
+
+      <!-- Categories Card -->
+      <a
+        href="/admin/categories"
+        class="bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-2xl">
+            📁
+          </div>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-1">Categories</h3>
+        <p class="text-sm text-gray-600">Manage award categories</p>
+      </a>
+
+      <!-- Finalists Card -->
+      <a
+        href="/admin/finalists"
+        class="bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center text-2xl">
+            🏆
+          </div>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-1">Finalists</h3>
+        <p class="text-sm text-gray-600">Manage award finalists</p>
+      </a>
+    </div>
+
+    <!-- Recent Activity / Quick Actions -->
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+      <div class="space-y-3">
+        <a
+          href="/admin/upload"
+          class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          <div class="flex items-center space-x-3">
+            <span class="text-xl">⬆️</span>
+            <span class="font-medium text-gray-900">Upload new media</span>
+          </div>
+          <span class="text-gray-400">→</span>
+        </a>
+        <a
+          href="/admin/categories"
+          class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          <div class="flex items-center space-x-3">
+            <span class="text-xl">➕</span>
+            <span class="font-medium text-gray-900">Add new category</span>
+          </div>
+          <span class="text-gray-400">→</span>
+        </a>
+        <a
+          href="/admin/finalists"
+          class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          <div class="flex items-center space-x-3">
+            <span class="text-xl">🎖️</span>
+            <span class="font-medium text-gray-900">Add new finalist</span>
+          </div>
+          <span class="text-gray-400">→</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="bg-blue-50 rounded-lg border border-blue-200 p-6">
+      <h2 class="text-lg font-semibold text-blue-900 mb-2">📚 Getting Started</h2>
+      <ul class="space-y-2 text-sm text-blue-800">
+        <li>• Upload images to R2 storage for use on the website</li>
+        <li>• Create and manage award categories</li>
+        <li>• Add finalists and winners to showcase</li>
+        <li>• All changes are reflected immediately on the live site</li>
+      </ul>
+    </div>
+  </div>
+</AdminLayout>
+

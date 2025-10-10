@@ -8,6 +8,24 @@ interface CategoryCardProps {
   className?: string;
 }
 
+// Helper to convert newlines to HTML
+const nl2br = (text: string): string => {
+  const paragraphs = text.split(/\n\n+/);
+  return paragraphs
+    .map(para => para.trim())
+    .filter(para => para.length > 0)
+    .map(para => {
+      const escaped = para
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+      return `<p class="mb-2 last:mb-0">${escaped.replace(/\n/g, '<br>')}</p>`;
+    })
+    .join('');
+};
+
 export const CategoryCard: React.FC<CategoryCardProps> = ({
   title,
   description,
@@ -34,7 +52,10 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
       )}
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       {description && (
-        <p className="text-sm text-secondary">{description}</p>
+        <div 
+          className="text-sm text-secondary"
+          dangerouslySetInnerHTML={{ __html: nl2br(description) }}
+        />
       )}
     </div>
   );

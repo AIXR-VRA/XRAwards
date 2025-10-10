@@ -22,11 +22,11 @@ export const Header: React.FC<HeaderProps> = ({ className = '' }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <a href="/" className="flex items-center">
               <img
                 className="h-8 w-auto"
-                src="/logo.svg"
+                src="/XRA-dark-Logo.svg"
                 alt="XR Awards 2025"
               />
             </a>

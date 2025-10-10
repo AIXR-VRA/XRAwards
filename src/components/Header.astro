@@ -1,5 +1,5 @@
 ---
-// Header component with navigation - TechTO style
+// Header component with navigation - transparent until scroll
 const navigation = [
   { name: 'Events', href: '/events' },
   { name: 'Categories', href: '/categories' },
@@ -15,16 +15,18 @@ const moreItems = [
 ];
 ---
 
-<header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-16">
+<header class="fixed top-0 left-0 right-0 z-50">
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+    <div id="nav-container" class="flex items-center justify-between h-16 px-6 rounded-2xl border border-white/20 transition-all duration-300">
       <!-- Logo -->
-      <div class="flex-shrink-0">
+      <div class="shrink-0">
         <a href="/" class="flex items-center">
-          <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mr-2">
-            <span class="text-white font-bold text-sm">XR</span>
-          </div>
-          <span class="text-xl font-bold text-dark">XR Awards</span>
+          <img
+            id="header-logo"
+            src="/XRA-Logo.svg"
+            alt="XR Awards"
+            class="h-8 w-auto"
+          />
         </a>
       </div>
 
@@ -33,7 +35,7 @@ const moreItems = [
         {navigation.map((item) => (
           <a
             href={item.href}
-            class="text-dark hover:text-primary transition-colors text-sm font-medium py-2"
+            class="nav-link text-white hover:text-primary transition-colors text-sm font-medium py-2"
           >
             {item.name}
           </a>
@@ -41,7 +43,7 @@ const moreItems = [
         
         <!-- More Dropdown -->
         <div class="relative group">
-          <button class="flex items-center text-dark hover:text-primary transition-colors text-sm font-medium py-2">
+          <button class="nav-link flex items-center text-white hover:text-primary transition-colors text-sm font-medium py-2">
             More
             <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -54,7 +56,7 @@ const moreItems = [
               {moreItems.map((item) => (
                 <a
                   href={item.href}
-                  class="block px-4 py-2 text-sm text-dark hover:bg-gray-50 transition-colors"
+                  class="dropdown-link block px-4 py-2 text-sm text-dark hover:bg-gray-50 transition-colors"
                 >
                   {item.name}
                 </a>
@@ -79,7 +81,7 @@ const moreItems = [
         <button
           type="button"
           id="mobile-menu-button"
-          class="inline-flex items-center justify-center p-2 rounded-md text-dark hover:text-primary hover:bg-gray-100 transition-colors"
+          class="nav-link inline-flex items-center justify-center p-2 rounded-md text-white hover:text-primary transition-colors"
           aria-expanded="false"
           aria-label="Toggle navigation menu"
         >
@@ -91,12 +93,12 @@ const moreItems = [
     </div>
 
     <!-- Mobile menu -->
-    <div id="mobile-menu" class="hidden md:hidden pb-4">
-      <div class="space-y-1">
+    <div id="mobile-menu" class="hidden md:hidden mt-2 rounded-3xl border border-gray-200 bg-white overflow-hidden">
+      <div class="space-y-1 p-4">
         {navigation.map((item) => (
           <a
             href={item.href}
-            class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:text-primary hover:bg-gray-50 transition-colors"
+            class="dropdown-link block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-50 transition-colors"
           >
             {item.name}
           </a>
@@ -104,7 +106,7 @@ const moreItems = [
         {moreItems.map((item) => (
           <a
             href={item.href}
-            class="block px-3 py-2 rounded-md text-base font-medium text-dark hover:text-primary hover:bg-gray-50 transition-colors"
+            class="dropdown-link block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-50 transition-colors"
           >
             {item.name}
           </a>
@@ -121,15 +123,60 @@ const moreItems = [
 </header>
 
 <script>
-  // Mobile menu toggle
   document.addEventListener('DOMContentLoaded', () => {
+    const navContainer = document.getElementById('nav-container');
+    const logo = document.getElementById('header-logo') as HTMLImageElement;
+    const navLinks = document.querySelectorAll('.nav-link');
     const button = document.getElementById('mobile-menu-button');
     const menu = document.getElementById('mobile-menu');
+    let isMenuOpen = false;
 
+    // Handle scroll for transparent header, logo swap, and text color
+    const handleScroll = () => {
+      // Always show background if mobile menu is open
+      if (isMenuOpen) {
+        navContainer?.classList.add('bg-white', 'shadow-sm', 'border-gray-200');
+        navContainer?.classList.remove('border-white/20');
+        if (logo) logo.src = '/XRA-dark-Logo.svg';
+        navLinks.forEach(link => {
+          link.classList.remove('text-white');
+          link.classList.add('text-dark');
+        });
+        return;
+      }
+
+      if (window.scrollY > 20) {
+        navContainer?.classList.add('bg-white', 'shadow-sm', 'border-gray-200');
+        navContainer?.classList.remove('border-white/20');
+        if (logo) logo.src = '/XRA-dark-Logo.svg';
+        navLinks.forEach(link => {
+          link.classList.remove('text-white');
+          link.classList.add('text-dark');
+        });
+      } else {
+        navContainer?.classList.remove('bg-white', 'shadow-sm', 'border-gray-200');
+        navContainer?.classList.add('border-white/20');
+        if (logo) logo.src = '/XRA-Logo.svg';
+        navLinks.forEach(link => {
+          link.classList.remove('text-dark');
+          link.classList.add('text-white');
+        });
+      }
+    };
+
+    // Initial check
+    handleScroll();
+
+    // Listen to scroll events
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    // Mobile menu toggle
     button?.addEventListener('click', () => {
       const expanded = button.getAttribute('aria-expanded') === 'true';
       button.setAttribute('aria-expanded', (!expanded).toString());
       menu?.classList.toggle('hidden');
+      isMenuOpen = !isMenuOpen;
+      handleScroll(); // Update styling when menu toggles
     });
   });
 </script>

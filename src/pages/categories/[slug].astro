@@ -1,0 +1,327 @@
+---
+/**
+ * Individual Category Page
+ * Dynamic route for displaying a single category with its details
+ */
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { createClient } from '@supabase/supabase-js';
+import { nl2br } from '../../utils/helpers';
+
+export const prerender = true;
+
+// Get all category slugs for static generation
+export async function getStaticPaths() {
+  const supabase = createClient(
+    import.meta.env.SUPABASE_URL,
+    import.meta.env.SUPABASE_ANON_KEY
+  );
+
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('slug')
+    .eq('is_visible', true);
+
+  return (categories || []).map((category) => ({
+    params: { slug: category.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+
+// Fetch the specific category
+const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY
+);
+
+const { data: category, error: categoryError } = await supabase
+  .from('categories')
+  .select('*')
+  .eq('slug', slug)
+  .eq('is_visible', true)
+  .single();
+
+if (categoryError || !category) {
+  return Astro.redirect('/404');
+}
+
+// Fetch finalists for this category
+const { data: finalists } = await supabase
+  .from('finalists')
+  .select('*')
+  .eq('category_id', category.id)
+  .order('is_winner', { ascending: false })
+  .order('placement', { ascending: true })
+  .order('created_at', { ascending: false });
+
+// Fetch other categories for "Explore Other Categories" section
+const { data: otherCategories } = await supabase
+  .from('categories')
+  .select('*')
+  .eq('is_visible', true)
+  .neq('id', category.id)
+  .order('sort_order', { ascending: true })
+  .limit(3);
+---
+
+<Layout
+  title={`${category.name} - AIXR XR Awards`}
+  description={category.description || `Learn more about the ${category.name} category at the AIXR XR Awards.`}
+>
+  <Header />
+  
+  <main class="min-h-screen bg-white">
+    <!-- Category Header -->
+    <section class="relative bg-[#0E1022] pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <!-- Left Ring - Offset Up with Gradient -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <!-- Right Ring - Offset Down with Gradient -->
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      
+      <!-- Content -->
+      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="category-title text-white mb-6">
+          {category.name}
+        </h1>
+        
+        <!-- Decorative Dots -->
+        <div class="flex justify-center gap-2 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        </div>
+        
+        <p class="category-subtitle text-white">
+          Nominate and cement your work in the history books forever
+        </p>
+      </div>
+    </section>
+
+    <!-- Category Details -->
+    <section class="py-16">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <!-- Main Content -->
+          <div class="lg:col-span-2">
+            <div class="mb-12">
+              <h2 class="category-overview-title font-bold text-gray-900 mb-6">
+                Category Overview
+              </h2>
+              {category.additional_info ? (
+                <div class="category-description-text prose prose-sm max-w-none">
+                  <div set:html={nl2br(category.additional_info)} />
+                </div>
+              ) : category.description ? (
+                <div class="category-description-text prose prose-sm max-w-none">
+                  <div set:html={nl2br(category.description)} />
+                </div>
+              ) : (
+                <p class="category-description-text">
+                  More information about this category will be available soon.
+                </p>
+              )}
+            </div>
+
+            <div class="mb-8">
+              <a
+                href="/categories"
+                class="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center"
+              >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to all categories
+              </a>
+            </div>
+          </div>
+
+          <!-- Sidebar -->
+          <div class="lg:col-span-1">
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-8">
+              <h3 class="text-2xl font-bold text-gray-900 mb-4">
+                Judging Criteria & Eligibility
+              </h3>
+              <p class="text-gray-700 mb-6">
+                Download the Entry Kit to have a full breakdown of judging criteria.
+              </p>
+              <div class="space-y-4">
+                <a
+                  href="#"
+                  class="block w-full text-center text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                  style="background-color: #0E1021; color: #ffffff;"
+                  onmouseover="this.style.backgroundColor='#1a1d35'; this.style.color='#ffffff';"
+                  onmouseout="this.style.backgroundColor='#0E1021'; this.style.color='#ffffff';"
+                >
+                  Download Entry Kit
+                </a>
+                <a
+                  href="#"
+                  class="block w-full text-center text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                  style="background-color: #FF7733; color: #ffffff;"
+                  onmouseover="this.style.backgroundColor='#ff6620'; this.style.color='#ffffff';"
+                  onmouseout="this.style.backgroundColor='#FF7733'; this.style.color='#ffffff';"
+                >
+                  Nominate Now
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Previous Winners/Finalists Section -->
+    {finalists && finalists.length > 0 && (
+      <section class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">
+            Previous Winners & Finalists
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {finalists.map((finalist) => (
+              <div class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                {finalist.image_url && (
+                  <div class="aspect-video bg-gray-200">
+                    <img
+                      src={finalist.image_url}
+                      alt={finalist.title}
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div class="p-6">
+                  {finalist.is_winner && (
+                    <span class="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full mb-3">
+                      Winner {finalist.year || ''}
+                    </span>
+                  )}
+                  <h3 class="text-xl font-bold text-gray-900 mb-2">
+                    {finalist.title}
+                  </h3>
+                  {finalist.organization && (
+                    <p class="text-gray-600 mb-3 font-medium">
+                      {finalist.organization}
+                    </p>
+                  )}
+                  {finalist.description && (
+                    <div class="text-gray-600 text-sm prose prose-sm max-w-none">
+                      <div set:html={nl2br(finalist.description)} />
+                    </div>
+                  )}
+                  {finalist.website_url && (
+                    <a
+                      href={finalist.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-blue-600 hover:text-blue-700 text-sm font-medium mt-3 inline-block"
+                    >
+                      Learn more →
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- Explore Other Categories -->
+    {otherCategories && otherCategories.length > 0 && (
+      <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">
+            Explore Other Categories
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {otherCategories.map((cat) => (
+              <a
+                href={`/categories/${cat.slug}`}
+                class="bg-white border border-gray-200 rounded-lg p-8 hover:shadow-lg hover:border-blue-500 transition-all group"
+              >
+                <h3 class="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                  {cat.name}
+                </h3>
+                <p class="text-gray-600 mb-4">
+                  {cat.description ? 
+                    (cat.description.length > 150 ? 
+                      cat.description.substring(0, 150) + '...' : 
+                      cat.description
+                    ) : 
+                    'Learn more about this category'
+                  }
+                </p>
+                <span class="text-blue-600 font-medium group-hover:underline">
+                  Explore Category →
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- CTA Section -->
+    <section class="py-16 bg-gray-900 text-white">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">
+          Ready to Submit Your Entry?
+        </h2>
+        <p class="text-xl text-gray-300 mb-8">
+          Showcase your innovative XR project and compete for recognition in this prestigious category.
+        </p>
+        <a
+          href="#"
+          class="inline-block bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors"
+        >
+          Get Started
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .category-title {
+    font-size: 35px;
+    font-weight: 600;
+  }
+
+  .category-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  .category-overview-title {
+    font-size: 26px;
+    font-weight: 600;
+  }
+
+  .category-description-text {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.6;
+    color: #000;
+  }
+
+  .category-description-text p {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+</style>

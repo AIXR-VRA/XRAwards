@@ -1,0 +1,114 @@
+---
+/**
+ * Public Categories Page
+ * Shows all visible award categories
+ */
+export const prerender = true;
+
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { createClient } from '@supabase/supabase-js';
+import { nl2br } from '../utils/helpers';
+
+// Fetch visible categories at build time
+const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY
+);
+
+const { data: categories, error } = await supabase
+  .from('categories')
+  .select('*')
+  .eq('is_visible', true)
+  .order('sort_order', { ascending: true })
+  .order('name', { ascending: true });
+
+if (error) {
+  console.error('Error fetching categories:', error);
+}
+---
+
+<Layout
+  title="Award Categories - AIXR XR Awards"
+  description="Explore the award categories for the AIXR XR Awards, recognizing excellence in VR, AR, and MR technologies."
+>
+  <Header />
+  
+  <main class="min-h-screen">
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-b from-gray-50 to-white py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            Award Categories
+          </h1>
+          <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+            Celebrating excellence across multiple categories in extended reality
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories Grid -->
+    <section class="py-16 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {categories && categories.length > 0 ? (
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {categories.map((category) => (
+              <a
+                href={`/categories/${category.slug}`}
+                class="bg-white border border-gray-200 rounded-lg p-8 hover:shadow-lg hover:border-blue-500 transition-all group block"
+              >
+                <h3 class="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                  {category.name}
+                </h3>
+                {category.description && (
+                  <div class="text-gray-600 leading-relaxed mb-4 prose prose-sm max-w-none">
+                    <div set:html={nl2br(category.description)} />
+                  </div>
+                )}
+                <span class="text-blue-600 font-medium group-hover:underline">
+                  Explore Category →
+                </span>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div class="text-center py-12">
+            <p class="text-gray-500 text-lg">
+              Categories will be announced soon. Stay tuned!
+            </p>
+          </div>
+        )}
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">
+          Ready to Submit Your Entry?
+        </h2>
+        <p class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+          Showcase your innovative XR project and compete for recognition in these prestigious categories.
+        </p>
+        <a
+          href="/#contact"
+          class="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+        >
+          Get in Touch
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .section {
+    padding: 4rem 0;
+  }
+</style>
+

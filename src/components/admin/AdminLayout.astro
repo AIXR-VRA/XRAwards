@@ -1,0 +1,110 @@
+---
+/**
+ * Admin Layout Component
+ * Provides consistent navigation and structure for admin pages
+ */
+
+interface Props {
+  title: string;
+  activePage?: 'dashboard' | 'upload' | 'categories' | 'finalists' | 'tags';
+  session: {
+    user: {
+      email?: string;
+    };
+  };
+}
+
+const { title, activePage, session } = Astro.props;
+
+const navItems = [
+  { id: 'dashboard', label: 'Dashboard', href: '/admin' },
+  { id: 'upload', label: 'Media Upload', href: '/admin/upload' },
+  { id: 'categories', label: 'Categories', href: '/admin/categories' },
+  { id: 'finalists', label: 'Finalists', href: '/admin/finalists' },
+  { id: 'tags', label: 'Tags', href: '/admin/tags' },
+];
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} - Admin</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <div class="flex h-screen">
+      <!-- Sidebar -->
+      <aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
+        <!-- Logo/Header -->
+        <div class="p-6 border-b border-gray-200">
+          <h1 class="text-xl font-bold text-gray-900">XR Awards</h1>
+          <p class="text-sm text-gray-600 mt-1">Admin Panel</p>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 p-4 space-y-1">
+          {navItems.map((item) => (
+            <a
+              href={item.href}
+              class={`block px-4 py-3 rounded-lg transition-colors ${
+                activePage === item.id
+                  ? 'bg-blue-50 text-blue-700 font-medium'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
+
+        <!-- User Info & Logout -->
+        <div class="p-4 border-t border-gray-200">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-sm">
+              <p class="text-gray-900 font-medium truncate">{session.user.email}</p>
+              <p class="text-gray-500 text-xs">Administrator</p>
+            </div>
+          </div>
+          <button
+            id="signOutBtn"
+            class="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            Sign Out
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 overflow-auto">
+        <div class="max-w-7xl mx-auto p-8">
+          <slot />
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const signOutBtn = document.getElementById('signOutBtn');
+      if (signOutBtn) {
+        signOutBtn.addEventListener('click', async () => {
+          try {
+            await fetch('/api/auth/logout', {
+              method: 'POST',
+            });
+            window.location.href = '/admin/login';
+          } catch (error) {
+            console.error('Logout error:', error);
+            // Still redirect even if logout fails
+            window.location.href = '/admin/login';
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
+
+<style>
+  @import "tailwindcss";
+</style>
+
