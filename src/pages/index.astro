@@ -58,6 +58,11 @@ const logoMeta = getR2ImageUrl('/images/2025/10/logo-meta-white_1760205884886.pn
 // Company logos for winners showcase
 const logoApple = getR2ImageUrl('/images/2025/10/logo-apple-white_1760205864042.png');
 const logoQualcomm = getR2ImageUrl('/images/2025/10/logo-qualcomm-white_1760205901474.png');
+
+// Winner showcase images
+const appleVisionProImage = getR2ImageUrl('/images/2025/10/xr-head-mounted-display-of-the-year-winner-2024_1760207686185.jpg');
+const qualcommImage = getR2ImageUrl('/images/2025/10/outstanding-xr-company-of-the-year-winner-2024_1760207732668.jpg');
+const asgardsWrathImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-winner-2024_1760207777680.jpg');
 ---
 
 <Layout
@@ -310,7 +315,7 @@ const logoQualcomm = getR2ImageUrl('/images/2025/10/logo-qualcomm-white_17602059
             <!-- Apple Vision Pro -->
             <div class="relative group overflow-hidden rounded-2xl aspect-[16/10]">
               <Image
-                src="https://images.unsplash.com/photo-1591799265444-d66432b91588?w=800&h=500&fit=crop"
+                src={appleVisionProImage}
                 alt="Apple Vision Pro"
                 class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                 width={800}
@@ -336,7 +341,7 @@ const logoQualcomm = getR2ImageUrl('/images/2025/10/logo-qualcomm-white_17602059
             <!-- Qualcomm -->
             <div class="relative group overflow-hidden rounded-2xl aspect-[16/10]">
               <Image
-                src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=500&fit=crop"
+                src={qualcommImage}
                 alt="Qualcomm"
                 class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                 width={800}
@@ -361,11 +366,11 @@ const logoQualcomm = getR2ImageUrl('/images/2025/10/logo-qualcomm-white_17602059
           </div>
 
           <!-- Right Column: 1 full height image -->
-          <div class="relative group overflow-hidden rounded-2xl">
+          <div class="relative group overflow-hidden rounded-2xl aspect-[16/10] lg:aspect-auto lg:h-full">
             <Image
-              src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&h=1000&fit=crop"
+              src={asgardsWrathImage}
               alt="Meta & Sanzaru Games – Asgard's Wrath 2"
-              class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+              class="w-full h-full object-cover object-top transition-transform duration-500 ease-out group-hover:scale-110 lg:absolute lg:inset-0"
               width={800}
               height={1000}
             />
