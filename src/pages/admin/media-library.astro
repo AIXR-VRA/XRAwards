@@ -354,20 +354,15 @@ if (!session) {
         ...judge,
         name: `${judge.first_name} ${judge.last_name}`.trim()
       }));
-      console.log('Available judges:', availableJudges);
       availableTags = tagsData.tags || [];
       media = (mediaData.media || []).map((item: any) => ({
         ...item,
         // Add computed name property for judges in media items
-        judges: item.judges?.map((judge: any) => {
-          console.log('Processing judge:', judge);
-          return {
-            ...judge,
-            name: `${judge.first_name} ${judge.last_name}`.trim()
-          };
-        })
+        judges: item.judges?.map((judge: any) => ({
+          ...judge,
+          name: `${judge.first_name} ${judge.last_name}`.trim()
+        }))
       }));
-      console.log('Loaded media with judges:', media.filter((m: any) => m.judges?.length > 0));
 
       updateSelectors();
       populateFilters();
