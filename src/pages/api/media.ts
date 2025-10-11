@@ -299,19 +299,88 @@ export const PUT: APIRoute = async ({ request }) => {
 };
 
 // DELETE /api/media - Delete media
-export const DELETE: APIRoute = async ({ request }) => {
+export const DELETE: APIRoute = async ({ request, cookies }) => {
   try {
+    console.log('🗑️ DELETE /api/media - Delete request received');
+    
     const body = await request.json();
     const { id } = body;
 
+    console.log('📋 Delete request data:', { id });
+
     if (!id) {
+      console.error('❌ Missing media ID');
       return new Response(JSON.stringify({ error: 'Media ID is required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    const result = await deleteMedia(id);
+    // Create server-side Supabase client to get session
+    console.log('🔧 Creating server-side Supabase client');
+    const supabaseServer = createServerClient(
+      import.meta.env.SUPABASE_URL,
+      import.meta.env.SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          get(key: string) {
+            return cookies.get(key)?.value;
+          },
+          set(key: string, value: string, options: any) {
+            cookies.set(key, value, options);
+          },
+          remove(key: string, options: any) {
+            cookies.delete(key, options);
+          },
+        },
+      }
+    );
+
+    // Get session
+    const { data: { session }, error: sessionError } = await supabaseServer.auth.getSession();
+    
+    console.log('🔑 Session check:', {
+      hasSession: !!session,
+      hasAccessToken: !!session?.access_token,
+      sessionError: sessionError?.message,
+    });
+
+    if (!session || !session.access_token) {
+      console.error('❌ No valid session found');
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    console.log('🔄 Calling delete-media edge function...');
+    
+    // Call the edge function with the session access token
+    const { data, error } = await supabaseServer.functions.invoke('delete-media', {
+      body: {
+        mediaId: id,
+      },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+
+    console.log('📤 Edge function response:', {
+      success: !!data,
+      hasError: !!error,
+      errorMessage: error?.message,
+      data: data,
+    });
+
+    if (error) {
+      console.error('❌ Edge function error:', error);
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const result = data as any;
 
     if (!result.success) {
       return new Response(JSON.stringify({ error: result.error }), {
@@ -320,12 +389,14 @@ export const DELETE: APIRoute = async ({ request }) => {
       });
     }
 
+    console.log('✅ Media deleted successfully');
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error deleting media:', error);
+    console.error('❌ Error deleting media:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

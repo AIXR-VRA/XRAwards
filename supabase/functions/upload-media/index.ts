@@ -150,6 +150,10 @@ serve(async (req) => {
     
     // Generate safe filename with timestamp
     const timestamp = Date.now()
+    const date = new Date(timestamp)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    
     const extension = filename.substring(filename.lastIndexOf('.'))
     const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.'))
     const safeName = nameWithoutExt
@@ -158,19 +162,20 @@ serve(async (req) => {
       .toLowerCase()
     const uniqueFilename = `${safeName}_${timestamp}${extension}`
     
-    // Determine folder based on mime type
-    let folder = 'media'
+    // Determine folder based on mime type with year/month organization
+    let baseFolder = 'media'
     if (mimeType.startsWith('image/')) {
-      folder = 'images'
+      baseFolder = 'images'
     } else if (mimeType.startsWith('video/')) {
-      folder = 'videos'
+      baseFolder = 'videos'
     } else if (mimeType.startsWith('audio/')) {
-      folder = 'audio'
+      baseFolder = 'audio'
     } else if (mimeType.includes('pdf')) {
-      folder = 'documents'
+      baseFolder = 'documents'
     }
     
-    const filePath = `${folder}/${uniqueFilename}`
+    // Organize into year/month folders: images/2024/10/filename.jpg
+    const filePath = `${baseFolder}/${year}/${month}/${uniqueFilename}`
     console.log(`📁 File will be uploaded to: ${filePath}`)
 
     // Upload to R2

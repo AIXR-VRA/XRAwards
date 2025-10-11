@@ -460,9 +460,16 @@ export async function updateMedia(
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Map camelCase to snake_case for database columns
+    const dbUpdates: any = {};
+    if (updates.altText !== undefined) dbUpdates.alt_text = updates.altText;
+    if (updates.title !== undefined) dbUpdates.title = updates.title;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.isPublic !== undefined) dbUpdates.is_public = updates.isPublic;
+
     const { error } = await supabase
       .from('media_library')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', mediaId);
 
     if (error) {
@@ -682,28 +689,20 @@ export async function removeMediaRelationships(
 
 /**
  * Delete media from library and R2
+ * Note: This is just a placeholder - the actual deletion is handled by /api/media endpoint
  * @param mediaId - Media ID to delete
  * @returns Promise with result
  */
 export async function deleteMedia(mediaId: string): Promise<{ success: boolean; error?: string }> {
   try {
-    // Delete from database (this will cascade to relationship tables)
-    const { error } = await supabase
-      .from('media_library')
-      .delete()
-      .eq('id', mediaId);
-
-    if (error) {
-      return {
-        success: false,
-        error: error.message,
-      };
-    }
-
-    // Note: R2 file deletion would need to be handled by a separate edge function
-    // or cleanup job, as we don't want to expose R2 delete credentials to the client
-
-    return { success: true };
+    // The frontend (media-library.astro) calls /api/media DELETE endpoint directly
+    // This function is kept for consistency but shouldn't be used
+    console.warn('deleteMedia utility called - frontend should use /api/media endpoint directly');
+    
+    return {
+      success: false,
+      error: 'This function should not be called directly - use /api/media endpoint',
+    };
   } catch (error) {
     console.error('Delete media error:', error);
     return {

@@ -840,6 +840,10 @@ if (!session) {
         return;
       }
 
+      // Disable submit button during upload
+      submitBtn.disabled = true;
+      submitBtn.textContent = isEdit ? 'Updating...' : 'Uploading...';
+
       try {
         if (isEdit) {
           // Update existing media
@@ -898,6 +902,10 @@ if (!session) {
       } catch (error: any) {
         modalError.textContent = error.message;
         modalError.classList.remove('hidden');
+      } finally {
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.textContent = isEdit ? 'Update Media' : 'Upload Media';
       }
     });
   });
@@ -948,9 +956,10 @@ if (!session) {
 
   // Delete media
   (window as any).deleteMedia = async (id: string, filename: string) => {
-    if (!confirm(`Are you sure you want to delete "${filename}"?`)) return;
+    if (!confirm(`Are you sure you want to delete "${filename}"?\n\nThis will permanently delete the file from storage and remove all database records.`)) return;
 
     try {
+      console.log('Deleting media:', id);
       const response = await fetch('/api/media', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -958,10 +967,19 @@ if (!session) {
       });
 
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error);
+      console.log('Delete response:', result);
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete media');
+      }
 
+      // Show success message
+      alert('Media deleted successfully!');
+      
+      // Reload the media list
       await loadAllData();
     } catch (error: any) {
+      console.error('Delete error:', error);
       alert('Error deleting media: ' + error.message);
     }
   };
