@@ -153,12 +153,6 @@ const categoriesWithFinalists = categories.map((category: any) => {
                 </p>
               )}
 
-              {category.additional_info && (
-                <div class="prose prose-sm max-w-none text-gray-700 mb-6">
-                  <div set:html={nl2br(category.additional_info)} />
-                </div>
-              )}
-
               <!-- Social Share Icons -->
               <div class="flex gap-2">
                 <a href="#" class="w-9 h-9 flex items-center justify-center bg-[#0077B5] text-white rounded hover:opacity-80 transition-opacity" aria-label="Share on LinkedIn">
