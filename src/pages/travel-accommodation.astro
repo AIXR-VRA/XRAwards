@@ -24,6 +24,11 @@ const { data: eventDetails } = await supabase
 // Fallback URL if tickets_portal_url is not set
 const ticketsUrl = eventDetails?.tickets_portal_url || 'https://events.unitedxr.eu/2025?utm_source=AIXR&utm_medium=XR+Awards+Website&utm_campaign=link';
 
+// Create Google Maps embed URL from venue address (no API key required)
+const venueAddress = eventDetails?.venue_address || 'Maison de la Poste, Rue Picard 5-7, 1000 Brussels, Belgium';
+const encodedAddress = encodeURIComponent(venueAddress);
+const mapEmbedUrl = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+
 // Get images for sections
 const ticketsImage = getR2ImageUrl('/images/2025/10/apple-holding-2024-trophy_1760204737832.jpg');
 const travelImage = getR2ImageUrl('/images/2025/10/obsidian-award-winner-2024_1760204866862.png');
@@ -267,14 +272,14 @@ const hotelImage2 = getR2ImageUrl('/images/2025/10/obsidian-award-winner-2024_17
           <!-- Right Column - Map -->
           <div class="rounded-2xl overflow-hidden shadow-lg h-[500px]">
             <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2517.8193!2d4.345932!3d50.864909!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNTDCsDUxJzUzLjciTiA0wrAyMCc0NS40IkU!5e0!3m2!1sen!2s!4v1234567890"
+              src={mapEmbedUrl}
               width="100%"
               height="100%"
               style="border:0;"
               allowfullscreen=""
               loading="lazy"
               referrerpolicy="no-referrer-when-downgrade"
-              title="Maison de la Poste Location"
+              title={`${eventDetails?.location?.split(',')[0] || 'Venue'} Location`}
             ></iframe>
           </div>
         </div>
