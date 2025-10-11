@@ -3,6 +3,7 @@
  * Admin Categories Management Page
  */
 import AdminLayout from '../../components/admin/AdminLayout.astro';
+import Modal from '../../components/admin/Modal.astro';
 import { createServerClient } from '@supabase/ssr';
 
 // Check authentication
@@ -74,47 +75,43 @@ if (!session) {
     </div>
 
     <!-- Add/Edit Modal -->
-    <div id="categoryModal" class="hidden fixed inset-0 bg-black/50 items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-lg max-w-md w-full p-6">
-        <div class="flex items-center justify-between mb-6">
-          <h2 id="modalTitle" class="text-xl font-semibold text-gray-900">Add Category</h2>
-          <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+    <Modal id="categoryModal" title="Add Category">
+      <form id="categoryModalForm" class="space-y-6 max-w-full">
+        <input type="hidden" id="categoryId" name="id" />
+        
+        <!-- Basic Info Section -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Basic Information</h3>
 
-        <form id="categoryForm" class="space-y-4">
-          <input type="hidden" id="categoryId" name="id" />
-          
-          <div>
-            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
-              Name *
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              required
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., Best VR Experience"
-            />
-          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="min-w-0">
+              <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+                Name *
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Best VR Experience"
+              />
+            </div>
 
-          <div>
-            <label for="slug" class="block text-sm font-medium text-gray-700 mb-1">
-              URL Slug
-              <span class="text-xs text-gray-500 font-normal">(auto-generated from name if left empty)</span>
-            </label>
-            <input
-              type="text"
-              id="slug"
-              name="slug"
-              pattern="[a-z0-9-]+"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-              placeholder="e.g., best-vr-experience"
-            />
+            <div class="min-w-0">
+              <label for="slug" class="block text-sm font-medium text-gray-700 mb-1">
+                URL Slug
+              </label>
+              <input
+                type="text"
+                id="slug"
+                name="slug"
+                pattern="[a-z0-9-]+"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                placeholder="e.g., best-vr-experience"
+              />
+              <p class="text-xs text-gray-500 mt-1">Auto-generated from name if left empty</p>
+            </div>
           </div>
 
           <div>
@@ -125,13 +122,26 @@ if (!session) {
               id="description"
               name="description"
               rows="3"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="Brief description of this category..."
             ></textarea>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div>
+          <div>
+            <label for="additional_info" class="block text-sm font-medium text-gray-700 mb-1">
+              Additional Info
+            </label>
+            <textarea
+              id="additional_info"
+              name="additional_info"
+              rows="2"
+              class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              placeholder="Entry requirements, guidelines, etc."
+            ></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="min-w-0">
               <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-1">
                 Display Order
               </label>
@@ -140,16 +150,16 @@ if (!session) {
                 id="sort_order"
                 name="sort_order"
                 min="0"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="0"
               />
             </div>
             
-            <div>
+            <div class="min-w-0">
               <label class="block text-sm font-medium text-gray-700 mb-1">
                 Visibility
               </label>
-              <label class="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+              <label class="flex items-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
                 <input
                   type="checkbox"
                   id="is_visible"
@@ -161,19 +171,11 @@ if (!session) {
               </label>
             </div>
           </div>
+        </div>
 
-          <div>
-            <label for="additional_info" class="block text-sm font-medium text-gray-700 mb-1">
-              Additional Info
-            </label>
-            <textarea
-              id="additional_info"
-              name="additional_info"
-              rows="2"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              placeholder="Entry requirements, guidelines, etc."
-            ></textarea>
-          </div>
+        <!-- Relationships Section -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Relationships</h3>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -213,27 +215,9 @@ if (!session) {
               </select>
             </div>
           </div>
-
-          <div id="modalError" class="hidden text-red-600 text-sm"></div>
-
-          <div class="flex space-x-3 pt-4">
-            <button
-              type="submit"
-              class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Save
-            </button>
-            <button
-              type="button"
-              id="cancelBtn"
-              class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </form>
+    </Modal>
   </div>
 </AdminLayout>
 
@@ -565,20 +549,18 @@ if (!session) {
 
   // Modal controls
   const modal = document.getElementById('categoryModal')!;
-  const modalTitle = document.getElementById('modalTitle')!;
-  const form = document.getElementById('categoryForm') as HTMLFormElement;
-  const modalError = document.getElementById('modalError')!;
+  const modalTitle = document.getElementById('categoryModalTitle')!;
+  const form = document.getElementById('categoryModalForm') as HTMLFormElement;
+  const modalError = document.getElementById('categoryModalError')!;
 
   function openModal(title: string) {
     modalTitle.textContent = title;
     modalError.classList.add('hidden');
     modal.classList.remove('hidden');
-    modal.classList.add('flex');
   }
 
   function closeModal() {
     modal.classList.add('hidden');
-    modal.classList.remove('flex');
     form.reset();
     (document.getElementById('categoryId') as HTMLInputElement).value = '';
     selectedCategoryTags = [];
@@ -599,8 +581,8 @@ if (!session) {
     openModal('Add Category');
   });
 
-  document.getElementById('closeModalBtn')!.addEventListener('click', closeModal);
-  document.getElementById('cancelBtn')!.addEventListener('click', closeModal);
+  document.getElementById('categoryModalCloseBtn')!.addEventListener('click', closeModal);
+  document.getElementById('categoryModalCancelBtn')!.addEventListener('click', closeModal);
 
   // Edit category
   (window as any).editCategory = (id: string) => {

@@ -3,6 +3,7 @@
  * Admin Event Details Management Page
  */
 import AdminLayout from '../../components/admin/AdminLayout.astro';
+import Modal from '../../components/admin/Modal.astro';
 import MediaSelector from '../../components/admin/MediaSelector.astro';
 import { createServerClient } from '@supabase/ssr';
 
@@ -58,20 +59,8 @@ if (!session) {
     </div>
 
     <!-- Add/Edit Modal -->
-    <div id="eventModal" class="hidden fixed inset-0 bg-black/50 z-50 overflow-y-auto">
-      <div class="min-h-full flex items-start justify-center p-4">
-        <div class="bg-white rounded-lg w-full max-w-4xl my-8 max-h-[calc(100vh-4rem)] flex flex-col">
-          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
-            <h2 id="modalTitle" class="text-xl font-semibold text-gray-900">Add Event</h2>
-            <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 flex-shrink-0">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <div class="overflow-y-auto flex-1">
-            <form id="eventForm" class="space-y-6 p-6 max-w-full">
+    <Modal id="eventModal" title="Add Event">
+      <form id="eventModalForm" class="space-y-6 max-w-full">
           <input type="hidden" id="eventId" name="id" />
 
           <!-- Basic Info Section -->
@@ -506,32 +495,8 @@ if (!session) {
                   </div>
                 </label>
               </div>
-            </form>
-          </div>
-
-          <!-- Modal Footer with Buttons -->
-          <div class="border-t border-gray-200 px-6 py-4 flex-shrink-0 bg-gray-50">
-            <div id="modalError" class="hidden text-red-600 text-sm mb-3"></div>
-            <div class="flex gap-3">
-              <button
-                type="submit"
-                form="eventForm"
-                class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                id="cancelBtn"
-                class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+      </form>
+    </Modal>
   </div>
 </AdminLayout>
 
@@ -666,9 +631,9 @@ if (!session) {
 
   // Modal controls
   const modal = document.getElementById('eventModal')!;
-  const modalTitle = document.getElementById('modalTitle')!;
-  const form = document.getElementById('eventForm') as HTMLFormElement;
-  const modalError = document.getElementById('modalError')!;
+  const modalTitle = document.getElementById('eventModalTitle')!;
+  const form = document.getElementById('eventModalForm') as HTMLFormElement;
+  const modalError = document.getElementById('eventModalError')!;
 
   function openModal(title: string) {
     modalTitle.textContent = title;
@@ -696,8 +661,8 @@ if (!session) {
     openModal('Add Event');
   });
 
-  document.getElementById('closeModalBtn')!.addEventListener('click', closeModal);
-  document.getElementById('cancelBtn')!.addEventListener('click', closeModal);
+  document.getElementById('eventModalCloseBtn')!.addEventListener('click', closeModal);
+  document.getElementById('eventModalCancelBtn')!.addEventListener('click', closeModal);
 
   // Function to display current media previews from already-loaded event data (zero database queries!)
   function showCurrentMediaPreviews(event: any) {

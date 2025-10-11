@@ -1,0 +1,57 @@
+---
+/**
+ * Reusable Admin Modal Component
+ * Provides consistent spacing, scrollable content, and proper button positioning
+ */
+interface Props {
+  id: string;
+  title: string;
+}
+
+const { id, title } = Astro.props;
+---
+
+<div id={id} class="hidden fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+  <div class="min-h-full flex items-start justify-center p-4">
+    <div class="bg-white rounded-lg w-full max-w-4xl my-8 max-h-[calc(100vh-4rem)] flex flex-col">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+        <h2 id={`${id}Title`} class="text-xl font-semibold text-gray-900">{title}</h2>
+        <button id={`${id}CloseBtn`} class="text-gray-400 hover:text-gray-600 flex-shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Scrollable Content Area -->
+      <div class="overflow-y-auto flex-1">
+        <div class="p-6">
+          <slot />
+        </div>
+      </div>
+
+      <!-- Footer with Buttons -->
+      <div class="border-t border-gray-200 px-6 py-4 flex-shrink-0 bg-gray-50">
+        <div id={`${id}Error`} class="hidden text-red-600 text-sm mb-3"></div>
+        <div class="flex gap-3">
+          <button
+            type="submit"
+            form={`${id}Form`}
+            class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            Save
+          </button>
+          <button
+            type="button"
+            id={`${id}CancelBtn`}
+            class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

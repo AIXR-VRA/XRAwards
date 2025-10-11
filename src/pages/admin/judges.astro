@@ -3,6 +3,7 @@
  * Admin Judges Management Page
  */
 import AdminLayout from '../../components/admin/AdminLayout.astro';
+import Modal from '../../components/admin/Modal.astro';
 import MediaSelector from '../../components/admin/MediaSelector.astro';
 import { createServerClient } from '@supabase/ssr';
 
@@ -75,144 +76,148 @@ if (!session) {
     </div>
 
     <!-- Add/Edit Modal -->
-    <div id="judgeModal" class="hidden fixed inset-0 bg-black/50 items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between mb-6">
-          <h2 id="modalTitle" class="text-xl font-semibold text-gray-900">Add Judge</h2>
-          <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <form id="judgeForm" class="space-y-4">
+    <Modal id="judgeModal" title="Add Judge">
+      <form id="judgeModalForm" class="space-y-6 max-w-full">
           <input type="hidden" id="judgeId" name="id" />
 
-          <div class="grid grid-cols-2 gap-4">
+          <!-- Basic Info Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Basic Information</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="min-w-0">
+                <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">
+                  First Name *
+                </label>
+                <input
+                  type="text"
+                  id="first_name"
+                  name="first_name"
+                  required
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., John"
+                />
+              </div>
+
+              <div class="min-w-0">
+                <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name *
+                </label>
+                <input
+                  type="text"
+                  id="last_name"
+                  name="last_name"
+                  required
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Doe"
+                />
+              </div>
+            </div>
+
             <div>
-              <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">
-                First Name *
+              <label for="job_title" class="block text-sm font-medium text-gray-700 mb-1">
+                Job Title
               </label>
               <input
                 type="text"
-                id="first_name"
-                name="first_name"
-                required
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., John"
+                id="job_title"
+                name="job_title"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Senior VR Developer"
               />
             </div>
 
             <div>
-              <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">
-                Last Name *
+              <label for="organization" class="block text-sm font-medium text-gray-700 mb-1">
+                Organization
               </label>
               <input
                 type="text"
-                id="last_name"
-                name="last_name"
-                required
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., Doe"
+                id="organization"
+                name="organization"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Meta Reality Labs"
               />
             </div>
-          </div>
 
-          <div>
-            <label for="job_title" class="block text-sm font-medium text-gray-700 mb-1">
-              Job Title
-            </label>
-            <input
-              type="text"
-              id="job_title"
-              name="job_title"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., Senior VR Developer"
-            />
-          </div>
-
-          <div>
-            <label for="organization" class="block text-sm font-medium text-gray-700 mb-1">
-              Organization
-            </label>
-            <input
-              type="text"
-              id="organization"
-              name="organization"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., Meta Reality Labs"
-            />
-          </div>
-
-          <div>
-            <label for="linkedin_url" class="block text-sm font-medium text-gray-700 mb-1">
-              LinkedIn URL
-            </label>
-            <input
-              type="url"
-              id="linkedin_url"
-              name="linkedin_url"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              placeholder="https://linkedin.com/in/username"
-            />
-          </div>
-
-          <MediaSelector 
-            multiple={false}
-            label="Profile Image"
-            helpText="Select profile image for this judge"
-          />
-
-          <div>
-            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              rows="4"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              placeholder="Judge bio and background..."
-            ></textarea>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
             <div>
-              <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-1">
-                Display Order
+              <label for="linkedin_url" class="block text-sm font-medium text-gray-700 mb-1">
+                LinkedIn URL
               </label>
               <input
-                type="number"
-                id="sort_order"
-                name="sort_order"
-                min="0"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                placeholder="0"
+                type="url"
+                id="linkedin_url"
+                name="linkedin_url"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="https://linkedin.com/in/username"
               />
             </div>
+
+            <div>
+              <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                rows="4"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="Judge bio and background..."
+              ></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="min-w-0">
+                <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-1">
+                  Display Order
+                </label>
+                <input
+                  type="number"
+                  id="sort_order"
+                  name="sort_order"
+                  min="0"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="0"
+                />
+              </div>
+
+              <div class="min-w-0">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  Visibility
+                </label>
+                <label class="flex items-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="checkbox"
+                    id="is_visible"
+                    name="is_visible"
+                    checked
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span class="text-sm text-gray-700">Show publicly</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Media Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Media</h3>
+
+            <MediaSelector 
+              multiple={false}
+              label="Profile Image"
+              helpText="Select profile image for this judge"
+            />
+          </div>
+
+          <!-- Relationships Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Relationships</h3>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                Visibility
+                Events *
               </label>
-              <label class="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                <input
-                  type="checkbox"
-                  id="is_visible"
-                  name="is_visible"
-                  checked
-                  class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span class="text-sm text-gray-700">Show publicly</span>
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Events *
-            </label>
             <div class="border border-gray-300 rounded-lg p-3 min-h-[80px]">
               <!-- Selected events display -->
               <div id="selectedEvents" class="flex flex-wrap gap-2 mb-2"></div>
@@ -246,27 +251,9 @@ if (!session) {
               </select>
             </div>
           </div>
-
-          <div id="modalError" class="hidden text-red-600 text-sm"></div>
-
-          <div class="flex space-x-3 pt-4">
-            <button
-              type="submit"
-              class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Save
-            </button>
-            <button
-              type="button"
-              id="cancelBtn"
-              class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-            >
-              Cancel
-            </button>
           </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </Modal>
   </div>
 </AdminLayout>
 
@@ -621,20 +608,18 @@ if (!session) {
 
   // Modal controls
   const modal = document.getElementById('judgeModal')!;
-  const modalTitle = document.getElementById('modalTitle')!;
-  const form = document.getElementById('judgeForm') as HTMLFormElement;
-  const modalError = document.getElementById('modalError')!;
+  const modalTitle = document.getElementById('judgeModalTitle')!;
+  const form = document.getElementById('judgeModalForm') as HTMLFormElement;
+  const modalError = document.getElementById('judgeModalError')!;
 
   function openModal(title: string) {
     modalTitle.textContent = title;
     modalError.classList.add('hidden');
     modal.classList.remove('hidden');
-    modal.classList.add('flex');
   }
 
   function closeModal() {
     modal.classList.add('hidden');
-    modal.classList.remove('flex');
     form.reset();
     (document.getElementById('judgeId') as HTMLInputElement).value = '';
     selectedJudgeEvents = [];
@@ -666,8 +651,8 @@ if (!session) {
     openModal('Add Judge');
   });
 
-  document.getElementById('closeModalBtn')!.addEventListener('click', closeModal);
-  document.getElementById('cancelBtn')!.addEventListener('click', closeModal);
+  document.getElementById('judgeModalCloseBtn')!.addEventListener('click', closeModal);
+  document.getElementById('judgeModalCancelBtn')!.addEventListener('click', closeModal);
 
   // Edit judge
   (window as any).editJudge = async (id: string) => {

@@ -3,6 +3,7 @@
  * Admin Media Library Management Page
  */
 import AdminLayout from '../../components/admin/AdminLayout.astro';
+import Modal from '../../components/admin/Modal.astro';
 import { createServerClient } from '@supabase/ssr';
 
 // Check authentication
@@ -107,101 +108,105 @@ if (!session) {
     </div>
 
     <!-- Upload/Edit Modal -->
-    <div id="mediaModal" class="hidden fixed inset-0 bg-black/50 items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between mb-6">
-          <h2 id="modalTitle" class="text-xl font-semibold text-gray-900">Upload Media</h2>
-          <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <form id="mediaForm" class="space-y-4">
+    <Modal id="mediaModal" title="Upload Media">
+      <form id="mediaModalForm" class="space-y-6 max-w-full">
           <input type="hidden" id="mediaId" name="id" />
           
-          <!-- File Upload -->
-          <div id="fileUploadSection">
-            <label for="file" class="block text-sm font-medium text-gray-700 mb-1">
-              File *
-            </label>
-            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors">
-              <div class="space-y-1 text-center">
-                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-                <div class="flex text-sm text-gray-600">
-                  <label for="file" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-hidden">
-                    <span>Upload a file</span>
-                    <input id="file" name="file" type="file" class="sr-only" />
-                  </label>
-                  <p class="pl-1">or drag and drop</p>
+          <!-- File Upload Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2">File Upload</h3>
+
+            <div id="fileUploadSection">
+              <label for="file" class="block text-sm font-medium text-gray-700 mb-1">
+                File *
+              </label>
+              <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors">
+                <div class="space-y-1 text-center">
+                  <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  <div class="flex text-sm text-gray-600">
+                    <label for="file" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-hidden">
+                      <span>Upload a file</span>
+                      <input id="file" name="file" type="file" class="sr-only" />
+                    </label>
+                    <p class="pl-1">or drag and drop</p>
+                  </div>
+                  <p class="text-xs text-gray-500">PNG, JPG, GIF, WebP, MP4, PDF up to 10MB</p>
                 </div>
-                <p class="text-xs text-gray-500">PNG, JPG, GIF, WebP, MP4, PDF up to 10MB</p>
+              </div>
+              <div id="filePreview" class="mt-4 hidden">
+                <img id="previewImage" class="max-w-full h-auto rounded-lg" alt="Preview" />
+                <p id="fileName" class="mt-2 text-sm text-gray-600"></p>
               </div>
             </div>
-            <div id="filePreview" class="mt-4 hidden">
-              <img id="previewImage" class="max-w-full h-auto rounded-lg" alt="Preview" />
-              <p id="fileName" class="mt-2 text-sm text-gray-600"></p>
-            </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
-                Title
-              </label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                placeholder="Optional title for the media"
-              />
-            </div>
-            
-            <div>
-              <label for="altText" class="block text-sm font-medium text-gray-700 mb-1">
-                Alt Text
-              </label>
-              <input
-                type="text"
-                id="altText"
-                name="altText"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                placeholder="Accessibility description"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              rows="3"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              placeholder="Optional description..."
-            ></textarea>
-          </div>
-
-          <div class="flex items-center">
-            <input
-              type="checkbox"
-              id="isPublic"
-              name="isPublic"
-              checked
-              class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <label for="isPublic" class="ml-2 text-sm text-gray-700">Public (visible to everyone)</label>
-          </div>
-
-          <!-- Relationships -->
+          <!-- Media Details Section -->
           <div class="space-y-4">
-            <h3 class="text-lg font-medium text-gray-900">Relationships</h3>
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Media Details</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="min-w-0">
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="Optional title for the media"
+                />
+              </div>
+              
+              <div class="min-w-0">
+                <label for="altText" class="block text-sm font-medium text-gray-700 mb-1">
+                  Alt Text
+                </label>
+                <input
+                  type="text"
+                  id="altText"
+                  name="altText"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="Accessibility description"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                rows="3"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="Optional description..."
+              ></textarea>
+            </div>
+
+            <div>
+              <label class="flex items-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  id="isPublic"
+                  name="isPublic"
+                  checked
+                  class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <div>
+                  <span class="text-sm font-medium text-gray-700">Public</span>
+                  <p class="text-xs text-gray-500">Visible to everyone</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Relationships Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Relationships</h3>
             
             <!-- Events -->
             <div>
@@ -281,28 +286,8 @@ if (!session) {
               </div>
             </div>
           </div>
-
-          <div id="modalError" class="hidden text-red-600 text-sm"></div>
-
-          <div class="flex space-x-3 pt-4">
-            <button
-              type="submit"
-              id="submitBtn"
-              class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Upload Media
-            </button>
-            <button
-              type="button"
-              id="cancelBtn"
-              class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </Modal>
   </div>
 </AdminLayout>
 
@@ -774,29 +759,24 @@ if (!session) {
 
   // Modal controls
   const modal = document.getElementById('mediaModal')!;
-  const modalTitle = document.getElementById('modalTitle')!;
-  const form = document.getElementById('mediaForm') as HTMLFormElement;
-  const modalError = document.getElementById('modalError')!;
-  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+  const modalTitle = document.getElementById('mediaModalTitle')!;
+  const form = document.getElementById('mediaModalForm') as HTMLFormElement;
+  const modalError = document.getElementById('mediaModalError')!;
 
   function openModal(title: string, isEdit: boolean = false) {
     modalTitle.textContent = title;
     modalError.classList.add('hidden');
     modal.classList.remove('hidden');
-    modal.classList.add('flex');
     
     if (isEdit) {
       document.getElementById('fileUploadSection')!.style.display = 'none';
-      submitBtn.textContent = 'Update Media';
     } else {
       document.getElementById('fileUploadSection')!.style.display = 'block';
-      submitBtn.textContent = 'Upload Media';
     }
   }
 
   function closeModal() {
     modal.classList.add('hidden');
-    modal.classList.remove('flex');
     form.reset();
     (document.getElementById('mediaId') as HTMLInputElement).value = '';
     selectedEvents = [];
@@ -896,8 +876,8 @@ if (!session) {
       openModal('Upload Media', false);
     });
 
-    document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
-    document.getElementById('cancelBtn')?.addEventListener('click', closeModal);
+    document.getElementById('mediaModalCloseBtn')?.addEventListener('click', closeModal);
+    document.getElementById('mediaModalCancelBtn')?.addEventListener('click', closeModal);
 
     // File preview
     document.getElementById('file')?.addEventListener('change', (e) => {
@@ -937,9 +917,11 @@ if (!session) {
         return;
       }
 
-      // Disable submit button during upload
-      submitBtn.disabled = true;
-      submitBtn.textContent = isEdit ? 'Updating...' : 'Uploading...';
+      // Show loading state in error area
+      modalError.textContent = isEdit ? 'Updating...' : 'Uploading...';
+      modalError.classList.remove('hidden');
+      modalError.classList.remove('text-red-600');
+      modalError.classList.add('text-blue-600');
 
       try {
         if (isEdit) {
@@ -999,10 +981,13 @@ if (!session) {
       } catch (error: any) {
         modalError.textContent = error.message;
         modalError.classList.remove('hidden');
+        modalError.classList.remove('text-blue-600');
+        modalError.classList.add('text-red-600');
       } finally {
-        // Re-enable submit button
-        submitBtn.disabled = false;
-        submitBtn.textContent = isEdit ? 'Update Media' : 'Upload Media';
+        // Hide loading state
+        if (!modalError.textContent || modalError.classList.contains('text-blue-600')) {
+          modalError.classList.add('hidden');
+        }
       }
     });
   });
