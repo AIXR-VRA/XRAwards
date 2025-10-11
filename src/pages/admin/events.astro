@@ -276,6 +276,208 @@ if (!session) {
             </div>
           </div>
 
+          <!-- Hero & Video Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Hero & Video Content</h3>
+
+            <div>
+              <label for="hero_image" class="block text-sm font-medium text-gray-700 mb-1">
+                Hero Image URL
+              </label>
+              <input
+                type="url"
+                id="hero_image"
+                name="hero_image"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="https://..."
+              />
+              <p class="text-xs text-gray-500 mt-1">Main hero/banner image for the event page</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="highlight_video" class="block text-sm font-medium text-gray-700 mb-1">
+                  Highlight Video URL
+                </label>
+                <input
+                  type="url"
+                  id="highlight_video"
+                  name="highlight_video"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://..."
+                />
+              </div>
+
+              <div>
+                <label for="highlight_video_cover_image" class="block text-sm font-medium text-gray-700 mb-1">
+                  Video Cover Image URL
+                </label>
+                <input
+                  type="url"
+                  id="highlight_video_cover_image"
+                  name="highlight_video_cover_image"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Finalists & Winners Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Finalists & Winners</h3>
+
+            <div>
+              <label for="finalists_winners_blurb" class="block text-sm font-medium text-gray-700 mb-1">
+                Finalists & Winners Blurb
+              </label>
+              <textarea
+                id="finalists_winners_blurb"
+                name="finalists_winners_blurb"
+                rows="3"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="Descriptive text about finalists and winners..."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Highlights Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Highlights</h3>
+
+            <div>
+              <label for="highlight_blurb_1" class="block text-sm font-medium text-gray-700 mb-1">
+                Highlight Blurb 1
+              </label>
+              <textarea
+                id="highlight_blurb_1"
+                name="highlight_blurb_1"
+                rows="3"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="First highlight section text..."
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="highlight_images" class="block text-sm font-medium text-gray-700 mb-1">
+                Highlight Images
+              </label>
+              <textarea
+                id="highlight_images"
+                name="highlight_images"
+                rows="4"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                placeholder="Enter image URLs, one per line&#10;https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+              ></textarea>
+              <p class="text-xs text-gray-500 mt-1">Enter one image URL per line</p>
+            </div>
+
+            <div>
+              <label for="highlight_blurb_2" class="block text-sm font-medium text-gray-700 mb-1">
+                Highlight Blurb 2
+              </label>
+              <textarea
+                id="highlight_blurb_2"
+                name="highlight_blurb_2"
+                rows="3"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="Second highlight section text..."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Entertainment Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Entertainment</h3>
+
+            <div>
+              <label for="entertainment_blurb" class="block text-sm font-medium text-gray-700 mb-1">
+                Entertainment Blurb
+              </label>
+              <textarea
+                id="entertainment_blurb"
+                name="entertainment_blurb"
+                rows="3"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="Description of entertainment at the event..."
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="entertainment_images" class="block text-sm font-medium text-gray-700 mb-1">
+                Entertainment Images
+              </label>
+              <textarea
+                id="entertainment_images"
+                name="entertainment_images"
+                rows="4"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                placeholder="Enter image URLs, one per line&#10;https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+              ></textarea>
+              <p class="text-xs text-gray-500 mt-1">Enter one image URL per line</p>
+            </div>
+          </div>
+
+          <!-- Menu Section -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Menu</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label for="menu_blurb_starter" class="block text-sm font-medium text-gray-700 mb-1">
+                  Starter
+                </label>
+                <textarea
+                  id="menu_blurb_starter"
+                  name="menu_blurb_starter"
+                  rows="3"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="Starter/appetizer description..."
+                ></textarea>
+              </div>
+
+              <div>
+                <label for="menu_blurb_main" class="block text-sm font-medium text-gray-700 mb-1">
+                  Main Course
+                </label>
+                <textarea
+                  id="menu_blurb_main"
+                  name="menu_blurb_main"
+                  rows="3"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="Main course description..."
+                ></textarea>
+              </div>
+
+              <div>
+                <label for="menu_blurb_dessert" class="block text-sm font-medium text-gray-700 mb-1">
+                  Dessert
+                </label>
+                <textarea
+                  id="menu_blurb_dessert"
+                  name="menu_blurb_dessert"
+                  rows="3"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  placeholder="Dessert description..."
+                ></textarea>
+              </div>
+            </div>
+
+            <div>
+              <label for="menu_images" class="block text-sm font-medium text-gray-700 mb-1">
+                Menu Images
+              </label>
+              <textarea
+                id="menu_images"
+                name="menu_images"
+                rows="4"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                placeholder="Enter image URLs, one per line&#10;https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+              ></textarea>
+              <p class="text-xs text-gray-500 mt-1">Enter one image URL per line</p>
+            </div>
+          </div>
+
           <!-- Active Status -->
           <div>
             <label class="flex items-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
@@ -472,6 +674,27 @@ if (!session) {
     (document.getElementById('tickets_portal_url') as HTMLInputElement).value = event.tickets_portal_url || '';
     (document.getElementById('is_active') as HTMLInputElement).checked = event.is_active !== false;
 
+    // Hero & Video fields
+    (document.getElementById('hero_image') as HTMLInputElement).value = event.hero_image || '';
+    (document.getElementById('highlight_video') as HTMLInputElement).value = event.highlight_video || '';
+    (document.getElementById('highlight_video_cover_image') as HTMLInputElement).value = event.highlight_video_cover_image || '';
+
+    // Blurb fields
+    (document.getElementById('finalists_winners_blurb') as HTMLTextAreaElement).value = event.finalists_winners_blurb || '';
+    (document.getElementById('highlight_blurb_1') as HTMLTextAreaElement).value = event.highlight_blurb_1 || '';
+    (document.getElementById('highlight_blurb_2') as HTMLTextAreaElement).value = event.highlight_blurb_2 || '';
+    (document.getElementById('entertainment_blurb') as HTMLTextAreaElement).value = event.entertainment_blurb || '';
+
+    // Menu blurb fields
+    (document.getElementById('menu_blurb_starter') as HTMLTextAreaElement).value = event.menu_blurb_starter || '';
+    (document.getElementById('menu_blurb_main') as HTMLTextAreaElement).value = event.menu_blurb_main || '';
+    (document.getElementById('menu_blurb_dessert') as HTMLTextAreaElement).value = event.menu_blurb_dessert || '';
+
+    // Array fields (join with newlines for textarea display)
+    (document.getElementById('highlight_images') as HTMLTextAreaElement).value = Array.isArray(event.highlight_images) ? event.highlight_images.join('\n') : '';
+    (document.getElementById('entertainment_images') as HTMLTextAreaElement).value = Array.isArray(event.entertainment_images) ? event.entertainment_images.join('\n') : '';
+    (document.getElementById('menu_images') as HTMLTextAreaElement).value = Array.isArray(event.menu_images) ? event.menu_images.join('\n') : '';
+
     openModal('Edit Event');
   };
 
@@ -494,6 +717,14 @@ if (!session) {
       alert('Error deleting event: ' + error.message);
     }
   };
+
+  // Helper function to parse textarea as array (one URL per line)
+  function parseTextareaAsArray(value: string): string[] {
+    return value
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+  }
 
   // Form submit
   form.addEventListener('submit', async (e) => {
@@ -520,6 +751,27 @@ if (!session) {
       nomination_portal_url: formData.get('nomination_portal_url') || null,
       tickets_portal_url: formData.get('tickets_portal_url') || null,
       is_active: (document.getElementById('is_active') as HTMLInputElement).checked,
+
+      // Hero & Video fields
+      hero_image: formData.get('hero_image') || null,
+      highlight_video: formData.get('highlight_video') || null,
+      highlight_video_cover_image: formData.get('highlight_video_cover_image') || null,
+
+      // Blurb fields
+      finalists_winners_blurb: formData.get('finalists_winners_blurb') || null,
+      highlight_blurb_1: formData.get('highlight_blurb_1') || null,
+      highlight_blurb_2: formData.get('highlight_blurb_2') || null,
+      entertainment_blurb: formData.get('entertainment_blurb') || null,
+
+      // Menu blurb fields
+      menu_blurb_starter: formData.get('menu_blurb_starter') || null,
+      menu_blurb_main: formData.get('menu_blurb_main') || null,
+      menu_blurb_dessert: formData.get('menu_blurb_dessert') || null,
+
+      // Array fields (parse textarea content)
+      highlight_images: parseTextareaAsArray(formData.get('highlight_images') as string || ''),
+      entertainment_images: parseTextareaAsArray(formData.get('entertainment_images') as string || ''),
+      menu_images: parseTextareaAsArray(formData.get('menu_images') as string || ''),
     };
 
     try {
