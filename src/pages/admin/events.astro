@@ -58,26 +58,28 @@ if (!session) {
     </div>
 
     <!-- Add/Edit Modal -->
-    <div id="eventModal" class="hidden fixed inset-0 bg-black/50 items-center justify-center z-50 p-4 overflow-y-auto">
-      <div class="bg-white rounded-lg max-w-3xl w-full p-6 my-8">
-        <div class="flex items-center justify-between mb-6">
-          <h2 id="modalTitle" class="text-xl font-semibold text-gray-900">Add Event</h2>
-          <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+    <div id="eventModal" class="hidden fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+      <div class="min-h-full flex items-start justify-center p-4">
+        <div class="bg-white rounded-lg w-full max-w-4xl my-8 max-h-[calc(100vh-4rem)] flex flex-col">
+          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+            <h2 id="modalTitle" class="text-xl font-semibold text-gray-900">Add Event</h2>
+            <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 flex-shrink-0">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
 
-        <form id="eventForm" class="space-y-6">
+          <div class="overflow-y-auto flex-1">
+            <form id="eventForm" class="space-y-6 p-6 max-w-full">
           <input type="hidden" id="eventId" name="id" />
 
           <!-- Basic Info Section -->
           <div class="space-y-4">
             <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Basic Information</h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="min-w-0">
                 <label for="event_name" class="block text-sm font-medium text-gray-700 mb-1">
                   Event Name *
                 </label>
@@ -86,12 +88,12 @@ if (!session) {
                   id="event_name"
                   name="event_name"
                   required
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., United XR Awards 2025"
                 />
               </div>
 
-              <div>
+              <div class="min-w-0">
                 <label for="event_year" class="block text-sm font-medium text-gray-700 mb-1">
                   Event Year *
                 </label>
@@ -102,14 +104,14 @@ if (!session) {
                   required
                   min="2020"
                   max="2100"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   placeholder="2025"
                 />
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="min-w-0">
                 <label for="location" class="block text-sm font-medium text-gray-700 mb-1">
                   Location *
                 </label>
@@ -118,12 +120,12 @@ if (!session) {
                   id="location"
                   name="location"
                   required
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., Brussels, Belgium"
                 />
               </div>
 
-              <div>
+              <div class="min-w-0">
                 <label for="organizer_name" class="block text-sm font-medium text-gray-700 mb-1">
                   Organizer Name
                 </label>
@@ -131,7 +133,7 @@ if (!session) {
                   type="text"
                   id="organizer_name"
                   name="organizer_name"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., AIXR"
                 />
               </div>
@@ -145,7 +147,7 @@ if (!session) {
                 type="text"
                 id="venue_address"
                 name="venue_address"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="e.g., Maison de la Poste, Rue Picard 5-7, 1000 Brussels, Belgium"
               />
               <p class="text-xs text-gray-500 mt-1">Full venue address including street, postal code, city, and country</p>
@@ -159,7 +161,7 @@ if (!session) {
                 id="description"
                 name="description"
                 rows="3"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="Brief description of the event..."
               ></textarea>
             </div>
@@ -169,8 +171,8 @@ if (!session) {
           <div class="space-y-4">
             <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Key Dates</h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="min-w-0">
                 <label for="nominations_open" class="block text-sm font-medium text-gray-700 mb-1">
                   Nominations Open
                 </label>
@@ -178,11 +180,11 @@ if (!session) {
                   type="date"
                   id="nominations_open"
                   name="nominations_open"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <div>
+              <div class="min-w-0">
                 <label for="nominations_close" class="block text-sm font-medium text-gray-700 mb-1">
                   Nominations Close
                 </label>
@@ -190,11 +192,11 @@ if (!session) {
                   type="date"
                   id="nominations_close"
                   name="nominations_close"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <div>
+              <div class="min-w-0">
                 <label for="finalists_announced" class="block text-sm font-medium text-gray-700 mb-1">
                   Finalists Announced
                 </label>
@@ -202,11 +204,11 @@ if (!session) {
                   type="date"
                   id="finalists_announced"
                   name="finalists_announced"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <div>
+              <div class="min-w-0">
                 <label for="awards_ceremony" class="block text-sm font-medium text-gray-700 mb-1">
                   Awards Ceremony
                 </label>
@@ -214,11 +216,11 @@ if (!session) {
                   type="date"
                   id="awards_ceremony"
                   name="awards_ceremony"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <div>
+              <div class="min-w-0">
                 <label for="judging_period_start" class="block text-sm font-medium text-gray-700 mb-1">
                   Judging Period Start
                 </label>
@@ -226,11 +228,11 @@ if (!session) {
                   type="date"
                   id="judging_period_start"
                   name="judging_period_start"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <div>
+              <div class="min-w-0">
                 <label for="judging_period_end" class="block text-sm font-medium text-gray-700 mb-1">
                   Judging Period End
                 </label>
@@ -238,7 +240,7 @@ if (!session) {
                   type="date"
                   id="judging_period_end"
                   name="judging_period_end"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -248,8 +250,8 @@ if (!session) {
           <div class="space-y-4">
             <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Portal Links</h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="min-w-0">
                 <label for="nomination_portal_url" class="block text-sm font-medium text-gray-700 mb-1">
                   Nomination Portal URL
                 </label>
@@ -257,12 +259,12 @@ if (!session) {
                   type="url"
                   id="nomination_portal_url"
                   name="nomination_portal_url"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   placeholder="https://..."
                 />
               </div>
 
-              <div>
+              <div class="min-w-0">
                 <label for="tickets_portal_url" class="block text-sm font-medium text-gray-700 mb-1">
                   Tickets Portal URL
                 </label>
@@ -270,7 +272,7 @@ if (!session) {
                   type="url"
                   id="tickets_portal_url"
                   name="tickets_portal_url"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   placeholder="https://..."
                 />
               </div>
@@ -285,7 +287,7 @@ if (!session) {
               <!-- Current Image Preview -->
               <div id="currentHeroImage" class="hidden mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                 <p class="text-xs font-medium text-gray-700 mb-2">Current Hero Image:</p>
-                <img id="currentHeroImagePreview" src="" alt="Current hero" class="w-40 h-40 object-cover rounded border border-gray-300" />
+                <img id="currentHeroImagePreview" src="" alt="Current hero" class="max-w-40 h-auto object-cover rounded border border-gray-300" />
               </div>
               
               <div id="heroImageSelector">
@@ -297,35 +299,33 @@ if (!session) {
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label for="highlight_video" class="block text-sm font-medium text-gray-700 mb-1">
-                  Highlight Video URL
-                </label>
-                <input
-                  type="url"
-                  id="highlight_video"
-                  name="highlight_video"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://youtube.com/... or https://vimeo.com/..."
-                />
-                <p class="text-xs text-gray-500 mt-1">External video URL (YouTube, Vimeo, etc.)</p>
-              </div>
+            <div>
+              <label for="highlight_video" class="block text-sm font-medium text-gray-700 mb-1">
+                Highlight Video URL
+              </label>
+              <input
+                type="url"
+                id="highlight_video"
+                name="highlight_video"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="https://youtube.com/... or https://vimeo.com/..."
+              />
+              <p class="text-xs text-gray-500 mt-1">External video URL (YouTube, Vimeo, etc.)</p>
+            </div>
 
-              <div>
-                <!-- Current Video Cover Preview -->
-                <div id="currentVideoCover" class="hidden mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                  <p class="text-xs font-medium text-gray-700 mb-2">Current Video Cover:</p>
-                  <img id="currentVideoCoverPreview" src="" alt="Current cover" class="w-40 h-40 object-cover rounded border border-gray-300" />
-                </div>
-                
-                <div id="videoCoverSelector">
-                  <MediaSelector
-                    label="Video Cover Image (select to change)"
-                    helpText="Leave empty to keep current image, or select new image to replace"
-                    multiple={false}
-                  />
-                </div>
+            <div>
+              <!-- Current Video Cover Preview -->
+              <div id="currentVideoCover" class="hidden mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <p class="text-xs font-medium text-gray-700 mb-2">Current Video Cover:</p>
+                <img id="currentVideoCoverPreview" src="" alt="Current cover" class="max-w-40 h-auto object-cover rounded border border-gray-300" />
+              </div>
+              
+              <div id="videoCoverSelector">
+                <MediaSelector
+                  label="Video Cover Image (select to change)"
+                  helpText="Leave empty to keep current image, or select new image to replace"
+                  multiple={false}
+                />
               </div>
             </div>
           </div>
@@ -342,7 +342,7 @@ if (!session) {
                 id="finalists_winners_blurb"
                 name="finalists_winners_blurb"
                 rows="3"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="Descriptive text about finalists and winners..."
               ></textarea>
             </div>
@@ -360,16 +360,16 @@ if (!session) {
                 id="highlight_blurb_1"
                 name="highlight_blurb_1"
                 rows="3"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="First highlight section text..."
               ></textarea>
             </div>
 
             <div>
               <!-- Current Highlight Images Preview -->
-              <div id="currentHighlightImages" class="hidden mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <div id="currentHighlightImages" class="hidden mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
                 <p class="text-xs font-medium text-gray-700 mb-2">Current Highlight Images (<span id="highlightImagesCount">0</span>):</p>
-                <div id="currentHighlightImagesList" class="grid grid-cols-4 gap-2"></div>
+                <div id="currentHighlightImagesList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2"></div>
               </div>
               
               <div id="highlightImagesSelector">
@@ -389,7 +389,7 @@ if (!session) {
                 id="highlight_blurb_2"
                 name="highlight_blurb_2"
                 rows="3"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="Second highlight section text..."
               ></textarea>
             </div>
@@ -407,16 +407,16 @@ if (!session) {
                 id="entertainment_blurb"
                 name="entertainment_blurb"
                 rows="3"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="Description of entertainment at the event..."
               ></textarea>
             </div>
 
             <div>
               <!-- Current Entertainment Images Preview -->
-              <div id="currentEntertainmentImages" class="hidden mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <div id="currentEntertainmentImages" class="hidden mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
                 <p class="text-xs font-medium text-gray-700 mb-2">Current Entertainment Images (<span id="entertainmentImagesCount">0</span>):</p>
-                <div id="currentEntertainmentImagesList" class="grid grid-cols-4 gap-2"></div>
+                <div id="currentEntertainmentImagesList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2"></div>
               </div>
               
               <div id="entertainmentImagesSelector">
@@ -433,7 +433,7 @@ if (!session) {
           <div class="space-y-4">
             <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Menu</h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 gap-4">
               <div>
                 <label for="menu_blurb_starter" class="block text-sm font-medium text-gray-700 mb-1">
                   Starter
@@ -442,7 +442,7 @@ if (!session) {
                   id="menu_blurb_starter"
                   name="menu_blurb_starter"
                   rows="3"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   placeholder="Starter/appetizer description..."
                 ></textarea>
               </div>
@@ -455,7 +455,7 @@ if (!session) {
                   id="menu_blurb_main"
                   name="menu_blurb_main"
                   rows="3"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   placeholder="Main course description..."
                 ></textarea>
               </div>
@@ -468,7 +468,7 @@ if (!session) {
                   id="menu_blurb_dessert"
                   name="menu_blurb_dessert"
                   rows="3"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   placeholder="Dessert description..."
                 ></textarea>
               </div>
@@ -476,9 +476,9 @@ if (!session) {
 
             <div>
               <!-- Current Menu Images Preview -->
-              <div id="currentMenuImages" class="hidden mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <div id="currentMenuImages" class="hidden mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
                 <p class="text-xs font-medium text-gray-700 mb-2">Current Menu Images (<span id="menuImagesCount">0</span>):</p>
-                <div id="currentMenuImagesList" class="grid grid-cols-4 gap-2"></div>
+                <div id="currentMenuImagesList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2"></div>
               </div>
               
               <div id="menuImagesSelector">
@@ -491,40 +491,45 @@ if (!session) {
             </div>
           </div>
 
-          <!-- Active Status -->
-          <div>
-            <label class="flex items-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-              <input
-                type="checkbox"
-                id="is_active"
-                name="is_active"
-                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
+              <!-- Active Status -->
               <div>
-                <span class="text-sm font-medium text-gray-700">Set as Active Event</span>
-                <p class="text-xs text-gray-500">Only one event can be active at a time. This will be shown on the homepage.</p>
+                <label class="flex items-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="checkbox"
+                    id="is_active"
+                    name="is_active"
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <div>
+                    <span class="text-sm font-medium text-gray-700">Set as Active Event</span>
+                    <p class="text-xs text-gray-500">Only one event can be active at a time. This will be shown on the homepage.</p>
+                  </div>
+                </label>
               </div>
-            </label>
+            </form>
           </div>
 
-          <div id="modalError" class="hidden text-red-600 text-sm"></div>
-
-          <div class="flex space-x-3 pt-4">
-            <button
-              type="submit"
-              class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Save
-            </button>
-            <button
-              type="button"
-              id="cancelBtn"
-              class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-            >
-              Cancel
-            </button>
+          <!-- Modal Footer with Buttons -->
+          <div class="border-t border-gray-200 px-6 py-4 flex-shrink-0 bg-gray-50">
+            <div id="modalError" class="hidden text-red-600 text-sm mb-3"></div>
+            <div class="flex gap-3">
+              <button
+                type="submit"
+                form="eventForm"
+                class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                id="cancelBtn"
+                class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   </div>
@@ -669,12 +674,10 @@ if (!session) {
     modalTitle.textContent = title;
     modalError.classList.add('hidden');
     modal.classList.remove('hidden');
-    modal.classList.add('flex');
   }
 
   function closeModal() {
     modal.classList.add('hidden');
-    modal.classList.remove('flex');
     form.reset();
     (document.getElementById('eventId') as HTMLInputElement).value = '';
   }
@@ -722,7 +725,7 @@ if (!session) {
     if (event.highlight_images && event.highlight_images.length > 0) {
       document.getElementById('highlightImagesCount')!.textContent = event.highlight_images.length.toString();
       highlightList.innerHTML = event.highlight_images.map((url: string) => 
-        `<img src="${escapeHtml(url)}" alt="Highlight" class="w-20 h-20 object-cover rounded border border-gray-300" />`
+        `<img src="${escapeHtml(url)}" alt="Highlight" class="w-full aspect-square object-cover rounded border border-gray-300" />`
       ).join('');
       highlightContainer.classList.remove('hidden');
     } else {
@@ -735,7 +738,7 @@ if (!session) {
     if (event.entertainment_images && event.entertainment_images.length > 0) {
       document.getElementById('entertainmentImagesCount')!.textContent = event.entertainment_images.length.toString();
       entertainmentList.innerHTML = event.entertainment_images.map((url: string) => 
-        `<img src="${escapeHtml(url)}" alt="Entertainment" class="w-20 h-20 object-cover rounded border border-gray-300" />`
+        `<img src="${escapeHtml(url)}" alt="Entertainment" class="w-full aspect-square object-cover rounded border border-gray-300" />`
       ).join('');
       entertainmentContainer.classList.remove('hidden');
     } else {
@@ -748,7 +751,7 @@ if (!session) {
     if (event.menu_images && event.menu_images.length > 0) {
       document.getElementById('menuImagesCount')!.textContent = event.menu_images.length.toString();
       menuList.innerHTML = event.menu_images.map((url: string) => 
-        `<img src="${escapeHtml(url)}" alt="Menu" class="w-20 h-20 object-cover rounded border border-gray-300" />`
+        `<img src="${escapeHtml(url)}" alt="Menu" class="w-full aspect-square object-cover rounded border border-gray-300" />`
       ).join('');
       menuContainer.classList.remove('hidden');
     } else {
