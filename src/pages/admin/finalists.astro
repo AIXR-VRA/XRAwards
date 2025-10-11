@@ -3,6 +3,7 @@
  * Admin Finalists Management Page
  */
 import AdminLayout from '../../components/admin/AdminLayout.astro';
+import MediaSelector from '../../components/admin/MediaSelector.astro';
 import { createServerClient } from '@supabase/ssr';
 
 // Check authentication
@@ -142,21 +143,13 @@ if (!session) {
             ></textarea>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label for="image_url" class="block text-sm font-medium text-gray-700 mb-1">
-                Image URL
-              </label>
-              <input
-                type="url"
-                id="image_url"
-                name="image_url"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                placeholder="https://..."
-              />
-              <p class="text-xs text-gray-500 mt-1">Upload via Media Upload first</p>
-            </div>
+          <MediaSelector 
+            multiple={false}
+            label="Finalist Image"
+            helpText="Select one image for this finalist"
+          />
 
+          <div class="grid grid-cols-2 gap-4">
             <div>
               <label for="website_url" class="block text-sm font-medium text-gray-700 mb-1">
                 Website URL
@@ -267,6 +260,7 @@ if (!session) {
   let events: any[] = [];
   let availableTags: any[] = [];
   let selectedFinalistTags: any[] = [];
+  let mediaSelectorId: string = '';
   let filters = { category: '', event: '', winner: '' };
 
   // Load tags
@@ -349,6 +343,12 @@ if (!session) {
       (window as any).addFinalistTag(target.value);
       target.value = '';
     });
+
+    // Get MediaSelector ID
+    const selectorElement = document.querySelector('.media-selector-component') as HTMLElement;
+    if (selectorElement) {
+      mediaSelectorId = selectorElement.dataset.selectorId || '';
+    }
   });
 
   // Load events
@@ -555,12 +555,23 @@ if (!session) {
     selectedFinalistTags = [];
     renderSelectedFinalistTags();
     updateFinalistTagSelector();
+    
+    // Clear media selector
+    if (mediaSelectorId && (window as any)[`clearSelectedMedia_${mediaSelectorId}`]) {
+      (window as any)[`clearSelectedMedia_${mediaSelectorId}`]();
+    }
   }
 
   document.getElementById('addFinalistBtn')!.addEventListener('click', () => {
     selectedFinalistTags = [];
     renderSelectedFinalistTags();
     updateFinalistTagSelector();
+    
+    // Clear media selector
+    if (mediaSelectorId && (window as any)[`clearSelectedMedia_${mediaSelectorId}`]) {
+      (window as any)[`clearSelectedMedia_${mediaSelectorId}`]();
+    }
+    
     openModal('Add Finalist');
   });
 
@@ -568,7 +579,7 @@ if (!session) {
   document.getElementById('cancelBtn')!.addEventListener('click', closeModal);
 
   // Edit finalist
-  (window as any).editFinalist = (id: string) => {
+  (window as any).editFinalist = async (id: string) => {
     const finalist = finalists.find(f => f.id === id);
     if (!finalist) return;
 
@@ -577,7 +588,6 @@ if (!session) {
     (document.getElementById('organization') as HTMLInputElement).value = finalist.organization || '';
     (document.getElementById('category_id') as HTMLSelectElement).value = finalist.category_id;
     (document.getElementById('finalistDescription') as HTMLTextAreaElement).value = finalist.description || '';
-    (document.getElementById('image_url') as HTMLInputElement).value = finalist.image_url || '';
     (document.getElementById('website_url') as HTMLInputElement).value = finalist.website_url || '';
     (document.getElementById('event_id') as HTMLSelectElement).value = finalist.event_id || '';
     (document.getElementById('placement') as HTMLInputElement).value = finalist.placement || '';
@@ -587,6 +597,28 @@ if (!session) {
     selectedFinalistTags = finalist.tags || [];
     renderSelectedFinalistTags();
     updateFinalistTagSelector();
+
+    // Load media for this finalist
+    try {
+      const response = await fetch(`/api/media?finalistIds=${id}`);
+      const data = await response.json();
+      if (response.ok && data.media && data.media.length > 0) {
+        // Set media in selector (only first one since single selection)
+        if (mediaSelectorId && (window as any)[`setSelectedMedia_${mediaSelectorId}`]) {
+          (window as any)[`setSelectedMedia_${mediaSelectorId}`](data.media);
+        }
+      } else {
+        // Clear if no media
+        if (mediaSelectorId && (window as any)[`clearSelectedMedia_${mediaSelectorId}`]) {
+          (window as any)[`clearSelectedMedia_${mediaSelectorId}`]();
+        }
+      }
+    } catch (error) {
+      console.error('Error loading finalist media:', error);
+      if (mediaSelectorId && (window as any)[`clearSelectedMedia_${mediaSelectorId}`]) {
+        (window as any)[`clearSelectedMedia_${mediaSelectorId}`]();
+      }
+    }
 
     openModal('Edit Finalist');
   };
@@ -619,6 +651,11 @@ if (!session) {
     const formData = new FormData(form);
     const id = formData.get('id') as string;
     
+    // Get selected media from MediaSelector component
+    const selectedMedia = mediaSelectorId && (window as any)[`getSelectedMedia_${mediaSelectorId}`]
+      ? (window as any)[`getSelectedMedia_${mediaSelectorId}`]()
+      : [];
+    
     const data = {
       id: id || undefined,
       title: formData.get('title'),
@@ -626,11 +663,12 @@ if (!session) {
       description: formData.get('description') || null,
       category_id: formData.get('category_id'),
       event_id: formData.get('event_id'),
-      image_url: formData.get('image_url') || null,
+      image_url: selectedMedia.length > 0 ? selectedMedia[0].file_url : null,
       website_url: formData.get('website_url') || null,
       placement: formData.get('placement') ? parseInt(formData.get('placement') as string) : null,
       is_winner: (document.getElementById('is_winner') as HTMLInputElement).checked,
       tag_ids: selectedFinalistTags.map(t => t.id),
+      media_ids: selectedMedia.map((m: any) => m.id),
     };
 
     try {

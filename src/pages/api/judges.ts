@@ -105,7 +105,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { first_name, last_name, job_title, organization, linkedin_url, profile_image_url, description, sort_order, is_visible, event_ids, tag_ids } = body;
+    const { first_name, last_name, job_title, organization, linkedin_url, profile_image_url, description, sort_order, is_visible, event_ids, tag_ids, media_ids } = body;
 
     if (!first_name || !last_name) {
       return new Response(
@@ -157,6 +157,20 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       if (tagError) console.error('Error adding tags:', tagError);
     }
 
+    // Add media relationships if provided
+    if (media_ids && media_ids.length > 0) {
+      const mediaInserts = media_ids.map((media_id: string) => ({
+        judge_id: data.id,
+        media_id,
+      }));
+
+      const { error: mediaError } = await supabase
+        .from('media_judges')
+        .insert(mediaInserts);
+
+      if (mediaError) console.error('Error adding media:', mediaError);
+    }
+
     return new Response(
       JSON.stringify({ judge: data, message: 'Judge created successfully' }),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
@@ -183,7 +197,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { id, first_name, last_name, job_title, organization, linkedin_url, profile_image_url, description, sort_order, is_visible, event_ids, tag_ids } = body;
+    const { id, first_name, last_name, job_title, organization, linkedin_url, profile_image_url, description, sort_order, is_visible, event_ids, tag_ids, media_ids } = body;
 
     if (!id) {
       return new Response(
@@ -251,6 +265,29 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
           .insert(tagInserts);
 
         if (tagError) console.error('Error updating tags:', tagError);
+      }
+    }
+
+    // Update media relationships if provided
+    if (media_ids !== undefined) {
+      // Delete existing media relationships
+      await supabase
+        .from('media_judges')
+        .delete()
+        .eq('judge_id', id);
+
+      // Add new media relationships
+      if (media_ids.length > 0) {
+        const mediaInserts = media_ids.map((media_id: string) => ({
+          judge_id: id,
+          media_id,
+        }));
+
+        const { error: mediaError } = await supabase
+          .from('media_judges')
+          .insert(mediaInserts);
+
+        if (mediaError) console.error('Error updating media:', mediaError);
       }
     }
 

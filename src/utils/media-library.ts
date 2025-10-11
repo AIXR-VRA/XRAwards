@@ -246,7 +246,7 @@ export async function getMedia(request: GetMediaRequest = {}): Promise<GetMediaR
           supabase
             .from('media_judges')
             .select(`
-              judges!inner(id, name, title)
+              judges!inner(id, first_name, last_name, job_title)
             `)
             .eq('media_id', media.media_id)
         ]);
@@ -267,7 +267,10 @@ export async function getMedia(request: GetMediaRequest = {}): Promise<GetMediaR
           finalists: finalistsResult.data?.map((item: any) => item.finalists) || [],
           sponsors: sponsorsResult.data?.map((item: any) => item.sponsors) || [],
           tags: tagsResult.data?.map((item: any) => item.tags) || [],
-          judges: judgesResult.data?.map((item: any) => item.judges) || [],
+          judges: judgesResult.data?.map((item: any) => ({
+            ...item.judges,
+            name: `${item.judges.first_name} ${item.judges.last_name}`.trim()
+          })) || [],
         };
       })
     );
@@ -726,15 +729,15 @@ export async function deleteMedia(mediaId: string): Promise<{ success: boolean; 
 }
 
 /**
- * Format file size for display
+ * Format file size for display (using decimal units to match storage providers)
  * @param bytes - File size in bytes
  * @returns Formatted file size string
  */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
   
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const k = 1000; // Use decimal (SI) units, not binary (1024)
+  const sizes = ['Bytes', 'kB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];

@@ -102,7 +102,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { title, organization, description, category_id, event_id, image_url, website_url, is_winner, placement, tag_ids } = body;
+    const { title, organization, description, category_id, event_id, image_url, website_url, is_winner, placement, tag_ids, media_ids } = body;
 
     if (!title || !category_id || !event_id) {
       return new Response(
@@ -133,6 +133,20 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       if (tagError) console.error('Error adding tags:', tagError);
     }
 
+    // Add media relationships if provided
+    if (media_ids && media_ids.length > 0) {
+      const mediaInserts = media_ids.map((media_id: string) => ({
+        finalist_id: data.id,
+        media_id,
+      }));
+
+      const { error: mediaError } = await supabase
+        .from('media_finalists')
+        .insert(mediaInserts);
+
+      if (mediaError) console.error('Error adding media:', mediaError);
+    }
+
     return new Response(
       JSON.stringify({ finalist: data, message: 'Finalist created successfully' }),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
@@ -159,7 +173,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { id, title, organization, description, category_id, event_id, image_url, website_url, is_winner, placement, tag_ids } = body;
+    const { id, title, organization, description, category_id, event_id, image_url, website_url, is_winner, placement, tag_ids, media_ids } = body;
 
     if (!id) {
       return new Response(
@@ -197,6 +211,29 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
           .insert(tagInserts);
 
         if (tagError) console.error('Error updating tags:', tagError);
+      }
+    }
+
+    // Update media relationships if provided
+    if (media_ids !== undefined) {
+      // Delete existing media relationships
+      await supabase
+        .from('media_finalists')
+        .delete()
+        .eq('finalist_id', id);
+
+      // Add new media relationships
+      if (media_ids.length > 0) {
+        const mediaInserts = media_ids.map((media_id: string) => ({
+          finalist_id: id,
+          media_id,
+        }));
+
+        const { error: mediaError } = await supabase
+          .from('media_finalists')
+          .insert(mediaInserts);
+
+        if (mediaError) console.error('Error updating media:', mediaError);
       }
     }
 

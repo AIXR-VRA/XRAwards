@@ -349,9 +349,25 @@ if (!session) {
       availableCategories = categoriesData.categories || [];
       availableFinalists = finalistsData.finalists || [];
       availableSponsors = sponsorsData.sponsors || [];
-      availableJudges = judgesData.judges || [];
+      // Add computed name property for judges
+      availableJudges = (judgesData.judges || []).map((judge: any) => ({
+        ...judge,
+        name: `${judge.first_name} ${judge.last_name}`.trim()
+      }));
+      console.log('Available judges:', availableJudges);
       availableTags = tagsData.tags || [];
-      media = mediaData.media || [];
+      media = (mediaData.media || []).map((item: any) => ({
+        ...item,
+        // Add computed name property for judges in media items
+        judges: item.judges?.map((judge: any) => {
+          console.log('Processing judge:', judge);
+          return {
+            ...judge,
+            name: `${judge.first_name} ${judge.last_name}`.trim()
+          };
+        })
+      }));
+      console.log('Loaded media with judges:', media.filter((m: any) => m.judges?.length > 0));
 
       updateSelectors();
       populateFilters();
@@ -648,7 +664,8 @@ if (!session) {
           <h3 class="font-medium text-gray-900 truncate" title="${item.title || item.filename}">
             ${item.title || item.filename}
           </h3>
-          <p class="text-sm text-gray-500 mt-1">${(item.file_size / 1024 / 1024).toFixed(2)} MB</p>
+          <p class="text-xs text-gray-400 mt-1 font-mono">ID: ${item.id}</p>
+          <p class="text-sm text-gray-500 mt-1">${item.file_size >= 1000000 ? (item.file_size / 1000 / 1000).toFixed(2) + ' MB' : (item.file_size / 1000).toFixed(2) + ' kB'}</p>
           ${item.alt_text ? `<p class="text-xs text-gray-600 mt-1 truncate" title="${item.alt_text}">${item.alt_text}</p>` : ''}
           
           <!-- Relationships -->
@@ -822,7 +839,10 @@ if (!session) {
           preview.classList.remove('hidden');
         }
         
-        fileName.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+        const fileSize = file.size >= 1000000 
+          ? (file.size / 1000 / 1000).toFixed(2) + ' MB' 
+          : (file.size / 1000).toFixed(2) + ' kB';
+        fileName.textContent = `${file.name} (${fileSize})`;
       }
     });
 

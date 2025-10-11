@@ -3,6 +3,7 @@
  * Admin Sponsors Management Page
  */
 import AdminLayout from '../../components/admin/AdminLayout.astro';
+import MediaSelector from '../../components/admin/MediaSelector.astro';
 import { createServerClient } from '@supabase/ssr';
 
 // Check authentication
@@ -141,19 +142,11 @@ if (!session) {
             />
           </div>
 
-          <div>
-            <label for="logo_url" class="block text-sm font-medium text-gray-700 mb-1">
-              Logo URL
-            </label>
-            <input
-              type="url"
-              id="logo_url"
-              name="logo_url"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              placeholder="https://example.com/logo.png"
-            />
-            <p class="text-xs text-gray-500 mt-1">URL to sponsor logo image</p>
-          </div>
+          <MediaSelector 
+            multiple={false}
+            label="Sponsor Logo"
+            helpText="Select logo image for this sponsor"
+          />
 
           <div class="grid grid-cols-2 gap-4">
             <div>
@@ -255,6 +248,7 @@ if (!session) {
   let availableCategories: any[] = [];
   let selectedSponsorEvents: any[] = [];
   let selectedSponsorCategories: any[] = [];
+  let mediaSelectorId: string = '';
   let filters = { event: '', category: '', visibility: '' };
 
   // Load events
@@ -482,6 +476,12 @@ if (!session) {
       filters.visibility = (e.target as HTMLSelectElement).value;
       renderSponsors();
     });
+
+    // Get MediaSelector ID
+    const selectorElement = document.querySelector('.media-selector-component') as HTMLElement;
+    if (selectorElement) {
+      mediaSelectorId = selectorElement.dataset.selectorId || '';
+    }
   });
 
   // Load sponsors
@@ -601,6 +601,11 @@ if (!session) {
     renderSelectedCategories();
     updateEventSelector();
     updateCategorySelector();
+    
+    // Clear media selector
+    if (mediaSelectorId && (window as any)[`clearSelectedMedia_${mediaSelectorId}`]) {
+      (window as any)[`clearSelectedMedia_${mediaSelectorId}`]();
+    }
   }
 
   document.getElementById('addSponsorBtn')!.addEventListener('click', () => {
@@ -610,6 +615,12 @@ if (!session) {
     renderSelectedCategories();
     updateEventSelector();
     updateCategorySelector();
+    
+    // Clear media selector
+    if (mediaSelectorId && (window as any)[`clearSelectedMedia_${mediaSelectorId}`]) {
+      (window as any)[`clearSelectedMedia_${mediaSelectorId}`]();
+    }
+    
     openModal('Add Sponsor');
   });
 
@@ -617,7 +628,7 @@ if (!session) {
   document.getElementById('cancelBtn')!.addEventListener('click', closeModal);
 
   // Edit sponsor
-  (window as any).editSponsor = (id: string) => {
+  (window as any).editSponsor = async (id: string) => {
     const sponsor = sponsors.find(s => s.id === id);
     if (!sponsor) return;
 
@@ -626,7 +637,6 @@ if (!session) {
     (document.getElementById('tagline') as HTMLInputElement).value = sponsor.tagline || '';
     (document.getElementById('description') as HTMLTextAreaElement).value = sponsor.description || '';
     (document.getElementById('website_url') as HTMLInputElement).value = sponsor.website_url || '';
-    (document.getElementById('logo_url') as HTMLInputElement).value = sponsor.logo_url || '';
     (document.getElementById('sort_order') as HTMLInputElement).value = sponsor.sort_order?.toString() || '0';
     (document.getElementById('is_visible') as HTMLInputElement).checked = sponsor.is_visible !== false;
 
@@ -639,6 +649,26 @@ if (!session) {
     selectedSponsorCategories = sponsor.categories || [];
     renderSelectedCategories();
     updateCategorySelector();
+
+    // Load media for this sponsor
+    try {
+      const response = await fetch(`/api/media?sponsorIds=${id}`);
+      const data = await response.json();
+      if (response.ok && data.media && data.media.length > 0) {
+        if (mediaSelectorId && (window as any)[`setSelectedMedia_${mediaSelectorId}`]) {
+          (window as any)[`setSelectedMedia_${mediaSelectorId}`](data.media);
+        }
+      } else {
+        if (mediaSelectorId && (window as any)[`clearSelectedMedia_${mediaSelectorId}`]) {
+          (window as any)[`clearSelectedMedia_${mediaSelectorId}`]();
+        }
+      }
+    } catch (error) {
+      console.error('Error loading sponsor media:', error);
+      if (mediaSelectorId && (window as any)[`clearSelectedMedia_${mediaSelectorId}`]) {
+        (window as any)[`clearSelectedMedia_${mediaSelectorId}`]();
+      }
+    }
 
     openModal('Edit Sponsor');
   };
@@ -671,17 +701,23 @@ if (!session) {
     const formData = new FormData(form);
     const id = formData.get('id') as string;
 
+    // Get selected media from MediaSelector component
+    const selectedMedia = mediaSelectorId && (window as any)[`getSelectedMedia_${mediaSelectorId}`]
+      ? (window as any)[`getSelectedMedia_${mediaSelectorId}`]()
+      : [];
+
     const data = {
       id: id || undefined,
       name: formData.get('name'),
       tagline: formData.get('tagline') || null,
       description: formData.get('description') || null,
       website_url: formData.get('website_url') || null,
-      logo_url: formData.get('logo_url') || null,
+      logo_url: selectedMedia.length > 0 ? selectedMedia[0].file_url : null,
       sort_order: formData.get('sort_order') ? parseInt(formData.get('sort_order') as string) : 0,
       is_visible: (document.getElementById('is_visible') as HTMLInputElement).checked,
       event_ids: selectedSponsorEvents.map(e => e.id),
       category_ids: selectedSponsorCategories.map(c => c.id),
+      media_ids: selectedMedia.map((m: any) => m.id),
     };
 
     // Validate at least one event is selected

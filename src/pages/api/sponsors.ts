@@ -105,7 +105,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { name, tagline, description, website_url, logo_url, sort_order, is_visible, event_ids, category_ids } = body;
+    const { name, tagline, description, website_url, logo_url, sort_order, is_visible, event_ids, category_ids, media_ids } = body;
 
     if (!name) {
       return new Response(
@@ -157,6 +157,20 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       if (categoryError) console.error('Error adding categories:', categoryError);
     }
 
+    // Add media relationships if provided
+    if (media_ids && media_ids.length > 0) {
+      const mediaInserts = media_ids.map((media_id: string) => ({
+        sponsor_id: data.id,
+        media_id,
+      }));
+
+      const { error: mediaError } = await supabase
+        .from('media_sponsors')
+        .insert(mediaInserts);
+
+      if (mediaError) console.error('Error adding media:', mediaError);
+    }
+
     return new Response(
       JSON.stringify({ sponsor: data, message: 'Sponsor created successfully' }),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
@@ -183,7 +197,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { id, name, tagline, description, website_url, logo_url, sort_order, is_visible, event_ids, category_ids } = body;
+    const { id, name, tagline, description, website_url, logo_url, sort_order, is_visible, event_ids, category_ids, media_ids } = body;
 
     if (!id) {
       return new Response(
@@ -251,6 +265,29 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
           .insert(categoryInserts);
 
         if (categoryError) console.error('Error updating categories:', categoryError);
+      }
+    }
+
+    // Update media relationships if provided
+    if (media_ids !== undefined) {
+      // Delete existing media relationships
+      await supabase
+        .from('media_sponsors')
+        .delete()
+        .eq('sponsor_id', id);
+
+      // Add new media relationships
+      if (media_ids.length > 0) {
+        const mediaInserts = media_ids.map((media_id: string) => ({
+          sponsor_id: id,
+          media_id,
+        }));
+
+        const { error: mediaError } = await supabase
+          .from('media_sponsors')
+          .insert(mediaInserts);
+
+        if (mediaError) console.error('Error updating media:', mediaError);
       }
     }
 

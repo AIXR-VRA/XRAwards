@@ -3,6 +3,7 @@
  * Admin Judges Management Page
  */
 import AdminLayout from '../../components/admin/AdminLayout.astro';
+import MediaSelector from '../../components/admin/MediaSelector.astro';
 import { createServerClient } from '@supabase/ssr';
 
 // Check authentication
@@ -157,19 +158,11 @@ if (!session) {
             />
           </div>
 
-          <div>
-            <label for="profile_image_url" class="block text-sm font-medium text-gray-700 mb-1">
-              Profile Image URL
-            </label>
-            <input
-              type="url"
-              id="profile_image_url"
-              name="profile_image_url"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              placeholder="https://your-r2-bucket.com/profile.jpg"
-            />
-            <p class="text-xs text-gray-500 mt-1">Upload image to R2 storage and paste URL here</p>
-          </div>
+          <MediaSelector 
+            multiple={false}
+            label="Profile Image"
+            helpText="Select profile image for this judge"
+          />
 
           <div>
             <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
@@ -283,6 +276,7 @@ if (!session) {
   let availableTags: any[] = [];
   let selectedJudgeEvents: any[] = [];
   let selectedJudgeTags: any[] = [];
+  let mediaSelectorId: string = '';
   let filters = { event: '', tag: '', visibility: '' };
 
   // Load events
@@ -510,6 +504,12 @@ if (!session) {
       filters.visibility = (e.target as HTMLSelectElement).value;
       renderJudges();
     });
+
+    // Get MediaSelector ID
+    const selectorElement = document.querySelector('.media-selector-component') as HTMLElement;
+    if (selectorElement) {
+      mediaSelectorId = selectorElement.dataset.selectorId || '';
+    }
   });
 
   // Load judges
@@ -643,6 +643,11 @@ if (!session) {
     renderSelectedTags();
     updateEventSelector();
     updateTagSelector();
+    
+    // Clear media selector
+    if (mediaSelectorId && (window as any)[`clearSelectedMedia_${mediaSelectorId}`]) {
+      (window as any)[`clearSelectedMedia_${mediaSelectorId}`]();
+    }
   }
 
   document.getElementById('addJudgeBtn')!.addEventListener('click', () => {
@@ -652,6 +657,12 @@ if (!session) {
     renderSelectedTags();
     updateEventSelector();
     updateTagSelector();
+    
+    // Clear media selector
+    if (mediaSelectorId && (window as any)[`clearSelectedMedia_${mediaSelectorId}`]) {
+      (window as any)[`clearSelectedMedia_${mediaSelectorId}`]();
+    }
+    
     openModal('Add Judge');
   });
 
@@ -659,7 +670,7 @@ if (!session) {
   document.getElementById('cancelBtn')!.addEventListener('click', closeModal);
 
   // Edit judge
-  (window as any).editJudge = (id: string) => {
+  (window as any).editJudge = async (id: string) => {
     const judge = judges.find(j => j.id === id);
     if (!judge) return;
 
@@ -669,7 +680,6 @@ if (!session) {
     (document.getElementById('job_title') as HTMLInputElement).value = judge.job_title || '';
     (document.getElementById('organization') as HTMLInputElement).value = judge.organization || '';
     (document.getElementById('linkedin_url') as HTMLInputElement).value = judge.linkedin_url || '';
-    (document.getElementById('profile_image_url') as HTMLInputElement).value = judge.profile_image_url || '';
     (document.getElementById('description') as HTMLTextAreaElement).value = judge.description || '';
     (document.getElementById('sort_order') as HTMLInputElement).value = judge.sort_order?.toString() || '0';
     (document.getElementById('is_visible') as HTMLInputElement).checked = judge.is_visible !== false;
@@ -683,6 +693,26 @@ if (!session) {
     selectedJudgeTags = judge.tags || [];
     renderSelectedTags();
     updateTagSelector();
+
+    // Load media for this judge
+    try {
+      const response = await fetch(`/api/media?judgeIds=${id}`);
+      const data = await response.json();
+      if (response.ok && data.media && data.media.length > 0) {
+        if (mediaSelectorId && (window as any)[`setSelectedMedia_${mediaSelectorId}`]) {
+          (window as any)[`setSelectedMedia_${mediaSelectorId}`](data.media);
+        }
+      } else {
+        if (mediaSelectorId && (window as any)[`clearSelectedMedia_${mediaSelectorId}`]) {
+          (window as any)[`clearSelectedMedia_${mediaSelectorId}`]();
+        }
+      }
+    } catch (error) {
+      console.error('Error loading judge media:', error);
+      if (mediaSelectorId && (window as any)[`clearSelectedMedia_${mediaSelectorId}`]) {
+        (window as any)[`clearSelectedMedia_${mediaSelectorId}`]();
+      }
+    }
 
     openModal('Edit Judge');
   };
@@ -715,6 +745,11 @@ if (!session) {
     const formData = new FormData(form);
     const id = formData.get('id') as string;
 
+    // Get selected media from MediaSelector component
+    const selectedMedia = mediaSelectorId && (window as any)[`getSelectedMedia_${mediaSelectorId}`]
+      ? (window as any)[`getSelectedMedia_${mediaSelectorId}`]()
+      : [];
+
     const data = {
       id: id || undefined,
       first_name: formData.get('first_name'),
@@ -722,12 +757,13 @@ if (!session) {
       job_title: formData.get('job_title') || null,
       organization: formData.get('organization') || null,
       linkedin_url: formData.get('linkedin_url') || null,
-      profile_image_url: formData.get('profile_image_url') || null,
+      profile_image_url: selectedMedia.length > 0 ? selectedMedia[0].file_url : null,
       description: formData.get('description') || null,
       sort_order: formData.get('sort_order') ? parseInt(formData.get('sort_order') as string) : 0,
       is_visible: (document.getElementById('is_visible') as HTMLInputElement).checked,
       event_ids: selectedJudgeEvents.map(e => e.id),
       tag_ids: selectedJudgeTags.map(t => t.id),
+      media_ids: selectedMedia.map((m: any) => m.id),
     };
 
     // Validate at least one event is selected
