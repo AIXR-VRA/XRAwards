@@ -30,16 +30,16 @@ const encodedAddress = encodeURIComponent(venueAddress);
 const mapEmbedUrl = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
 // Get images for sections
-const ticketsImage = getR2ImageUrl('/images/2025/10/apple-holding-2024-trophy_1760204737832.jpg');
-const travelImage = getR2ImageUrl('/images/2025/10/obsidian-award-winner-2024_1760204866862.png');
-const hotelsImage = getR2ImageUrl('/images/2025/10/xr-head-mounted-display-of-the-year-winner-2024_1760207686185.jpg');
-const scheduleImage = getR2ImageUrl('/images/2025/10/outstanding-xr-company-of-the-year-winner-2024_1760207732668.jpg');
-const groupImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-winner-2024_1760207777680.jpg');
-const brusselsImage = getR2ImageUrl('/images/2025/10/xr-awards-hero_1760202291581.png');
+const ticketsImage = getR2ImageUrl('/images/2025/10/xr-awards-dinner-cheers-rotterdam-2023_1760216494171.png');
+const travelImage = getR2ImageUrl('/images/2025/10/brussles-xra_1760216262140.jpg');
+const hotelsImage = getR2ImageUrl('/images/2025/10/hotel-xra_1760216332619.jpg');
+const scheduleImage = getR2ImageUrl('/images/2025/10/xr-awards-dinner-rotterdam-2023_1760216550174.png');
+const groupImage = getR2ImageUrl('/images/2025/10/vr-awards-htc-team-2019_1760216397468.png');
+const brusselsImage = getR2ImageUrl('/images/2025/10/gala-stereopsia-brussles_1760216291947.png');
 
 // Hotel section images
-const hotelImage1 = getR2ImageUrl('/images/2025/10/xr-awards-hero_1760202291581.png');
-const hotelImage2 = getR2ImageUrl('/images/2025/10/obsidian-award-winner-2024_1760204866862.png');
+const hotelImage1 = getR2ImageUrl('/images/2025/10/hotel-xra_1760216332619.jpg');
+const hotelImage2 = getR2ImageUrl('/images/2025/10/brussles-xra_1760216262140.jpg');
 ---
 
 <Layout
@@ -293,7 +293,7 @@ const hotelImage2 = getR2ImageUrl('/images/2025/10/obsidian-award-winner-2024_17
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <!-- Closest Hotel -->
-          <div class="rounded-2xl overflow-hidden shadow-lg">
+          <div class="rounded-2xl overflow-hidden flex flex-col">
             <div class="aspect-video overflow-hidden">
               <Image 
                 src={hotelImage1} 
@@ -303,9 +303,9 @@ const hotelImage2 = getR2ImageUrl('/images/2025/10/obsidian-award-winner-2024_17
                 height={340}
               />
             </div>
-            <div class="p-8 bg-white">
-              <h3 class="text-2xl font-bold text-gray-900 mb-4">Closest Hotel</h3>
-              <p class="text-gray-700 mb-6">
+            <div class="p-8 bg-[#0E1022] flex flex-col flex-1">
+              <h3 class="text-2xl font-bold text-white mb-4">Closest Hotel</h3>
+              <p class="text-gray-300 mb-6 flex-1">
                 For your convenience, we've listed the closest hotel to the venue. Other options are available. To book your stay, simply click the button below.
               </p>
               <a 
@@ -320,7 +320,7 @@ const hotelImage2 = getR2ImageUrl('/images/2025/10/obsidian-award-winner-2024_17
           </div>
 
           <!-- Hotel Partners -->
-          <div class="rounded-2xl overflow-hidden shadow-lg">
+          <div class="rounded-2xl overflow-hidden flex flex-col">
             <div class="aspect-video overflow-hidden">
               <Image 
                 src={hotelImage2} 
@@ -330,9 +330,9 @@ const hotelImage2 = getR2ImageUrl('/images/2025/10/obsidian-award-winner-2024_17
                 height={340}
               />
             </div>
-            <div class="p-8 bg-white">
-              <h3 class="text-2xl font-bold text-gray-900 mb-4">Hotel Partners</h3>
-              <p class="text-gray-700 mb-6">
+            <div class="p-8 bg-[#0E1022] flex flex-col flex-1">
+              <h3 class="text-2xl font-bold text-white mb-4">Hotel Partners</h3>
+              <p class="text-gray-300 mb-6 flex-1">
                 When it comes to accommodations that keep you right in the heart of all the action, Visit Brussels is the official hotel agent for the AIXR XR Awards, and United XR.
               </p>
               <a 
