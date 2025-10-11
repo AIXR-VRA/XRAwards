@@ -3,6 +3,7 @@
  * Admin Event Details Management Page
  */
 import AdminLayout from '../../components/admin/AdminLayout.astro';
+import MediaSelector from '../../components/admin/MediaSelector.astro';
 import { createServerClient } from '@supabase/ssr';
 
 // Check authentication
@@ -281,17 +282,19 @@ if (!session) {
             <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Hero & Video Content</h3>
 
             <div>
-              <label for="hero_image" class="block text-sm font-medium text-gray-700 mb-1">
-                Hero Image URL
-              </label>
-              <input
-                type="url"
-                id="hero_image"
-                name="hero_image"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                placeholder="https://..."
-              />
-              <p class="text-xs text-gray-500 mt-1">Main hero/banner image for the event page</p>
+              <!-- Current Image Preview -->
+              <div id="currentHeroImage" class="hidden mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <p class="text-xs font-medium text-gray-700 mb-2">Current Hero Image:</p>
+                <img id="currentHeroImagePreview" src="" alt="Current hero" class="w-40 h-40 object-cover rounded border border-gray-300" />
+              </div>
+              
+              <div id="heroImageSelector">
+                <MediaSelector
+                  label="Hero Image (select to change)"
+                  helpText="Leave empty to keep current image, or select new image to replace"
+                  multiple={false}
+                />
+              </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -304,21 +307,25 @@ if (!session) {
                   id="highlight_video"
                   name="highlight_video"
                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://..."
+                  placeholder="https://youtube.com/... or https://vimeo.com/..."
                 />
+                <p class="text-xs text-gray-500 mt-1">External video URL (YouTube, Vimeo, etc.)</p>
               </div>
 
               <div>
-                <label for="highlight_video_cover_image" class="block text-sm font-medium text-gray-700 mb-1">
-                  Video Cover Image URL
-                </label>
-                <input
-                  type="url"
-                  id="highlight_video_cover_image"
-                  name="highlight_video_cover_image"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://..."
-                />
+                <!-- Current Video Cover Preview -->
+                <div id="currentVideoCover" class="hidden mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                  <p class="text-xs font-medium text-gray-700 mb-2">Current Video Cover:</p>
+                  <img id="currentVideoCoverPreview" src="" alt="Current cover" class="w-40 h-40 object-cover rounded border border-gray-300" />
+                </div>
+                
+                <div id="videoCoverSelector">
+                  <MediaSelector
+                    label="Video Cover Image (select to change)"
+                    helpText="Leave empty to keep current image, or select new image to replace"
+                    multiple={false}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -359,17 +366,19 @@ if (!session) {
             </div>
 
             <div>
-              <label for="highlight_images" class="block text-sm font-medium text-gray-700 mb-1">
-                Highlight Images
-              </label>
-              <textarea
-                id="highlight_images"
-                name="highlight_images"
-                rows="4"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                placeholder="Enter image URLs, one per line&#10;https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
-              ></textarea>
-              <p class="text-xs text-gray-500 mt-1">Enter one image URL per line</p>
+              <!-- Current Highlight Images Preview -->
+              <div id="currentHighlightImages" class="hidden mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <p class="text-xs font-medium text-gray-700 mb-2">Current Highlight Images (<span id="highlightImagesCount">0</span>):</p>
+                <div id="currentHighlightImagesList" class="grid grid-cols-4 gap-2"></div>
+              </div>
+              
+              <div id="highlightImagesSelector">
+                <MediaSelector
+                  label="Highlight Images (select to change)"
+                  helpText="Leave empty to keep current images, or select new images to replace all"
+                  multiple={true}
+                />
+              </div>
             </div>
 
             <div>
@@ -404,17 +413,19 @@ if (!session) {
             </div>
 
             <div>
-              <label for="entertainment_images" class="block text-sm font-medium text-gray-700 mb-1">
-                Entertainment Images
-              </label>
-              <textarea
-                id="entertainment_images"
-                name="entertainment_images"
-                rows="4"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                placeholder="Enter image URLs, one per line&#10;https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
-              ></textarea>
-              <p class="text-xs text-gray-500 mt-1">Enter one image URL per line</p>
+              <!-- Current Entertainment Images Preview -->
+              <div id="currentEntertainmentImages" class="hidden mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <p class="text-xs font-medium text-gray-700 mb-2">Current Entertainment Images (<span id="entertainmentImagesCount">0</span>):</p>
+                <div id="currentEntertainmentImagesList" class="grid grid-cols-4 gap-2"></div>
+              </div>
+              
+              <div id="entertainmentImagesSelector">
+                <MediaSelector
+                  label="Entertainment Images (select to change)"
+                  helpText="Leave empty to keep current images, or select new images to replace all"
+                  multiple={true}
+                />
+              </div>
             </div>
           </div>
 
@@ -464,17 +475,19 @@ if (!session) {
             </div>
 
             <div>
-              <label for="menu_images" class="block text-sm font-medium text-gray-700 mb-1">
-                Menu Images
-              </label>
-              <textarea
-                id="menu_images"
-                name="menu_images"
-                rows="4"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                placeholder="Enter image URLs, one per line&#10;https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
-              ></textarea>
-              <p class="text-xs text-gray-500 mt-1">Enter one image URL per line</p>
+              <!-- Current Menu Images Preview -->
+              <div id="currentMenuImages" class="hidden mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <p class="text-xs font-medium text-gray-700 mb-2">Current Menu Images (<span id="menuImagesCount">0</span>):</p>
+                <div id="currentMenuImagesList" class="grid grid-cols-4 gap-2"></div>
+              </div>
+              
+              <div id="menuImagesSelector">
+                <MediaSelector
+                  label="Menu Images (select to change)"
+                  helpText="Leave empty to keep current images, or select new images to replace all"
+                  multiple={true}
+                />
+              </div>
             </div>
           </div>
 
@@ -519,6 +532,27 @@ if (!session) {
 
 <script>
   let events: any[] = [];
+  let heroImageSelectorId: string = '';
+  let videoCoverSelectorId: string = '';
+  let highlightImagesSelectorId: string = '';
+  let entertainmentImagesSelectorId: string = '';
+  let menuImagesSelectorId: string = '';
+
+  // Find all media selector IDs on page load
+  window.addEventListener('DOMContentLoaded', () => {
+    // Get selector IDs from the data attributes
+    const heroSelector = document.querySelector('#heroImageSelector .media-selector-component');
+    const videoCoverSelector = document.querySelector('#videoCoverSelector .media-selector-component');
+    const highlightImagesSelector = document.querySelector('#highlightImagesSelector .media-selector-component');
+    const entertainmentImagesSelector = document.querySelector('#entertainmentImagesSelector .media-selector-component');
+    const menuImagesSelector = document.querySelector('#menuImagesSelector .media-selector-component');
+
+    if (heroSelector) heroImageSelectorId = heroSelector.getAttribute('data-selector-id') || '';
+    if (videoCoverSelector) videoCoverSelectorId = videoCoverSelector.getAttribute('data-selector-id') || '';
+    if (highlightImagesSelector) highlightImagesSelectorId = highlightImagesSelector.getAttribute('data-selector-id') || '';
+    if (entertainmentImagesSelector) entertainmentImagesSelectorId = entertainmentImagesSelector.getAttribute('data-selector-id') || '';
+    if (menuImagesSelector) menuImagesSelectorId = menuImagesSelector.getAttribute('data-selector-id') || '';
+  });
 
   // Format date for display
   function formatDate(dateStr: string | null): string {
@@ -646,16 +680,92 @@ if (!session) {
   }
 
   document.getElementById('addEventBtn')!.addEventListener('click', () => {
+    // Clear the editing context
+    currentEditingEvent = null;
+    
+    // Hide all preview sections when adding new event
+    document.getElementById('currentHeroImage')?.classList.add('hidden');
+    document.getElementById('currentVideoCover')?.classList.add('hidden');
+    document.getElementById('currentHighlightImages')?.classList.add('hidden');
+    document.getElementById('currentEntertainmentImages')?.classList.add('hidden');
+    document.getElementById('currentMenuImages')?.classList.add('hidden');
+    
     openModal('Add Event');
   });
 
   document.getElementById('closeModalBtn')!.addEventListener('click', closeModal);
   document.getElementById('cancelBtn')!.addEventListener('click', closeModal);
 
+  // Function to display current media previews from already-loaded event data (zero database queries!)
+  function showCurrentMediaPreviews(event: any) {
+    // Single hero image
+    const heroContainer = document.getElementById('currentHeroImage')!;
+    if (event.hero_image) {
+      (document.getElementById('currentHeroImagePreview') as HTMLImageElement).src = event.hero_image;
+      heroContainer.classList.remove('hidden');
+    } else {
+      heroContainer.classList.add('hidden');
+    }
+
+    // Single video cover image
+    const videoCoverContainer = document.getElementById('currentVideoCover')!;
+    if (event.highlight_video_cover_image) {
+      (document.getElementById('currentVideoCoverPreview') as HTMLImageElement).src = event.highlight_video_cover_image;
+      videoCoverContainer.classList.remove('hidden');
+    } else {
+      videoCoverContainer.classList.add('hidden');
+    }
+
+    // Multiple highlight images
+    const highlightContainer = document.getElementById('currentHighlightImages')!;
+    const highlightList = document.getElementById('currentHighlightImagesList')!;
+    if (event.highlight_images && event.highlight_images.length > 0) {
+      document.getElementById('highlightImagesCount')!.textContent = event.highlight_images.length.toString();
+      highlightList.innerHTML = event.highlight_images.map((url: string) => 
+        `<img src="${escapeHtml(url)}" alt="Highlight" class="w-20 h-20 object-cover rounded border border-gray-300" />`
+      ).join('');
+      highlightContainer.classList.remove('hidden');
+    } else {
+      highlightContainer.classList.add('hidden');
+    }
+
+    // Multiple entertainment images
+    const entertainmentContainer = document.getElementById('currentEntertainmentImages')!;
+    const entertainmentList = document.getElementById('currentEntertainmentImagesList')!;
+    if (event.entertainment_images && event.entertainment_images.length > 0) {
+      document.getElementById('entertainmentImagesCount')!.textContent = event.entertainment_images.length.toString();
+      entertainmentList.innerHTML = event.entertainment_images.map((url: string) => 
+        `<img src="${escapeHtml(url)}" alt="Entertainment" class="w-20 h-20 object-cover rounded border border-gray-300" />`
+      ).join('');
+      entertainmentContainer.classList.remove('hidden');
+    } else {
+      entertainmentContainer.classList.add('hidden');
+    }
+
+    // Multiple menu images
+    const menuContainer = document.getElementById('currentMenuImages')!;
+    const menuList = document.getElementById('currentMenuImagesList')!;
+    if (event.menu_images && event.menu_images.length > 0) {
+      document.getElementById('menuImagesCount')!.textContent = event.menu_images.length.toString();
+      menuList.innerHTML = event.menu_images.map((url: string) => 
+        `<img src="${escapeHtml(url)}" alt="Menu" class="w-20 h-20 object-cover rounded border border-gray-300" />`
+      ).join('');
+      menuContainer.classList.remove('hidden');
+    } else {
+      menuContainer.classList.add('hidden');
+    }
+  }
+
+  // Store current event being edited (to preserve existing URLs if media not changed)
+  let currentEditingEvent: any = null;
+
   // Edit event
   (window as any).editEvent = (id: string) => {
     const event = events.find(e => e.id === id);
     if (!event) return;
+
+    // Store the event we're editing
+    currentEditingEvent = event;
 
     (document.getElementById('eventId') as HTMLInputElement).value = event.id;
     (document.getElementById('event_name') as HTMLInputElement).value = event.event_name;
@@ -674,10 +784,8 @@ if (!session) {
     (document.getElementById('tickets_portal_url') as HTMLInputElement).value = event.tickets_portal_url || '';
     (document.getElementById('is_active') as HTMLInputElement).checked = event.is_active !== false;
 
-    // Hero & Video fields
-    (document.getElementById('hero_image') as HTMLInputElement).value = event.hero_image || '';
+    // Video URL field
     (document.getElementById('highlight_video') as HTMLInputElement).value = event.highlight_video || '';
-    (document.getElementById('highlight_video_cover_image') as HTMLInputElement).value = event.highlight_video_cover_image || '';
 
     // Blurb fields
     (document.getElementById('finalists_winners_blurb') as HTMLTextAreaElement).value = event.finalists_winners_blurb || '';
@@ -690,10 +798,25 @@ if (!session) {
     (document.getElementById('menu_blurb_main') as HTMLTextAreaElement).value = event.menu_blurb_main || '';
     (document.getElementById('menu_blurb_dessert') as HTMLTextAreaElement).value = event.menu_blurb_dessert || '';
 
-    // Array fields (join with newlines for textarea display)
-    (document.getElementById('highlight_images') as HTMLTextAreaElement).value = Array.isArray(event.highlight_images) ? event.highlight_images.join('\n') : '';
-    (document.getElementById('entertainment_images') as HTMLTextAreaElement).value = Array.isArray(event.entertainment_images) ? event.entertainment_images.join('\n') : '';
-    (document.getElementById('menu_images') as HTMLTextAreaElement).value = Array.isArray(event.menu_images) ? event.menu_images.join('\n') : '';
+    // Clear all media selectors - user can select new media if they want to change
+    if (heroImageSelectorId && (window as any)[`clearSelectedMedia_${heroImageSelectorId}`]) {
+      (window as any)[`clearSelectedMedia_${heroImageSelectorId}`]();
+    }
+    if (videoCoverSelectorId && (window as any)[`clearSelectedMedia_${videoCoverSelectorId}`]) {
+      (window as any)[`clearSelectedMedia_${videoCoverSelectorId}`]();
+    }
+    if (highlightImagesSelectorId && (window as any)[`clearSelectedMedia_${highlightImagesSelectorId}`]) {
+      (window as any)[`clearSelectedMedia_${highlightImagesSelectorId}`]();
+    }
+    if (entertainmentImagesSelectorId && (window as any)[`clearSelectedMedia_${entertainmentImagesSelectorId}`]) {
+      (window as any)[`clearSelectedMedia_${entertainmentImagesSelectorId}`]();
+    }
+    if (menuImagesSelectorId && (window as any)[`clearSelectedMedia_${menuImagesSelectorId}`]) {
+      (window as any)[`clearSelectedMedia_${menuImagesSelectorId}`]();
+    }
+
+    // Show current media previews (images load from R2, zero database queries!)
+    showCurrentMediaPreviews(event);
 
     openModal('Edit Event');
   };
@@ -718,14 +841,6 @@ if (!session) {
     }
   };
 
-  // Helper function to parse textarea as array (one URL per line)
-  function parseTextareaAsArray(value: string): string[] {
-    return value
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-  }
-
   // Form submit
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -733,6 +848,19 @@ if (!session) {
 
     const formData = new FormData(form);
     const id = formData.get('id') as string;
+
+    // Get selected media from MediaSelector components
+    const getSelectedMedia = (selectorId: string) => {
+      return selectorId && (window as any)[`getSelectedMedia_${selectorId}`]
+        ? (window as any)[`getSelectedMedia_${selectorId}`]()
+        : [];
+    };
+
+    const heroMedia = getSelectedMedia(heroImageSelectorId);
+    const videoCoverMedia = getSelectedMedia(videoCoverSelectorId);
+    const highlightMedia = getSelectedMedia(highlightImagesSelectorId);
+    const entertainmentMedia = getSelectedMedia(entertainmentImagesSelectorId);
+    const menuMedia = getSelectedMedia(menuImagesSelectorId);
 
     const data = {
       id: id || undefined,
@@ -752,10 +880,10 @@ if (!session) {
       tickets_portal_url: formData.get('tickets_portal_url') || null,
       is_active: (document.getElementById('is_active') as HTMLInputElement).checked,
 
-      // Hero & Video fields
-      hero_image: formData.get('hero_image') || null,
+      // Hero & Video fields - use new selection if provided, otherwise preserve existing
+      hero_image: heroMedia.length > 0 ? heroMedia[0].file_url : (currentEditingEvent?.hero_image || null),
       highlight_video: formData.get('highlight_video') || null,
-      highlight_video_cover_image: formData.get('highlight_video_cover_image') || null,
+      highlight_video_cover_image: videoCoverMedia.length > 0 ? videoCoverMedia[0].file_url : (currentEditingEvent?.highlight_video_cover_image || null),
 
       // Blurb fields
       finalists_winners_blurb: formData.get('finalists_winners_blurb') || null,
@@ -768,10 +896,10 @@ if (!session) {
       menu_blurb_main: formData.get('menu_blurb_main') || null,
       menu_blurb_dessert: formData.get('menu_blurb_dessert') || null,
 
-      // Array fields (parse textarea content)
-      highlight_images: parseTextareaAsArray(formData.get('highlight_images') as string || ''),
-      entertainment_images: parseTextareaAsArray(formData.get('entertainment_images') as string || ''),
-      menu_images: parseTextareaAsArray(formData.get('menu_images') as string || ''),
+      // Array fields - use new selections if provided, otherwise preserve existing
+      highlight_images: highlightMedia.length > 0 ? highlightMedia.map((m: any) => m.file_url) : (currentEditingEvent?.highlight_images || []),
+      entertainment_images: entertainmentMedia.length > 0 ? entertainmentMedia.map((m: any) => m.file_url) : (currentEditingEvent?.entertainment_images || []),
+      menu_images: menuMedia.length > 0 ? menuMedia.map((m: any) => m.file_url) : (currentEditingEvent?.menu_images || []),
     };
 
     try {

@@ -84,6 +84,10 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
     let availableMedia = [];
     let selectedMedia = [];
     let searchQuery = '';
+    let currentOffset = 0;
+    let hasMore = true;
+    let isLoading = false;
+    const LIMIT = 50; // Load 50 at a time
 
     // Elements
     const selectedContainer = document.getElementById(`selected-media-${selectorId}`);
@@ -93,10 +97,22 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
     const grid = document.getElementById(`media-grid-${selectorId}`);
     const searchInput = document.getElementById(`search-media-${selectorId}`);
 
-    // Load media from library
-    async function loadMedia() {
+    // Load media from library (lazy + paginated)
+    async function loadMedia(append = false) {
+      if (isLoading) return;
+      
       try {
-        const params = new URLSearchParams({ limit: '100' });
+        isLoading = true;
+        
+        // Re-render immediately to show loading state on button
+        if (append) {
+          renderGrid();
+        }
+        
+        const params = new URLSearchParams({ 
+          limit: LIMIT.toString(), 
+          offset: append ? currentOffset.toString() : '0' 
+        });
         if (filterMimeTypes) {
           params.append('mimeTypes', filterMimeTypes);
         }
@@ -105,9 +121,24 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
         
-        availableMedia = data.media || [];
+        const newMedia = data.media || [];
+        
+        if (append) {
+          availableMedia = [...availableMedia, ...newMedia];
+        } else {
+          availableMedia = newMedia;
+          currentOffset = 0;
+        }
+        
+        currentOffset += newMedia.length;
+        hasMore = newMedia.length === LIMIT;
+        
       } catch (error) {
         console.error('Error loading media:', error);
+        grid.innerHTML = '<div class="col-span-full text-center py-8 text-red-500">Error loading media</div>';
+      } finally {
+        isLoading = false;
+        renderGrid(); // Re-render with loaded data and reset button
       }
     }
 
@@ -152,7 +183,7 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
           )
         : availableMedia;
       
-      if (filtered.length === 0) {
+      if (filtered.length === 0 && !isLoading) {
         grid.innerHTML = `
           <div class="col-span-full text-center py-8 text-gray-500">
             ${availableMedia.length === 0 
@@ -166,7 +197,7 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
       
       const selectedIds = selectedMedia.map(m => m.id);
       
-      grid.innerHTML = filtered.map(media => `
+      const mediaItems = filtered.map(media => `
         <button
           type="button"
           data-media-id="${media.id}"
@@ -180,7 +211,23 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
         </button>
       `).join('');
       
-      // Add click handlers to all buttons
+      // Add "Load More" button if there's more to load (only when not searching)
+      const loadMoreButton = (!searchQuery && hasMore) ? `
+        <div class="col-span-full flex justify-center py-4">
+          <button
+            type="button"
+            id="load-more-${selectorId}"
+            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            ${isLoading ? 'disabled' : ''}
+          >
+            ${isLoading ? 'Loading...' : `Load More (${currentOffset} loaded)`}
+          </button>
+        </div>
+      ` : '';
+      
+      grid.innerHTML = mediaItems + loadMoreButton;
+      
+      // Add click handlers to media select buttons
       grid.querySelectorAll('.media-select-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.preventDefault();
@@ -188,6 +235,15 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
           if (mediaId) selectMedia(mediaId);
         });
       });
+      
+      // Add click handler to load more button
+      const loadMoreBtn = document.getElementById(`load-more-${selectorId}`);
+      if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          loadMedia(true); // Append mode
+        });
+      }
     }
 
     // Select media
@@ -226,11 +282,19 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
       }));
     }
 
-    // Open modal
+    // Open modal (lazy load media only when opened)
     function openModal() {
       modal.classList.remove('hidden');
       modal.classList.add('flex');
-      renderGrid();
+      
+      // Only load media if not already loaded
+      if (availableMedia.length === 0 && !isLoading) {
+        // Show loading state
+        grid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">Loading media...</div>';
+        loadMedia();
+      } else {
+        renderGrid();
+      }
     }
 
     // Close modal
@@ -266,13 +330,20 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
     closeButton.addEventListener('click', closeModal);
     searchInput.addEventListener('input', (e) => {
       searchQuery = e.target.value;
-      renderGrid();
+      // Reset pagination when searching
+      if (e.target.value) {
+        renderGrid();
+      } else {
+        // Reload from start when clearing search
+        currentOffset = 0;
+        availableMedia = [];
+        hasMore = true;
+        loadMedia();
+      }
     });
 
-    // Initial load
-    loadMedia().then(() => {
-      renderSelected();
-    });
+    // Initial render (just show "no media selected" state - don't load anything yet!)
+    renderSelected();
 
     // Make selector ID available globally for parent
     window[`MediaSelector_${selectorId}`] = {
