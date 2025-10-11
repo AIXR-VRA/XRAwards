@@ -137,6 +137,20 @@ if (!session) {
             </div>
 
             <div>
+              <label for="venue_address" class="block text-sm font-medium text-gray-700 mb-1">
+                Venue Address
+              </label>
+              <input
+                type="text"
+                id="venue_address"
+                name="venue_address"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Maison de la Poste, Rue Picard 5-7, 1000 Brussels, Belgium"
+              />
+              <p class="text-xs text-gray-500 mt-1">Full venue address including street, postal code, city, and country</p>
+            </div>
+
+            <div>
               <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
                 Description
               </label>
@@ -360,6 +374,7 @@ if (!session) {
               ${event.is_active ? '<span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">Active</span>' : ''}
             </div>
             <p class="text-sm text-gray-600 mt-1">${escapeHtml(event.location)} | ${event.event_year}</p>
+            ${event.venue_address ? `<p class="text-xs text-gray-500 mt-1"><strong>Venue:</strong> ${escapeHtml(event.venue_address)}</p>` : ''}
             ${event.organizer_name ? `<p class="text-xs text-gray-500 mt-1">Organized by ${escapeHtml(event.organizer_name)}</p>` : ''}
             <p class="text-xs text-gray-400 mt-1 font-mono">ID: ${event.id}</p>
           </div>
@@ -444,6 +459,7 @@ if (!session) {
     (document.getElementById('event_name') as HTMLInputElement).value = event.event_name;
     (document.getElementById('event_year') as HTMLInputElement).value = event.event_year?.toString() || '';
     (document.getElementById('location') as HTMLInputElement).value = event.location || '';
+    (document.getElementById('venue_address') as HTMLInputElement).value = event.venue_address || '';
     (document.getElementById('organizer_name') as HTMLInputElement).value = event.organizer_name || '';
     (document.getElementById('description') as HTMLTextAreaElement).value = event.description || '';
     (document.getElementById('nominations_open') as HTMLInputElement).value = event.nominations_open || '';
@@ -492,6 +508,7 @@ if (!session) {
       event_name: formData.get('event_name'),
       event_year: parseInt(formData.get('event_year') as string),
       location: formData.get('location'),
+      venue_address: formData.get('venue_address') || null,
       organizer_name: formData.get('organizer_name') || null,
       description: formData.get('description') || null,
       nominations_open: formData.get('nominations_open') || null,

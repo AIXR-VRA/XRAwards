@@ -1,0 +1,598 @@
+---
+/**
+ * Travel & Accommodation Page
+ * URL: /travel-accommodation
+ * Provides event details, travel information, hotels, and transportation for Brussels
+ */
+export const prerender = true;
+
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CTAFooter from '../components/CTAFooter.astro';
+import { Image } from 'astro:assets';
+import { getR2ImageUrl } from '../utils/r2';
+import { supabase } from '../utils/supabase';
+
+// Fetch active event details
+const { data: eventDetails } = await supabase
+  .from('event_details')
+  .select('*')
+  .eq('is_active', true)
+  .single();
+
+// Fallback URL if tickets_portal_url is not set
+const ticketsUrl = eventDetails?.tickets_portal_url || 'https://events.unitedxr.eu/2025?utm_source=AIXR&utm_medium=XR+Awards+Website&utm_campaign=link';
+
+// Get images for sections
+const ticketsImage = getR2ImageUrl('/images/2025/10/apple-holding-2024-trophy_1760204737832.jpg');
+const travelImage = getR2ImageUrl('/images/2025/10/obsidian-award-winner-2024_1760204866862.png');
+const hotelsImage = getR2ImageUrl('/images/2025/10/xr-head-mounted-display-of-the-year-winner-2024_1760207686185.jpg');
+const scheduleImage = getR2ImageUrl('/images/2025/10/outstanding-xr-company-of-the-year-winner-2024_1760207732668.jpg');
+const groupImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-winner-2024_1760207777680.jpg');
+const brusselsImage = getR2ImageUrl('/images/2025/10/xr-awards-hero_1760202291581.png');
+
+// Hotel section images
+const hotelImage1 = getR2ImageUrl('/images/2025/10/xr-awards-hero_1760202291581.png');
+const hotelImage2 = getR2ImageUrl('/images/2025/10/obsidian-award-winner-2024_1760204866862.png');
+---
+
+<Layout
+  title="Event Details, Travel & Accommodation - AIXR XR Awards"
+  description="Plan your visit to the XR Awards Gala in Brussels. Find information about the venue, travel, hotels, and local transport options."
+>
+  <Header />
+
+  <main class="min-h-screen bg-white">
+    <!-- Page Header -->
+    <section class="relative bg-[#0E1022] pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+
+      <!-- Content -->
+      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="page-title text-white mb-6">
+          Event Details, Travel & Accommodation
+        </h1>
+
+        <!-- Decorative Dots -->
+        <div class="flex justify-center gap-2 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        </div>
+
+        <p class="page-subtitle text-white">
+          {eventDetails?.awards_ceremony ? new Date(eventDetails.awards_ceremony).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '09 December 2025'}, {eventDetails?.venue_address || eventDetails?.location || 'Brussels, Belgium'}
+        </p>
+      </div>
+    </section>
+
+    <!-- Plan Your Visit Section -->
+    <section class="py-16 md:py-24 bg-white">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-left mb-12">
+          <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Plan Your Visit</h2>
+          <p class="text-lg text-gray-600">Key details and support from the XR awards</p>
+        </div>
+
+        <!-- Feature Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Tickets Card -->
+          <a href={ticketsUrl} target="_blank" rel="noopener noreferrer" class="group relative">
+            <div class="aspect-video overflow-hidden rounded-lg">
+              <Image 
+                src={ticketsImage} 
+                alt="Tickets"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="feature-banner absolute bottom-4 left-4 right-4 rounded-md p-4">
+              <div class="flex items-start justify-between">
+                <p class="text-white text-lg font-medium pr-3 font-['Jura']">Tickets</p>
+                <svg class="w-6 h-6 text-white flex-shrink-0 feature-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19L19 5M19 5H7M19 5V17" />
+                </svg>
+              </div>
+            </div>
+          </a>
+
+          <!-- Travel & Visas Card -->
+          <a href="#travel" class="group relative">
+            <div class="aspect-video overflow-hidden rounded-lg">
+              <Image 
+                src={travelImage} 
+                alt="Travel & Visa's"
+                class="w-full h-full object-cover object-top"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="feature-banner absolute bottom-4 left-4 right-4 rounded-md p-4">
+              <div class="flex items-start justify-between">
+                <p class="text-white text-lg font-medium pr-3 font-['Jura']">Travel & Visa's</p>
+                <svg class="w-6 h-6 text-white flex-shrink-0 feature-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19L19 5M19 5H7M19 5V17" />
+                </svg>
+              </div>
+            </div>
+          </a>
+
+          <!-- Hotels Card -->
+          <a href="#hotels" class="group relative">
+            <div class="aspect-video overflow-hidden rounded-lg">
+              <Image 
+                src={hotelsImage} 
+                alt="Hotels"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="feature-banner absolute bottom-4 left-4 right-4 rounded-md p-4">
+              <div class="flex items-start justify-between">
+                <p class="text-white text-lg font-medium pr-3 font-['Jura']">Hotels</p>
+                <svg class="w-6 h-6 text-white flex-shrink-0 feature-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19L19 5M19 5H7M19 5V17" />
+                </svg>
+              </div>
+            </div>
+          </a>
+
+          <!-- Event Schedule Card -->
+          <a href="#schedule" class="group relative">
+            <div class="aspect-video overflow-hidden rounded-lg">
+              <Image 
+                src={scheduleImage} 
+                alt="Event Schedule"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="feature-banner absolute bottom-4 left-4 right-4 rounded-md p-4">
+              <div class="flex items-start justify-between">
+                <p class="text-white text-lg font-medium pr-3 font-['Jura']">Event Schedule</p>
+                <svg class="w-6 h-6 text-white flex-shrink-0 feature-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19L19 5M19 5H7M19 5V17" />
+                </svg>
+              </div>
+            </div>
+          </a>
+
+          <!-- Group Packages Card -->
+          <a href={ticketsUrl} target="_blank" rel="noopener noreferrer" class="group relative">
+            <div class="aspect-video overflow-hidden rounded-lg">
+              <Image 
+                src={groupImage} 
+                alt="Group Packages"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="feature-banner absolute bottom-4 left-4 right-4 rounded-md p-4">
+              <div class="flex items-start justify-between">
+                <p class="text-white text-lg font-medium pr-3 font-['Jura']">Group Packages</p>
+                <svg class="w-6 h-6 text-white flex-shrink-0 feature-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19L19 5M19 5H7M19 5V17" />
+                </svg>
+              </div>
+            </div>
+          </a>
+
+          <!-- Discover Brussels Card -->
+          <a href="https://visit.brussels/en" target="_blank" rel="noopener noreferrer" class="group relative">
+            <div class="aspect-video overflow-hidden rounded-lg">
+              <Image 
+                src={brusselsImage} 
+                alt="Discover Brussels"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="feature-banner absolute bottom-4 left-4 right-4 rounded-md p-4">
+              <div class="flex items-start justify-between">
+                <p class="text-white text-lg font-medium pr-3 font-['Jura']">Discover Brussels</p>
+                <svg class="w-6 h-6 text-white flex-shrink-0 feature-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19L19 5M19 5H7M19 5V17" />
+                </svg>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Event Schedule Section -->
+    <section id="schedule" class="py-16 md:py-24 bg-gray-50">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <!-- Left Column - Schedule Details -->
+          <div>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Event Schedule</h2>
+            
+            <div class="space-y-6 mb-8">
+              <p class="text-lg text-gray-700">
+                Join the XR Gala Ceremony, live in {eventDetails?.location || 'Brussels, Belgium'} on the <strong>{eventDetails?.awards_ceremony ? new Date(eventDetails.awards_ceremony).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) : 'Thu 09 Dec 2025'}</strong>, arrive early, <strong>drinks reception 6pm CET</strong>
+              </p>
+              
+              <p class="text-base text-gray-700">
+                Please note there is a strict <a href="https://help.aixr.org/en/articles/7001836-is-there-a-dress-code" class="text-[#4923EB] hover:underline" target="_blank" rel="noopener noreferrer">black tie dress code.</a>
+              </p>
+              
+              <div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Schedule of events:</h3>
+                <ul class="space-y-3 text-gray-700">
+                  <li><strong>Drinks Reception</strong> – 6:00pm CET</li>
+                  <li><strong>Sit Down Dinner</strong> – 7:00pm CET</li>
+                  <li><strong>Awards Ceremony</strong> – 8:30pm CET</li>
+                  <li><strong>After Party</strong> – 10:30pm CET</li>
+                </ul>
+              </div>
+              
+              <div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Ticket Packages</h3>
+                <p class="text-gray-700 mb-6">
+                  AIXR XR Awards and Stereopsia Award tickets must be purchased individually or as part of a package through United XR
+                </p>
+                <a 
+                  href={ticketsUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center px-8 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors"
+                >
+                  Book Tickets
+                </a>
+              </div>
+            </div>
+            
+            <p class="text-sm text-gray-600">
+              <strong>Address:</strong> {eventDetails?.venue_address || eventDetails?.location || 'Brussels, Belgium'}
+            </p>
+          </div>
+
+          <!-- Right Column - Map -->
+          <div class="rounded-2xl overflow-hidden shadow-lg h-[500px]">
+            <iframe 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2517.8193!2d4.345932!3d50.864909!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNTDCsDUxJzUzLjciTiA0wrAyMCc0NS40IkU!5e0!3m2!1sen!2s!4v1234567890"
+              width="100%"
+              height="100%"
+              style="border:0;"
+              allowfullscreen=""
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title="Maison de la Poste Location"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hotels Section -->
+    <section id="hotels" class="py-16 md:py-24 bg-white">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-12">Staying in {eventDetails?.location?.split(',')[0] || 'Brussels'}</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <!-- Closest Hotel -->
+          <div class="rounded-2xl overflow-hidden shadow-lg">
+            <div class="aspect-video overflow-hidden">
+              <Image 
+                src={hotelImage1} 
+                alt="Hotel near venue"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="p-8 bg-white">
+              <h3 class="text-2xl font-bold text-gray-900 mb-4">Closest Hotel</h3>
+              <p class="text-gray-700 mb-6">
+                For your convenience, we've listed the closest hotel to the venue. Other options are available. To book your stay, simply click the button below.
+              </p>
+              <a 
+                href="https://www.yadoyahotel.be/?" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-6 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors"
+              >
+                Book Directly
+              </a>
+            </div>
+          </div>
+
+          <!-- Hotel Partners -->
+          <div class="rounded-2xl overflow-hidden shadow-lg">
+            <div class="aspect-video overflow-hidden">
+              <Image 
+                src={hotelImage2} 
+                alt="Brussels city view"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="p-8 bg-white">
+              <h3 class="text-2xl font-bold text-gray-900 mb-4">Hotel Partners</h3>
+              <p class="text-gray-700 mb-6">
+                When it comes to accommodations that keep you right in the heart of all the action, Visit Brussels is the official hotel agent for the AIXR XR Awards, and United XR.
+              </p>
+              <a 
+                href="https://secure.hotel.visitbrussels.be/event/stereopsia-europe-2025/congress/search" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-6 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors"
+              >
+                Check Preferential Rates
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Getting to Brussels Section -->
+    <section id="travel" class="py-16 md:py-24 bg-gray-50">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-12">Getting to {eventDetails?.location?.split(',')[0] || 'Brussels'}</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <!-- Brussels Airport -->
+          <div class="flex gap-6">
+            <div class="flex-shrink-0">
+              <div class="w-16 h-16 rounded-full bg-[#4923EB] flex items-center justify-center">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-2xl font-bold text-gray-900 mb-4">Brussels Airport (BRU)</h3>
+              <p class="text-gray-700 mb-4">
+                The most convenient airport to fly into is Brussels Airport. Austrian Airlines and Lufthansa offer frequent flights, but we recommend checking <a href="https://www.skyscanner.net/" target="_blank" rel="noopener noreferrer" class="text-[#4923EB] hover:underline">Skyscanner</a> and <a href="https://www.kiwi.com/en/" target="_blank" rel="noopener noreferrer" class="text-[#4923EB] hover:underline">Kiwi</a> in order to find flight deals.
+              </p>
+              <p class="text-sm font-semibold text-gray-900 mb-2">Recommended Airports</p>
+              <ul class="space-y-2 text-gray-700">
+                <li>Brussels Airport (BRU) 16km</li>
+                <li>Brussels South Charleroi Airport (CRL) 55km</li>
+                <li>Antwerp International Airport (ANR) 56km</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Direct Rail Connections -->
+          <div class="flex gap-6">
+            <div class="flex-shrink-0">
+              <div class="w-16 h-16 rounded-full bg-[#00D4D8] flex items-center justify-center">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-2xl font-bold text-gray-900 mb-4">Direct Rail Connections</h3>
+              <p class="text-gray-700 mb-4">
+                Brussels is well connected by high-speed trains from major cities like London, Paris, Amsterdam, and Cologne. Tickets can be booked via <a href="https://www.eurostar.com/rw-en" target="_blank" rel="noopener noreferrer" class="text-[#4923EB] hover:underline">Eurostar</a>, <a href="https://www.thetrainline.com/" target="_blank" rel="noopener noreferrer" class="text-[#4923EB] hover:underline">Trainline</a>, or <a href="https://www.bahn.de/" target="_blank" rel="noopener noreferrer" class="text-[#4923EB] hover:underline">Deutsche Bahn</a>.
+              </p>
+              <p class="text-sm font-semibold text-gray-900 mb-2">London to Brussels in 2 hours:</p>
+              <ul class="space-y-2 text-gray-700">
+                <li>Direct Highspeed from Central London to Central Brussels.</li>
+                <li>Direct train services from Europe to Bruxelles-Midi</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <p class="mt-8 text-gray-700 italic">
+          Need to request a VISA? <a href="https://help.aixr.org/en/articles/8348738-getting-a-visa-invitation-letter-for-aixr-events" target="_blank" rel="noopener noreferrer" class="text-[#4923EB] hover:underline">Visit our help center.</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- Getting Around Brussels Section -->
+    <section class="py-16 md:py-24 bg-white">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-12">Getting around {eventDetails?.location?.split(',')[0] || 'Brussels'}</h2>
+        
+        <div class="space-y-4">
+          <!-- Taxi -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">Taxi</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>When you're at Maison de la Poste and need transportation in Brussels, rely on local taxi companies like Taxis Verts (+32 2 349 49 49) or Taxis Bleus (+32 2 268 00 00).</p>
+              <p>Additionally, you can conveniently access transportation services through local ride sharing apps such as Bolt and Uber.</p>
+            </div>
+          </details>
+
+          <!-- Metro & Bus -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">Metro & Bus</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p><strong>For Bus:</strong></p>
+              <ul class="list-disc list-inside">
+                <li>From Brussels-North station, take Bus 14, 20, 57 or 88 to the Tour & Taxis stop.</li>
+              </ul>
+              <p><strong>For Metro:</strong></p>
+              <ul class="list-disc list-inside">
+                <li>From Brussels-South (Midi) station, take Metro Line 2 or 6 to Yser, then walk 10 minutes to the venue.</li>
+              </ul>
+              <p>All services are operated by STIB/MIVB. Tickets are available on board using contactless cards or via the STIB app.</p>
+            </div>
+          </details>
+
+          <!-- Train -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">Train</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>To reach Maison de la Poste by train, the best station is Brussels-North. It's a short 10-minute walk or 1 stop by bus to the venue.</p>
+              <p>Take a train from Bruxelles-Central to Brussels-Nord. Trains run every 5 minutes, and the journey takes approximately 4 minutes.</p>
+            </div>
+          </details>
+
+          <!-- Bike & Scooters -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">Bike & Scooters</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>Explore Brussels' cycling-friendly streets with shared bikes from Villo! Stations are available across the city, including near Tour & Taxis.</p>
+              <p>You can also rent bikes or e-scooters through apps like Lime and Dott.</p>
+            </div>
+          </details>
+
+          <!-- Parking -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">Parking</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>For parking near Maison de la Poste, use the underground car park at Tour & Taxis. It's directly beneath the venue and open 24/7.</p>
+              <p>Rates available on-site or through the Indigo Neo app.</p>
+            </div>
+          </details>
+
+          <!-- Water Bus -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">Water Bus</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>Unfortunately the waterbus does not operate in winter months during the XR Awards Gala.</p>
+              <p>From May to October, you can travel by Waterbus on the Brussels canal. It connects Brussels to Vilvoorde with stops near Tour & Taxis.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="relative bg-[#0E1022] py-20 md:py-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+
+      <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
+        <h2 class="text-2xl md:text-3xl font-bold text-white mb-8">Don't forget your tickets!</h2>
+        <div class="space-y-6 mb-10">
+          <p class="text-lg text-white/90">
+            The AIXR XR Awards and Stereopsia XR Awards are heading to {eventDetails?.location || 'Brussels'}—live during United XR with Stereopsia and AWE.
+          </p>
+          <p class="text-lg text-white/90">
+            This year's XR Gala is our biggest yet, bringing together the world's leading names in immersive tech. Tickets are included with your conference pass at a discounted rate, or available separately at full price.
+          </p>
+          <p class="text-lg text-white/90">
+            Secure your spot and be part of XR's biggest night.
+          </p>
+        </div>
+        <a 
+          href={ticketsUrl} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="inline-flex items-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors text-lg"
+        >
+          Book Tickets
+        </a>
+      </div>
+    </section>
+
+    <!-- CTA Footer -->
+    <CTAFooter />
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .page-title {
+    font-size: 35px;
+    font-weight: 600;
+  }
+
+  .page-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  .feature-banner {
+    background: linear-gradient(135deg, #4A1B5C 0%, #3A1447 100%);
+    position: relative;
+    z-index: 1;
+  }
+
+  .feature-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #5A2B6C 0%, #4A1857 100%);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+
+  .group:hover .feature-banner::before {
+    opacity: 1;
+  }
+
+  .feature-arrow {
+    transition: transform 0.3s ease;
+  }
+
+  .group:hover .feature-arrow {
+    transform: rotate(45deg);
+  }
+
+  /* Accordion styling */
+  details summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details[open] {
+    border-color: #4923EB;
+  }
+</style>
+
