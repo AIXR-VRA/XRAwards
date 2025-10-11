@@ -490,7 +490,7 @@ export async function updateMedia(
 }
 
 /**
- * Add relationships to media
+ * Add relationships to media - uses upsert to avoid duplicates
  * @param mediaId - Media ID
  * @param relationships - Relationships to add
  * @returns Promise with result
@@ -507,76 +507,89 @@ export async function addMediaRelationships(
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const relationshipPromises = [];
+    const operations = [];
 
     if (relationships.eventIds?.length) {
-      const eventRelations = relationships.eventIds.map(eventId => ({
-        media_id: mediaId,
-        event_id: eventId
-      }));
-      relationshipPromises.push(
-        supabase.from('media_events').insert(eventRelations)
+      operations.push(
+        supabase.from('media_events').upsert(
+          relationships.eventIds.map(eventId => ({
+            media_id: mediaId,
+            event_id: eventId
+          })),
+          { onConflict: 'media_id,event_id', ignoreDuplicates: true }
+        )
       );
     }
 
     if (relationships.categoryIds?.length) {
-      const categoryRelations = relationships.categoryIds.map(categoryId => ({
-        media_id: mediaId,
-        category_id: categoryId
-      }));
-      relationshipPromises.push(
-        supabase.from('media_categories').insert(categoryRelations)
+      operations.push(
+        supabase.from('media_categories').upsert(
+          relationships.categoryIds.map(categoryId => ({
+            media_id: mediaId,
+            category_id: categoryId
+          })),
+          { onConflict: 'media_id,category_id', ignoreDuplicates: true }
+        )
       );
     }
 
     if (relationships.finalistIds?.length) {
-      const finalistRelations = relationships.finalistIds.map(finalistId => ({
-        media_id: mediaId,
-        finalist_id: finalistId
-      }));
-      relationshipPromises.push(
-        supabase.from('media_finalists').insert(finalistRelations)
+      operations.push(
+        supabase.from('media_finalists').upsert(
+          relationships.finalistIds.map(finalistId => ({
+            media_id: mediaId,
+            finalist_id: finalistId
+          })),
+          { onConflict: 'media_id,finalist_id', ignoreDuplicates: true }
+        )
       );
     }
 
     if (relationships.sponsorIds?.length) {
-      const sponsorRelations = relationships.sponsorIds.map(sponsorId => ({
-        media_id: mediaId,
-        sponsor_id: sponsorId
-      }));
-      relationshipPromises.push(
-        supabase.from('media_sponsors').insert(sponsorRelations)
+      operations.push(
+        supabase.from('media_sponsors').upsert(
+          relationships.sponsorIds.map(sponsorId => ({
+            media_id: mediaId,
+            sponsor_id: sponsorId
+          })),
+          { onConflict: 'media_id,sponsor_id', ignoreDuplicates: true }
+        )
       );
     }
 
     if (relationships.tagIds?.length) {
-      const tagRelations = relationships.tagIds.map(tagId => ({
-        media_id: mediaId,
-        tag_id: tagId
-      }));
-      relationshipPromises.push(
-        supabase.from('media_tags').insert(tagRelations)
+      operations.push(
+        supabase.from('media_tags').upsert(
+          relationships.tagIds.map(tagId => ({
+            media_id: mediaId,
+            tag_id: tagId
+          })),
+          { onConflict: 'media_id,tag_id', ignoreDuplicates: true }
+        )
       );
     }
 
     if (relationships.judgeIds?.length) {
-      const judgeRelations = relationships.judgeIds.map(judgeId => ({
-        media_id: mediaId,
-        judge_id: judgeId
-      }));
-      relationshipPromises.push(
-        supabase.from('media_judges').insert(judgeRelations)
+      operations.push(
+        supabase.from('media_judges').upsert(
+          relationships.judgeIds.map(judgeId => ({
+            media_id: mediaId,
+            judge_id: judgeId
+          })),
+          { onConflict: 'media_id,judge_id', ignoreDuplicates: true }
+        )
       );
     }
 
-    if (relationshipPromises.length > 0) {
-      const results = await Promise.all(relationshipPromises);
+    if (operations.length > 0) {
+      const results = await Promise.all(operations);
       const errors = results.filter(result => result.error);
       
       if (errors.length > 0) {
+        console.error('Relationship errors:', errors);
         return {
           success: false,
-          error: `Failed to add some relationships: ${errors.map(e => e.error?.message).join(', ')}`,
+          error: `Failed to add relationships: ${errors.map(e => e.error?.message).join(', ')}`,
         };
       }
     }

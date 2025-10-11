@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '../../utils/supabase';
 import { createServerClient } from '@supabase/ssr';
-import { uploadMedia, getMedia, updateMedia, deleteMedia, addMediaRelationships, removeMediaRelationships } from '../../utils/media-library';
+import { getMedia } from '../../utils/media-library';
 
 // GET /api/media - Get all media with optional filtering
 export const GET: APIRoute = async ({ request }) => {
@@ -180,7 +180,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 };
 
 // PUT /api/media - Update existing media
-export const PUT: APIRoute = async ({ request }) => {
+export const PUT: APIRoute = async ({ request, cookies }) => {
   try {
     const body = await request.json();
     const { id, title, altText, description, isPublic, eventIds, categoryIds, finalistIds, sponsorIds, judgeIds, tagIds } = body;
@@ -192,96 +192,109 @@ export const PUT: APIRoute = async ({ request }) => {
       });
     }
 
-    // Update media metadata
-    const updateResult = await updateMedia(id, {
-      title,
-      altText,
-      description,
-      isPublic
-    });
+    // Create server-side Supabase client with authentication
+    const supabaseServer = createServerClient(
+      import.meta.env.SUPABASE_URL,
+      import.meta.env.SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          get(key: string) {
+            return cookies.get(key)?.value;
+          },
+          set(key: string, value: string, options: any) {
+            cookies.set(key, value, options);
+          },
+          remove(key: string, options: any) {
+            cookies.delete(key, options);
+          },
+        },
+      }
+    );
 
-    if (!updateResult.success) {
-      return new Response(JSON.stringify({ error: updateResult.error }), {
+    // Update media metadata using authenticated client
+    const dbUpdates: any = {};
+    if (title !== undefined) dbUpdates.title = title;
+    if (altText !== undefined) dbUpdates.alt_text = altText;
+    if (description !== undefined) dbUpdates.description = description;
+    if (isPublic !== undefined) dbUpdates.is_public = isPublic;
+
+    const { error: updateError } = await supabaseServer
+      .from('media_library')
+      .update(dbUpdates)
+      .eq('id', id);
+
+    if (updateError) {
+      return new Response(JSON.stringify({ error: updateError.message }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // Update relationships
-    // First, get current relationships to determine what to add/remove
-    const { data: currentMedia } = await supabase
-      .from('media_library')
-      .select(`
-        id,
-        events:media_events(event_details(id)),
-        categories:media_categories(categories(id)),
-        finalists:media_finalists(finalists(id)),
-        sponsors:media_sponsors(sponsors(id)),
-        judges:media_judges(judges(id)),
-        tags:media_tags(tags(id))
-      `)
-      .eq('id', id)
-      .single();
+    // Update relationships efficiently - only change what's different
+    const newEventIds = eventIds || [];
+    const newCategoryIds = categoryIds || [];
+    const newFinalistIds = finalistIds || [];
+    const newSponsorIds = sponsorIds || [];
+    const newJudgeIds = judgeIds || [];
+    const newTagIds = tagIds || [];
 
-    if (currentMedia) {
-      // Determine what to add and remove
-      const currentEventIds = currentMedia.events?.map((e: any) => e.event_details.id) || [];
-      const currentCategoryIds = currentMedia.categories?.map((c: any) => c.categories.id) || [];
-      const currentFinalistIds = currentMedia.finalists?.map((f: any) => f.finalists.id) || [];
-      const currentSponsorIds = currentMedia.sponsors?.map((s: any) => s.sponsors.id) || [];
-      const currentJudgeIds = currentMedia.judges?.map((j: any) => j.judges.id) || [];
-      const currentTagIds = currentMedia.tags?.map((t: any) => t.tags.id) || [];
+    // Get current relationships using authenticated client
+    const [eventsData, categoriesData, finalistsData, sponsorsData, judgesData, tagsData] = await Promise.all([
+      supabaseServer.from('media_events').select('event_id').eq('media_id', id),
+      supabaseServer.from('media_categories').select('category_id').eq('media_id', id),
+      supabaseServer.from('media_finalists').select('finalist_id').eq('media_id', id),
+      supabaseServer.from('media_sponsors').select('sponsor_id').eq('media_id', id),
+      supabaseServer.from('media_judges').select('judge_id').eq('media_id', id),
+      supabaseServer.from('media_tags').select('tag_id').eq('media_id', id)
+    ]);
 
-      const newEventIds = eventIds || [];
-      const newCategoryIds = categoryIds || [];
-      const newFinalistIds = finalistIds || [];
-      const newSponsorIds = sponsorIds || [];
-      const newJudgeIds = judgeIds || [];
-      const newTagIds = tagIds || [];
+    const currentEventIds = eventsData.data?.map(e => e.event_id) || [];
+    const currentCategoryIds = categoriesData.data?.map(c => c.category_id) || [];
+    const currentFinalistIds = finalistsData.data?.map(f => f.finalist_id) || [];
+    const currentSponsorIds = sponsorsData.data?.map(s => s.sponsor_id) || [];
+    const currentJudgeIds = judgesData.data?.map(j => j.judge_id) || [];
+    const currentTagIds = tagsData.data?.map(t => t.tag_id) || [];
 
-      // Remove old relationships
-      const removePromises = [];
-      if (currentEventIds.length > 0) {
-        removePromises.push(removeMediaRelationships(id, { eventIds: currentEventIds }));
-      }
-      if (currentCategoryIds.length > 0) {
-        removePromises.push(removeMediaRelationships(id, { categoryIds: currentCategoryIds }));
-      }
-      if (currentFinalistIds.length > 0) {
-        removePromises.push(removeMediaRelationships(id, { finalistIds: currentFinalistIds }));
-      }
-      if (currentSponsorIds.length > 0) {
-        removePromises.push(removeMediaRelationships(id, { sponsorIds: currentSponsorIds }));
-      }
-      if (currentJudgeIds.length > 0) {
-        removePromises.push(removeMediaRelationships(id, { judgeIds: currentJudgeIds }));
-      }
-      if (currentTagIds.length > 0) {
-        removePromises.push(removeMediaRelationships(id, { tagIds: currentTagIds }));
-      }
+    // Calculate differences
+    const eventsToAdd = newEventIds.filter(id => !currentEventIds.includes(id));
+    const eventsToRemove = currentEventIds.filter(id => !newEventIds.includes(id));
+    const categoriesToAdd = newCategoryIds.filter(id => !currentCategoryIds.includes(id));
+    const categoriesToRemove = currentCategoryIds.filter(id => !newCategoryIds.includes(id));
+    const finalistsToAdd = newFinalistIds.filter(id => !currentFinalistIds.includes(id));
+    const finalistsToRemove = currentFinalistIds.filter(id => !newFinalistIds.includes(id));
+    const sponsorsToAdd = newSponsorIds.filter(id => !currentSponsorIds.includes(id));
+    const sponsorsToRemove = currentSponsorIds.filter(id => !newSponsorIds.includes(id));
+    const judgesToAdd = newJudgeIds.filter(id => !currentJudgeIds.includes(id));
+    const judgesToRemove = currentJudgeIds.filter(id => !newJudgeIds.includes(id));
+    const tagsToAdd = newTagIds.filter(id => !currentTagIds.includes(id));
+    const tagsToRemove = currentTagIds.filter(id => !newTagIds.includes(id));
 
-      if (removePromises.length > 0) {
-        await Promise.all(removePromises);
-      }
+    // Remove relationships using authenticated client
+    const removeOps = [];
+    if (eventsToRemove.length) removeOps.push(supabaseServer.from('media_events').delete().eq('media_id', id).in('event_id', eventsToRemove));
+    if (categoriesToRemove.length) removeOps.push(supabaseServer.from('media_categories').delete().eq('media_id', id).in('category_id', categoriesToRemove));
+    if (finalistsToRemove.length) removeOps.push(supabaseServer.from('media_finalists').delete().eq('media_id', id).in('finalist_id', finalistsToRemove));
+    if (sponsorsToRemove.length) removeOps.push(supabaseServer.from('media_sponsors').delete().eq('media_id', id).in('sponsor_id', sponsorsToRemove));
+    if (judgesToRemove.length) removeOps.push(supabaseServer.from('media_judges').delete().eq('media_id', id).in('judge_id', judgesToRemove));
+    if (tagsToRemove.length) removeOps.push(supabaseServer.from('media_tags').delete().eq('media_id', id).in('tag_id', tagsToRemove));
+    if (removeOps.length) await Promise.all(removeOps);
 
-      // Add new relationships
-      if (newEventIds.length > 0 || newCategoryIds.length > 0 || newFinalistIds.length > 0 || 
-          newSponsorIds.length > 0 || newJudgeIds.length > 0 || newTagIds.length > 0) {
-        const addResult = await addMediaRelationships(id, {
-          eventIds: newEventIds,
-          categoryIds: newCategoryIds,
-          finalistIds: newFinalistIds,
-          sponsorIds: newSponsorIds,
-          judgeIds: newJudgeIds,
-          tagIds: newTagIds
+    // Add new relationships using authenticated client
+    const addOps = [];
+    if (eventsToAdd.length) addOps.push(supabaseServer.from('media_events').insert(eventsToAdd.map(event_id => ({ media_id: id, event_id }))));
+    if (categoriesToAdd.length) addOps.push(supabaseServer.from('media_categories').insert(categoriesToAdd.map(category_id => ({ media_id: id, category_id }))));
+    if (finalistsToAdd.length) addOps.push(supabaseServer.from('media_finalists').insert(finalistsToAdd.map(finalist_id => ({ media_id: id, finalist_id }))));
+    if (sponsorsToAdd.length) addOps.push(supabaseServer.from('media_sponsors').insert(sponsorsToAdd.map(sponsor_id => ({ media_id: id, sponsor_id }))));
+    if (judgesToAdd.length) addOps.push(supabaseServer.from('media_judges').insert(judgesToAdd.map(judge_id => ({ media_id: id, judge_id }))));
+    if (tagsToAdd.length) addOps.push(supabaseServer.from('media_tags').insert(tagsToAdd.map(tag_id => ({ media_id: id, tag_id }))));
+    if (addOps.length) {
+      const results = await Promise.all(addOps);
+      const errors = results.filter(r => r.error);
+      if (errors.length) {
+        return new Response(JSON.stringify({ error: `Failed to update relationships: ${errors.map(e => e.error?.message).join(', ')}` }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
         });
-
-        if (!addResult.success) {
-          return new Response(JSON.stringify({ error: addResult.error }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
       }
     }
 
