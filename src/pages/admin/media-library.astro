@@ -696,6 +696,20 @@ if (!session) {
           <p class="text-sm text-gray-500 mt-1">${item.file_size >= 1000000 ? (item.file_size / 1000 / 1000).toFixed(2) + ' MB' : (item.file_size / 1000).toFixed(2) + ' kB'}</p>
           ${item.alt_text ? `<p class="text-xs text-gray-600 mt-1 truncate" title="${item.alt_text}">${item.alt_text}</p>` : ''}
           
+          <!-- File URL -->
+          <div class="mt-2 flex items-center gap-1">
+            <a href="${item.file_url}" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-600 hover:text-blue-800 truncate flex-1" title="${item.file_url}">
+              🔗 View File
+            </a>
+            <button
+              onclick="copyToClipboard('${item.file_url}', this)"
+              class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors"
+              title="Copy URL to clipboard"
+            >
+              Copy URL
+            </button>
+          </div>
+          
           <!-- Relationships -->
           <div class="mt-3 space-y-1">
             ${item.events?.length ? `<div class="text-xs text-green-600">Events: ${item.events.map((e: any) => e.event_name).join(', ')}</div>` : ''}
@@ -1007,6 +1021,26 @@ if (!session) {
       reader.onerror = error => reject(error);
     });
   }
+
+  // Copy to clipboard function
+  (window as any).copyToClipboard = async (text: string, button: HTMLButtonElement) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      const originalText = button.textContent;
+      button.textContent = 'Copied!';
+      button.classList.add('bg-green-100', 'text-green-700');
+      button.classList.remove('bg-gray-100');
+      
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.classList.remove('bg-green-100', 'text-green-700');
+        button.classList.add('bg-gray-100');
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      alert('Failed to copy URL to clipboard');
+    }
+  };
 
   // Edit media
   (window as any).editMedia = (id: string) => {
