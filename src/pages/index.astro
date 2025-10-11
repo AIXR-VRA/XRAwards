@@ -54,6 +54,10 @@ const logoVRScout = getR2ImageUrl('/images/2025/10/logo-vrscout-white_1760206759
 const logoMagnopus = getR2ImageUrl('/images/2025/10/logo-magnopus-white_1760206671197.png');
 const logoGoogle = getR2ImageUrl('/images/2025/10/logo-google-white_1760206709222.png');
 const logoMeta = getR2ImageUrl('/images/2025/10/logo-meta-white_1760205884886.png');
+
+// Company logos for winners showcase
+const logoApple = getR2ImageUrl('/images/2025/10/logo-apple-white_1760205864042.png');
+const logoQualcomm = getR2ImageUrl('/images/2025/10/logo-qualcomm-white_1760205901474.png');
 ---
 
 <Layout
@@ -315,11 +319,14 @@ const logoMeta = getR2ImageUrl('/images/2025/10/logo-meta-white_1760205884886.pn
               <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
               <div class="absolute bottom-0 left-0 p-6 text-white">
                 <div class="flex items-center gap-3 mb-3">
-                  <div class="bg-white/20 backdrop-blur-sm rounded-lg p-2 w-12 h-12 flex items-center justify-center">
-                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-                    </svg>
-                  </div>
+                  <Image 
+                    src={logoApple} 
+                    alt="Apple" 
+                    class="h-10 w-auto"
+                    width={40}
+                    height={40}
+                    loading="lazy"
+                  />
                 </div>
                 <h3 class="text-xl font-bold mb-1">Apple – Apple Vision Pro</h3>
                 <p class="text-sm text-white/90">XR Head-Mounted-Display of the Year</p>
@@ -338,9 +345,14 @@ const logoMeta = getR2ImageUrl('/images/2025/10/logo-meta-white_1760205884886.pn
               <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
               <div class="absolute bottom-0 left-0 p-6 text-white">
                 <div class="flex items-center gap-3 mb-3">
-                  <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2L2 7v10l10 5 10-5V7z"/>
-                  </svg>
+                  <Image 
+                    src={logoQualcomm} 
+                    alt="Qualcomm" 
+                    class="h-8 w-auto"
+                    width={120}
+                    height={40}
+                    loading="lazy"
+                  />
                 </div>
                 <h3 class="text-xl font-bold mb-1">Qualcomm</h3>
                 <p class="text-sm text-white/90">Outstanding XR Company of the Year</p>
@@ -360,9 +372,14 @@ const logoMeta = getR2ImageUrl('/images/2025/10/logo-meta-white_1760205884886.pn
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
             <div class="absolute bottom-0 left-0 p-6 text-white">
               <div class="flex items-center gap-3 mb-3">
-                <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M14.5 2c-1.5 0-2.7 1.1-3 2.5h-3c-.3-1.4-1.5-2.5-3-2.5-1.7 0-3 1.3-3 3s1.3 3 3 3c1.5 0 2.7-1.1 3-2.5h3c.3 1.4 1.5 2.5 3 2.5 1.7 0 3-1.3 3-3s-1.3-3-3-3zm-9 16c-1.5 0-2.7 1.1-3 2.5h-3c-.3-1.4-1.5-2.5-3-2.5-1.7 0-3 1.3-3 3s1.3 3 3 3c1.5 0 2.7-1.1 3-2.5h3c.3 1.4 1.5 2.5 3 2.5 1.7 0 3-1.3 3-3s-1.3-3-3-3z"/>
-                </svg>
+                <Image 
+                  src={logoMeta} 
+                  alt="Meta" 
+                  class="h-5 w-auto"
+                  width={80}
+                  height={40}
+                  loading="lazy"
+                />
               </div>
               <h3 class="text-2xl font-bold mb-1">Meta & Sanzaru Games – Asgard's Wrath 2</h3>
               <p class="text-base text-white/90">XR Game of the Year</p>
