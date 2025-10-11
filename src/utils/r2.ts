@@ -3,6 +3,9 @@
  *
  * This module provides utility functions for working with images stored in Cloudflare R2.
  * Images should be uploaded to your R2 bucket via the Cloudflare dashboard or API.
+ * 
+ * Note: For new uploads, use the media-library.ts utilities which integrate with
+ * the Supabase media library system.
  */
 
 const R2_PUBLIC_URL = import.meta.env.PUBLIC_R2_PUBLIC_URL || '';

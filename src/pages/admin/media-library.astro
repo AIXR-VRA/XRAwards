@@ -1,0 +1,971 @@
+---
+/**
+ * Admin Media Library Management Page
+ */
+import AdminLayout from '../../components/admin/AdminLayout.astro';
+import { createServerClient } from '@supabase/ssr';
+
+// Check authentication
+const supabase = createServerClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY,
+  {
+    cookies: {
+      get(key: string) {
+        return Astro.cookies.get(key)?.value;
+      },
+      set(key: string, value: string, options: any) {
+        Astro.cookies.set(key, value, options);
+      },
+      remove(key: string, options: any) {
+        Astro.cookies.delete(key, options);
+      },
+    },
+  }
+);
+
+const { data: { session } } = await supabase.auth.getSession();
+
+// Redirect if not authenticated
+if (!session) {
+  return Astro.redirect('/admin/login');
+}
+---
+
+<AdminLayout title="Media Library" activePage="media-library" session={session}>
+  <div class="space-y-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Media Library</h1>
+        <p class="mt-2 text-gray-600">Manage media files with relationships to events, categories, finalists, sponsors, judges, and tags</p>
+      </div>
+      <button
+        id="uploadMediaBtn"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+      >
+        + Upload Media
+      </button>
+    </div>
+
+    <!-- Filter -->
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <div class="flex flex-wrap gap-4">
+        <select id="eventFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All Events</option>
+        </select>
+        <select id="categoryFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All Categories</option>
+        </select>
+        <select id="finalistFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All Finalists</option>
+        </select>
+        <select id="sponsorFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All Sponsors</option>
+        </select>
+        <select id="judgeFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All Judges</option>
+        </select>
+        <select id="tagFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All Tags</option>
+        </select>
+        <select id="typeFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All Types</option>
+          <option value="image">Images</option>
+          <option value="video">Videos</option>
+          <option value="audio">Audio</option>
+          <option value="document">Documents</option>
+        </select>
+      </div>
+      <div class="mt-4">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search media by filename, title, or description..."
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+    </div>
+
+    <!-- Media Grid -->
+    <div id="mediaList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <!-- Loading state -->
+      <div class="col-span-full text-center py-12">
+        <p class="text-gray-500">Loading media...</p>
+      </div>
+    </div>
+
+    <!-- Upload/Edit Modal -->
+    <div id="mediaModal" class="hidden fixed inset-0 bg-black/50 items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+          <h2 id="modalTitle" class="text-xl font-semibold text-gray-900">Upload Media</h2>
+          <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form id="mediaForm" class="space-y-4">
+          <input type="hidden" id="mediaId" name="id" />
+          
+          <!-- File Upload -->
+          <div id="fileUploadSection">
+            <label for="file" class="block text-sm font-medium text-gray-700 mb-1">
+              File *
+            </label>
+            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors">
+              <div class="space-y-1 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <div class="flex text-sm text-gray-600">
+                  <label for="file" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-hidden">
+                    <span>Upload a file</span>
+                    <input id="file" name="file" type="file" class="sr-only" />
+                  </label>
+                  <p class="pl-1">or drag and drop</p>
+                </div>
+                <p class="text-xs text-gray-500">PNG, JPG, GIF, WebP, MP4, PDF up to 10MB</p>
+              </div>
+            </div>
+            <div id="filePreview" class="mt-4 hidden">
+              <img id="previewImage" class="max-w-full h-auto rounded-lg" alt="Preview" />
+              <p id="fileName" class="mt-2 text-sm text-gray-600"></p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
+                Title
+              </label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="Optional title for the media"
+              />
+            </div>
+            
+            <div>
+              <label for="altText" class="block text-sm font-medium text-gray-700 mb-1">
+                Alt Text
+              </label>
+              <input
+                type="text"
+                id="altText"
+                name="altText"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="Accessibility description"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows="3"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              placeholder="Optional description..."
+            ></textarea>
+          </div>
+
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              id="isPublic"
+              name="isPublic"
+              checked
+              class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label for="isPublic" class="ml-2 text-sm text-gray-700">Public (visible to everyone)</label>
+          </div>
+
+          <!-- Relationships -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900">Relationships</h3>
+            
+            <!-- Events -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Events
+              </label>
+              <div class="border border-gray-300 rounded-lg p-3 min-h-[80px]">
+                <div id="selectedEvents" class="flex flex-wrap gap-2 mb-2"></div>
+                <select id="eventSelector" class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+                  <option value="">+ Add an event</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Categories -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Categories
+              </label>
+              <div class="border border-gray-300 rounded-lg p-3 min-h-[80px]">
+                <div id="selectedCategories" class="flex flex-wrap gap-2 mb-2"></div>
+                <select id="categorySelector" class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+                  <option value="">+ Add a category</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Finalists -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Finalists
+              </label>
+              <div class="border border-gray-300 rounded-lg p-3 min-h-[80px]">
+                <div id="selectedFinalists" class="flex flex-wrap gap-2 mb-2"></div>
+                <select id="finalistSelector" class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+                  <option value="">+ Add a finalist</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Sponsors -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Sponsors
+              </label>
+              <div class="border border-gray-300 rounded-lg p-3 min-h-[80px]">
+                <div id="selectedSponsors" class="flex flex-wrap gap-2 mb-2"></div>
+                <select id="sponsorSelector" class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+                  <option value="">+ Add a sponsor</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Judges -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Judges
+              </label>
+              <div class="border border-gray-300 rounded-lg p-3 min-h-[80px]">
+                <div id="selectedJudges" class="flex flex-wrap gap-2 mb-2"></div>
+                <select id="judgeSelector" class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+                  <option value="">+ Add a judge</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Tags -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Tags
+              </label>
+              <div class="border border-gray-300 rounded-lg p-3 min-h-[80px]">
+                <div id="selectedTags" class="flex flex-wrap gap-2 mb-2"></div>
+                <select id="tagSelector" class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+                  <option value="">+ Add a tag</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="modalError" class="hidden text-red-600 text-sm"></div>
+
+          <div class="flex space-x-3 pt-4">
+            <button
+              type="submit"
+              id="submitBtn"
+              class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Upload Media
+            </button>
+            <button
+              type="button"
+              id="cancelBtn"
+              class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  let media: any[] = [];
+  let availableEvents: any[] = [];
+  let availableCategories: any[] = [];
+  let availableFinalists: any[] = [];
+  let availableSponsors: any[] = [];
+  let availableJudges: any[] = [];
+  let availableTags: any[] = [];
+  
+  let selectedEvents: any[] = [];
+  let selectedCategories: any[] = [];
+  let selectedFinalists: any[] = [];
+  let selectedSponsors: any[] = [];
+  let selectedJudges: any[] = [];
+  let selectedTags: any[] = [];
+  
+  let filters = { 
+    event: '', 
+    category: '', 
+    finalist: '', 
+    sponsor: '', 
+    judge: '', 
+    tag: '', 
+    type: '',
+    search: ''
+  };
+
+  // Load all data
+  async function loadAllData() {
+    try {
+      const [eventsRes, categoriesRes, finalistsRes, sponsorsRes, judgesRes, tagsRes, mediaRes] = await Promise.all([
+        fetch('/api/events'),
+        fetch('/api/categories'),
+        fetch('/api/finalists'),
+        fetch('/api/sponsors'),
+        fetch('/api/judges'),
+        fetch('/api/tags'),
+        fetch('/api/media')
+      ]);
+
+      const [eventsData, categoriesData, finalistsData, sponsorsData, judgesData, tagsData, mediaData] = await Promise.all([
+        eventsRes.json(),
+        categoriesRes.json(),
+        finalistsRes.json(),
+        sponsorsRes.json(),
+        judgesRes.json(),
+        tagsRes.json(),
+        mediaRes.json()
+      ]);
+
+      availableEvents = eventsData.events || [];
+      availableCategories = categoriesData.categories || [];
+      availableFinalists = finalistsData.finalists || [];
+      availableSponsors = sponsorsData.sponsors || [];
+      availableJudges = judgesData.judges || [];
+      availableTags = tagsData.tags || [];
+      media = mediaData.media || [];
+
+      updateSelectors();
+      populateFilters();
+      renderMedia();
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  }
+
+  // Update selector dropdowns
+  function updateSelectors() {
+    updateEventSelector();
+    updateCategorySelector();
+    updateFinalistSelector();
+    updateSponsorSelector();
+    updateJudgeSelector();
+    updateTagSelector();
+  }
+
+  function updateEventSelector() {
+    const selector = document.getElementById('eventSelector') as HTMLSelectElement;
+    const selectedIds = selectedEvents.map(e => e.id);
+    selector.innerHTML = '<option value="">+ Add an event</option>' +
+      availableEvents
+        .filter(event => !selectedIds.includes(event.id))
+        .map(event => `<option value="${event.id}">${event.event_name} (${event.event_year})</option>`)
+        .join('');
+  }
+
+  function updateCategorySelector() {
+    const selector = document.getElementById('categorySelector') as HTMLSelectElement;
+    const selectedIds = selectedCategories.map(c => c.id);
+    selector.innerHTML = '<option value="">+ Add a category</option>' +
+      availableCategories
+        .filter(category => !selectedIds.includes(category.id))
+        .map(category => `<option value="${category.id}">${category.name}</option>`)
+        .join('');
+  }
+
+  function updateFinalistSelector() {
+    const selector = document.getElementById('finalistSelector') as HTMLSelectElement;
+    const selectedIds = selectedFinalists.map(f => f.id);
+    selector.innerHTML = '<option value="">+ Add a finalist</option>' +
+      availableFinalists
+        .filter(finalist => !selectedIds.includes(finalist.id))
+        .map(finalist => `<option value="${finalist.id}">${finalist.title}</option>`)
+        .join('');
+  }
+
+  function updateSponsorSelector() {
+    const selector = document.getElementById('sponsorSelector') as HTMLSelectElement;
+    const selectedIds = selectedSponsors.map(s => s.id);
+    selector.innerHTML = '<option value="">+ Add a sponsor</option>' +
+      availableSponsors
+        .filter(sponsor => !selectedIds.includes(sponsor.id))
+        .map(sponsor => `<option value="${sponsor.name}">${sponsor.name}</option>`)
+        .join('');
+  }
+
+  function updateJudgeSelector() {
+    const selector = document.getElementById('judgeSelector') as HTMLSelectElement;
+    const selectedIds = selectedJudges.map(j => j.id);
+    selector.innerHTML = '<option value="">+ Add a judge</option>' +
+      availableJudges
+        .filter(judge => !selectedIds.includes(judge.id))
+        .map(judge => `<option value="${judge.id}">${judge.name}</option>`)
+        .join('');
+  }
+
+  function updateTagSelector() {
+    const selector = document.getElementById('tagSelector') as HTMLSelectElement;
+    const selectedIds = selectedTags.map(t => t.id);
+    selector.innerHTML = '<option value="">+ Add a tag</option>' +
+      availableTags
+        .filter(tag => !selectedIds.includes(tag.id))
+        .map(tag => `<option value="${tag.id}">${tag.name}</option>`)
+        .join('');
+  }
+
+  // Populate filter dropdowns
+  function populateFilters() {
+    const eventFilter = document.getElementById('eventFilter') as HTMLSelectElement;
+    eventFilter.innerHTML = '<option value="">All Events</option>' +
+      availableEvents.map(event => `<option value="${event.id}">${event.event_name} (${event.event_year})</option>`).join('');
+
+    const categoryFilter = document.getElementById('categoryFilter') as HTMLSelectElement;
+    categoryFilter.innerHTML = '<option value="">All Categories</option>' +
+      availableCategories.map(category => `<option value="${category.id}">${category.name}</option>`).join('');
+
+    const finalistFilter = document.getElementById('finalistFilter') as HTMLSelectElement;
+    finalistFilter.innerHTML = '<option value="">All Finalists</option>' +
+      availableFinalists.map(finalist => `<option value="${finalist.id}">${finalist.title}</option>`).join('');
+
+    const sponsorFilter = document.getElementById('sponsorFilter') as HTMLSelectElement;
+    sponsorFilter.innerHTML = '<option value="">All Sponsors</option>' +
+      availableSponsors.map(sponsor => `<option value="${sponsor.id}">${sponsor.name}</option>`).join('');
+
+    const judgeFilter = document.getElementById('judgeFilter') as HTMLSelectElement;
+    judgeFilter.innerHTML = '<option value="">All Judges</option>' +
+      availableJudges.map(judge => `<option value="${judge.id}">${judge.name}</option>`).join('');
+
+    const tagFilter = document.getElementById('tagFilter') as HTMLSelectElement;
+    tagFilter.innerHTML = '<option value="">All Tags</option>' +
+      availableTags.map(tag => `<option value="${tag.id}">${tag.name}</option>`).join('');
+  }
+
+  // Render selected items as badges
+  function renderSelectedItems(containerId: string, items: any[], type: string) {
+    const container = document.getElementById(containerId)!;
+    
+    if (items.length === 0) {
+      container.innerHTML = '<p class="text-sm text-gray-400 italic">None selected</p>';
+      return;
+    }
+
+    container.innerHTML = items.map(item => `
+      <span class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+        ${item.name || item.title || item.event_name}
+        <button
+          type="button"
+          onclick="remove${type}('${item.id}')"
+          class="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+        >
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </span>
+    `).join('');
+  }
+
+  // Add/remove functions
+  (window as any).addEvent = (eventId: string) => {
+    if (!eventId) return;
+    const event = availableEvents.find(e => e.id === eventId);
+    if (event && !selectedEvents.find(e => e.id === eventId)) {
+      selectedEvents.push(event);
+      renderSelectedItems('selectedEvents', selectedEvents, 'Event');
+      updateEventSelector();
+    }
+  };
+
+  (window as any).removeEvent = (eventId: string) => {
+    selectedEvents = selectedEvents.filter(e => e.id !== eventId);
+    renderSelectedItems('selectedEvents', selectedEvents, 'Event');
+    updateEventSelector();
+  };
+
+  (window as any).addCategory = (categoryId: string) => {
+    if (!categoryId) return;
+    const category = availableCategories.find(c => c.id === categoryId);
+    if (category && !selectedCategories.find(c => c.id === categoryId)) {
+      selectedCategories.push(category);
+      renderSelectedItems('selectedCategories', selectedCategories, 'Category');
+      updateCategorySelector();
+    }
+  };
+
+  (window as any).removeCategory = (categoryId: string) => {
+    selectedCategories = selectedCategories.filter(c => c.id !== categoryId);
+    renderSelectedItems('selectedCategories', selectedCategories, 'Category');
+    updateCategorySelector();
+  };
+
+  (window as any).addFinalist = (finalistId: string) => {
+    if (!finalistId) return;
+    const finalist = availableFinalists.find(f => f.id === finalistId);
+    if (finalist && !selectedFinalists.find(f => f.id === finalistId)) {
+      selectedFinalists.push(finalist);
+      renderSelectedItems('selectedFinalists', selectedFinalists, 'Finalist');
+      updateFinalistSelector();
+    }
+  };
+
+  (window as any).removeFinalist = (finalistId: string) => {
+    selectedFinalists = selectedFinalists.filter(f => f.id !== finalistId);
+    renderSelectedItems('selectedFinalists', selectedFinalists, 'Finalist');
+    updateFinalistSelector();
+  };
+
+  (window as any).addSponsor = (sponsorId: string) => {
+    if (!sponsorId) return;
+    const sponsor = availableSponsors.find(s => s.id === sponsorId);
+    if (sponsor && !selectedSponsors.find(s => s.id === sponsorId)) {
+      selectedSponsors.push(sponsor);
+      renderSelectedItems('selectedSponsors', selectedSponsors, 'Sponsor');
+      updateSponsorSelector();
+    }
+  };
+
+  (window as any).removeSponsor = (sponsorId: string) => {
+    selectedSponsors = selectedSponsors.filter(s => s.id !== sponsorId);
+    renderSelectedItems('selectedSponsors', selectedSponsors, 'Sponsor');
+    updateSponsorSelector();
+  };
+
+  (window as any).addJudge = (judgeId: string) => {
+    if (!judgeId) return;
+    const judge = availableJudges.find(j => j.id === judgeId);
+    if (judge && !selectedJudges.find(j => j.id === judgeId)) {
+      selectedJudges.push(judge);
+      renderSelectedItems('selectedJudges', selectedJudges, 'Judge');
+      updateJudgeSelector();
+    }
+  };
+
+  (window as any).removeJudge = (judgeId: string) => {
+    selectedJudges = selectedJudges.filter(j => j.id !== judgeId);
+    renderSelectedItems('selectedJudges', selectedJudges, 'Judge');
+    updateJudgeSelector();
+  };
+
+  (window as any).addTag = (tagId: string) => {
+    if (!tagId) return;
+    const tag = availableTags.find(t => t.id === tagId);
+    if (tag && !selectedTags.find(t => t.id === tagId)) {
+      selectedTags.push(tag);
+      renderSelectedItems('selectedTags', selectedTags, 'Tag');
+      updateTagSelector();
+    }
+  };
+
+  (window as any).removeTag = (tagId: string) => {
+    selectedTags = selectedTags.filter(t => t.id !== tagId);
+    renderSelectedItems('selectedTags', selectedTags, 'Tag');
+    updateTagSelector();
+  };
+
+  // Get filtered media
+  function getFilteredMedia() {
+    return media.filter(item => {
+      if (filters.event && !item.events?.some((e: any) => e.id === filters.event)) return false;
+      if (filters.category && !item.categories?.some((c: any) => c.id === filters.category)) return false;
+      if (filters.finalist && !item.finalists?.some((f: any) => f.id === filters.finalist)) return false;
+      if (filters.sponsor && !item.sponsors?.some((s: any) => s.id === filters.sponsor)) return false;
+      if (filters.judge && !item.judges?.some((j: any) => j.id === filters.judge)) return false;
+      if (filters.tag && !item.tags?.some((t: any) => t.id === filters.tag)) return false;
+      if (filters.type) {
+        if (filters.type === 'image' && !item.mime_type.startsWith('image/')) return false;
+        if (filters.type === 'video' && !item.mime_type.startsWith('video/')) return false;
+        if (filters.type === 'audio' && !item.mime_type.startsWith('audio/')) return false;
+        if (filters.type === 'document' && !item.mime_type.includes('pdf')) return false;
+      }
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        if (!item.filename.toLowerCase().includes(searchLower) &&
+            !item.title?.toLowerCase().includes(searchLower) &&
+            !item.description?.toLowerCase().includes(searchLower) &&
+            !item.alt_text?.toLowerCase().includes(searchLower)) return false;
+      }
+      return true;
+    });
+  }
+
+  // Render media grid
+  function renderMedia() {
+    const container = document.getElementById('mediaList')!;
+    const filteredMedia = getFilteredMedia();
+
+    if (media.length === 0) {
+      container.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <p class="text-gray-500">No media uploaded yet. Upload your first file!</p>
+        </div>
+      `;
+      return;
+    }
+
+    if (filteredMedia.length === 0) {
+      container.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <p class="text-gray-500">No media matches the current filters.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = filteredMedia.map(item => `
+      <div class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow">
+        <!-- Media Preview -->
+        <div class="aspect-square bg-gray-100 flex items-center justify-center">
+          ${item.mime_type.startsWith('image/') ? 
+            `<img src="${item.file_url}" alt="${item.alt_text || item.title || item.filename}" class="w-full h-full object-cover" />` :
+            item.mime_type.startsWith('video/') ?
+            `<video src="${item.file_url}" class="w-full h-full object-cover" muted></video>` :
+            item.mime_type.startsWith('audio/') ?
+            `<div class="text-center"><div class="text-4xl mb-2">🎵</div><div class="text-sm text-gray-600">Audio</div></div>` :
+            `<div class="text-center"><div class="text-4xl mb-2">📄</div><div class="text-sm text-gray-600">${item.file_extension?.toUpperCase()}</div></div>`
+          }
+        </div>
+
+        <!-- Media Info -->
+        <div class="p-4">
+          <h3 class="font-medium text-gray-900 truncate" title="${item.title || item.filename}">
+            ${item.title || item.filename}
+          </h3>
+          <p class="text-sm text-gray-500 mt-1">${(item.file_size / 1024 / 1024).toFixed(2)} MB</p>
+          ${item.alt_text ? `<p class="text-xs text-gray-600 mt-1 truncate" title="${item.alt_text}">${item.alt_text}</p>` : ''}
+          
+          <!-- Relationships -->
+          <div class="mt-3 space-y-1">
+            ${item.events?.length ? `<div class="text-xs text-green-600">Events: ${item.events.map((e: any) => e.event_name).join(', ')}</div>` : ''}
+            ${item.categories?.length ? `<div class="text-xs text-blue-600">Categories: ${item.categories.map((c: any) => c.name).join(', ')}</div>` : ''}
+            ${item.finalists?.length ? `<div class="text-xs text-purple-600">Finalists: ${item.finalists.map((f: any) => f.title).join(', ')}</div>` : ''}
+            ${item.sponsors?.length ? `<div class="text-xs text-orange-600">Sponsors: ${item.sponsors.map((s: any) => s.name).join(', ')}</div>` : ''}
+            ${item.judges?.length ? `<div class="text-xs text-indigo-600">Judges: ${item.judges.map((j: any) => j.name).join(', ')}</div>` : ''}
+            ${item.tags?.length ? `<div class="text-xs text-gray-600">Tags: ${item.tags.map((t: any) => t.name).join(', ')}</div>` : ''}
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="px-4 pb-4 flex gap-2">
+          <button
+            onclick="editMedia('${item.id}')"
+            class="flex-1 bg-blue-500 text-white text-xs px-3 py-2 rounded hover:bg-blue-600"
+          >
+            Edit
+          </button>
+          <button
+            onclick="deleteMedia('${item.id}', '${item.filename}')"
+            class="flex-1 bg-red-500 text-white text-xs px-3 py-2 rounded hover:bg-red-600"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Modal controls
+  const modal = document.getElementById('mediaModal')!;
+  const modalTitle = document.getElementById('modalTitle')!;
+  const form = document.getElementById('mediaForm') as HTMLFormElement;
+  const modalError = document.getElementById('modalError')!;
+  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+
+  function openModal(title: string, isEdit: boolean = false) {
+    modalTitle.textContent = title;
+    modalError.classList.add('hidden');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    if (isEdit) {
+      document.getElementById('fileUploadSection')!.style.display = 'none';
+      submitBtn.textContent = 'Update Media';
+    } else {
+      document.getElementById('fileUploadSection')!.style.display = 'block';
+      submitBtn.textContent = 'Upload Media';
+    }
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    form.reset();
+    (document.getElementById('mediaId') as HTMLInputElement).value = '';
+    selectedEvents = [];
+    selectedCategories = [];
+    selectedFinalists = [];
+    selectedSponsors = [];
+    selectedJudges = [];
+    selectedTags = [];
+    renderSelectedItems('selectedEvents', selectedEvents, 'Event');
+    renderSelectedItems('selectedCategories', selectedCategories, 'Category');
+    renderSelectedItems('selectedFinalists', selectedFinalists, 'Finalist');
+    renderSelectedItems('selectedSponsors', selectedSponsors, 'Sponsor');
+    renderSelectedItems('selectedJudges', selectedJudges, 'Judge');
+    renderSelectedItems('selectedTags', selectedTags, 'Tag');
+    updateSelectors();
+  }
+
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    // Selector change handlers
+    document.getElementById('eventSelector')?.addEventListener('change', (e) => {
+      (window as any).addEvent((e.target as HTMLSelectElement).value);
+      (e.target as HTMLSelectElement).value = '';
+    });
+
+    document.getElementById('categorySelector')?.addEventListener('change', (e) => {
+      (window as any).addCategory((e.target as HTMLSelectElement).value);
+      (e.target as HTMLSelectElement).value = '';
+    });
+
+    document.getElementById('finalistSelector')?.addEventListener('change', (e) => {
+      (window as any).addFinalist((e.target as HTMLSelectElement).value);
+      (e.target as HTMLSelectElement).value = '';
+    });
+
+    document.getElementById('sponsorSelector')?.addEventListener('change', (e) => {
+      (window as any).addSponsor((e.target as HTMLSelectElement).value);
+      (e.target as HTMLSelectElement).value = '';
+    });
+
+    document.getElementById('judgeSelector')?.addEventListener('change', (e) => {
+      (window as any).addJudge((e.target as HTMLSelectElement).value);
+      (e.target as HTMLSelectElement).value = '';
+    });
+
+    document.getElementById('tagSelector')?.addEventListener('change', (e) => {
+      (window as any).addTag((e.target as HTMLSelectElement).value);
+      (e.target as HTMLSelectElement).value = '';
+    });
+
+    // Filter change handlers
+    document.getElementById('eventFilter')?.addEventListener('change', (e) => {
+      filters.event = (e.target as HTMLSelectElement).value;
+      renderMedia();
+    });
+
+    document.getElementById('categoryFilter')?.addEventListener('change', (e) => {
+      filters.category = (e.target as HTMLSelectElement).value;
+      renderMedia();
+    });
+
+    document.getElementById('finalistFilter')?.addEventListener('change', (e) => {
+      filters.finalist = (e.target as HTMLSelectElement).value;
+      renderMedia();
+    });
+
+    document.getElementById('sponsorFilter')?.addEventListener('change', (e) => {
+      filters.sponsor = (e.target as HTMLSelectElement).value;
+      renderMedia();
+    });
+
+    document.getElementById('judgeFilter')?.addEventListener('change', (e) => {
+      filters.judge = (e.target as HTMLSelectElement).value;
+      renderMedia();
+    });
+
+    document.getElementById('tagFilter')?.addEventListener('change', (e) => {
+      filters.tag = (e.target as HTMLSelectElement).value;
+      renderMedia();
+    });
+
+    document.getElementById('typeFilter')?.addEventListener('change', (e) => {
+      filters.type = (e.target as HTMLSelectElement).value;
+      renderMedia();
+    });
+
+    document.getElementById('searchInput')?.addEventListener('input', (e) => {
+      filters.search = (e.target as HTMLInputElement).value;
+      renderMedia();
+    });
+
+    // Modal controls
+    document.getElementById('uploadMediaBtn')?.addEventListener('click', () => {
+      openModal('Upload Media', false);
+    });
+
+    document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+    document.getElementById('cancelBtn')?.addEventListener('click', closeModal);
+
+    // File preview
+    document.getElementById('file')?.addEventListener('change', (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const preview = document.getElementById('filePreview')!;
+        const previewImage = document.getElementById('previewImage') as HTMLImageElement;
+        const fileName = document.getElementById('fileName')!;
+
+        if (file.type.startsWith('image/')) {
+          previewImage.src = URL.createObjectURL(file);
+          previewImage.style.display = 'block';
+          preview.classList.remove('hidden');
+        } else {
+          previewImage.style.display = 'none';
+          preview.classList.remove('hidden');
+        }
+        
+        fileName.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+      }
+    });
+
+    // Form submit
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      modalError.classList.add('hidden');
+
+      const formData = new FormData(form);
+      const isEdit = !!(formData.get('id') as string);
+
+      if (!isEdit && !formData.get('file')) {
+        modalError.textContent = 'Please select a file to upload';
+        modalError.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        if (isEdit) {
+          // Update existing media
+          const response = await fetch('/api/media', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: formData.get('id'),
+              title: formData.get('title'),
+              altText: formData.get('altText'),
+              description: formData.get('description'),
+              isPublic: (document.getElementById('isPublic') as HTMLInputElement).checked,
+              eventIds: selectedEvents.map(e => e.id),
+              categoryIds: selectedCategories.map(c => c.id),
+              finalistIds: selectedFinalists.map(f => f.id),
+              sponsorIds: selectedSponsors.map(s => s.id),
+              judgeIds: selectedJudges.map(j => j.id),
+              tagIds: selectedTags.map(t => t.id)
+            })
+          });
+
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error);
+
+          closeModal();
+          await loadAllData();
+        } else {
+          // Upload new media
+          const file = formData.get('file') as File;
+          const response = await fetch('/api/media', {
+            method: 'POST',
+            body: JSON.stringify({
+              file: await fileToBase64(file),
+              filename: file.name,
+              mimeType: file.type,
+              title: formData.get('title'),
+              altText: formData.get('altText'),
+              description: formData.get('description'),
+              isPublic: (document.getElementById('isPublic') as HTMLInputElement).checked,
+              eventIds: selectedEvents.map(e => e.id),
+              categoryIds: selectedCategories.map(c => c.id),
+              finalistIds: selectedFinalists.map(f => f.id),
+              sponsorIds: selectedSponsors.map(s => s.id),
+              judgeIds: selectedJudges.map(j => j.id),
+              tagIds: selectedTags.map(t => t.id)
+            }),
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error);
+
+          closeModal();
+          await loadAllData();
+        }
+      } catch (error: any) {
+        modalError.textContent = error.message;
+        modalError.classList.remove('hidden');
+      }
+    });
+  });
+
+  // Helper functions
+  async function fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        // Remove the data URL prefix (e.g., "data:image/png;base64,")
+        const result = reader.result as string;
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = error => reject(error);
+    });
+  }
+
+  // Edit media
+  (window as any).editMedia = (id: string) => {
+    const item = media.find(m => m.id === id);
+    if (!item) return;
+
+    (document.getElementById('mediaId') as HTMLInputElement).value = item.id;
+    (document.getElementById('title') as HTMLInputElement).value = item.title || '';
+    (document.getElementById('altText') as HTMLInputElement).value = item.alt_text || '';
+    (document.getElementById('description') as HTMLTextAreaElement).value = item.description || '';
+    (document.getElementById('isPublic') as HTMLInputElement).checked = item.is_public !== false;
+
+    selectedEvents = item.events || [];
+    selectedCategories = item.categories || [];
+    selectedFinalists = item.finalists || [];
+    selectedSponsors = item.sponsors || [];
+    selectedJudges = item.judges || [];
+    selectedTags = item.tags || [];
+
+    renderSelectedItems('selectedEvents', selectedEvents, 'Event');
+    renderSelectedItems('selectedCategories', selectedCategories, 'Category');
+    renderSelectedItems('selectedFinalists', selectedFinalists, 'Finalist');
+    renderSelectedItems('selectedSponsors', selectedSponsors, 'Sponsor');
+    renderSelectedItems('selectedJudges', selectedJudges, 'Judge');
+    renderSelectedItems('selectedTags', selectedTags, 'Tag');
+    updateSelectors();
+
+    openModal('Edit Media', true);
+  };
+
+  // Delete media
+  (window as any).deleteMedia = async (id: string, filename: string) => {
+    if (!confirm(`Are you sure you want to delete "${filename}"?`)) return;
+
+    try {
+      const response = await fetch('/api/media', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+
+      await loadAllData();
+    } catch (error: any) {
+      alert('Error deleting media: ' + error.message);
+    }
+  };
+
+  // Initial load
+  loadAllData();
+</script>

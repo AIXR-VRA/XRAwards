@@ -6,7 +6,7 @@
 
 interface Props {
   title: string;
-  activePage?: 'dashboard' | 'upload' | 'categories' | 'finalists' | 'tags' | 'events' | 'sponsors' | 'judges';
+  activePage?: 'dashboard' | 'media-library' | 'categories' | 'finalists' | 'tags' | 'events' | 'sponsors' | 'judges';
   session: {
     user: {
       email?: string;
@@ -19,7 +19,7 @@ const { title, activePage, session } = Astro.props;
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', href: '/admin' },
   { id: 'events', label: 'Event Details', href: '/admin/events' },
-  { id: 'upload', label: 'Media Upload', href: '/admin/upload' },
+  { id: 'media-library', label: 'Media Library', href: '/admin/media-library' },
   { id: 'categories', label: 'Categories', href: '/admin/categories' },
   { id: 'finalists', label: 'Finalists', href: '/admin/finalists' },
   { id: 'sponsors', label: 'Sponsors', href: '/admin/sponsors' },
