@@ -8,6 +8,7 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import CTAFooter from '../components/CTAFooter.astro';
+import { Image } from 'astro:assets';
 import { createClient } from '@supabase/supabase-js';
 import { nl2br } from '../utils/helpers';
 
@@ -235,9 +236,12 @@ const categoriesWithFinalists = categories.map(category => {
                   <div class="finalist-card">
                     <div class="aspect-square bg-gray-100 rounded-2xl overflow-hidden mb-4">
                       {finalist.image_url ? (
-                        <img
+                        <Image
                           src={finalist.image_url}
                           alt={finalist.title}
+                          width={400}
+                          height={400}
+                          format="webp"
                           class="w-full h-full object-cover"
                         />
                       ) : (

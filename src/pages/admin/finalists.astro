@@ -476,7 +476,7 @@ if (!session) {
       <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-shadow">
         <div class="flex items-start gap-4">
           ${finalist.image_url ? `
-            <img src="${escapeHtml(finalist.image_url)}" alt="${escapeHtml(finalist.title)}" class="w-24 h-24 object-cover rounded-lg" />
+            <img src="${escapeHtml(finalist.image_url)}" alt="${escapeHtml(finalist.title)}" loading="lazy" class="w-24 h-24 object-cover rounded-lg" />
           ` : `
             <div class="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center">
               <span class="text-gray-400 text-xs">No image</span>

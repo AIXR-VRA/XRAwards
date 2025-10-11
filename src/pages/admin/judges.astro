@@ -577,7 +577,7 @@ if (!session) {
       <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-shadow ${!judge.is_visible ? 'opacity-60 border-dashed' : ''}">
         <div class="flex items-start gap-4 mb-3">
           ${judge.profile_image_url ? `
-            <img src="${escapeHtml(judge.profile_image_url)}" alt="${escapeHtml(judge.first_name)} ${escapeHtml(judge.last_name)}" class="w-16 h-16 rounded-full object-cover flex-shrink-0" />
+            <img src="${escapeHtml(judge.profile_image_url)}" alt="${escapeHtml(judge.first_name)} ${escapeHtml(judge.last_name)}" loading="lazy" class="w-16 h-16 rounded-full object-cover flex-shrink-0" />
           ` : `
             <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
               <span class="text-gray-500 text-lg font-semibold">${escapeHtml(judge.first_name.charAt(0))}${escapeHtml(judge.last_name.charAt(0))}</span>

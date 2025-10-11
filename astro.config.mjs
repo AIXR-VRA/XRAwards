@@ -12,6 +12,13 @@ export default defineConfig({
   adapter: node({
     mode: 'standalone',
   }),
+  image: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+      },
+    ],
+  },
   prefetch: {
     prefetchAll: true,
     defaultStrategy: 'viewport',

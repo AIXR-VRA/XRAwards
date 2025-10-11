@@ -95,6 +95,17 @@ if (!session) {
       </div>
     </div>
 
+    <!-- Load More Button -->
+    <div id="loadMoreContainer" class="hidden text-center mt-8">
+      <button
+        id="loadMoreBtn"
+        class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+      >
+        Load More
+      </button>
+      <p id="mediaCount" class="text-sm text-gray-500 mt-2"></p>
+    </div>
+
     <!-- Upload/Edit Modal -->
     <div id="mediaModal" class="hidden fixed inset-0 bg-black/50 items-center justify-center z-50 p-4">
       <div class="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
@@ -297,6 +308,7 @@ if (!session) {
 
 <script>
   let media: any[] = [];
+  let displayedMedia: any[] = [];
   let availableEvents: any[] = [];
   let availableCategories: any[] = [];
   let availableFinalists: any[] = [];
@@ -321,6 +333,11 @@ if (!session) {
     type: '',
     search: ''
   };
+
+  // Pagination state
+  let currentPage = 0;
+  const itemsPerPage = 24;
+  let isLoading = false;
 
   // Load all data
   async function loadAllData() {
@@ -617,10 +634,17 @@ if (!session) {
     });
   }
 
-  // Render media grid
-  function renderMedia() {
+  // Render media grid (with pagination)
+  function renderMedia(append = false) {
     const container = document.getElementById('mediaList')!;
+    const loadMoreContainer = document.getElementById('loadMoreContainer')!;
+    const mediaCount = document.getElementById('mediaCount')!;
     const filteredMedia = getFilteredMedia();
+
+    if (!append) {
+      currentPage = 0;
+      displayedMedia = [];
+    }
 
     if (media.length === 0) {
       container.innerHTML = `
@@ -628,6 +652,7 @@ if (!session) {
           <p class="text-gray-500">No media uploaded yet. Upload your first file!</p>
         </div>
       `;
+      loadMoreContainer.classList.add('hidden');
       return;
     }
 
@@ -637,17 +662,25 @@ if (!session) {
           <p class="text-gray-500">No media matches the current filters.</p>
         </div>
       `;
+      loadMoreContainer.classList.add('hidden');
       return;
     }
 
-    container.innerHTML = filteredMedia.map(item => `
+    // Get the next page of items
+    const startIndex = currentPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageItems = filteredMedia.slice(startIndex, endIndex);
+    
+    displayedMedia = append ? [...displayedMedia, ...pageItems] : pageItems;
+
+    const mediaHTML = displayedMedia.map(item => `
       <div class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow">
         <!-- Media Preview -->
         <div class="aspect-square bg-gray-100 flex items-center justify-center">
           ${item.mime_type.startsWith('image/') ? 
-            `<img src="${item.file_url}" alt="${item.alt_text || item.title || item.filename}" class="w-full h-full object-cover" />` :
+            `<img src="${item.file_url}" alt="${item.alt_text || item.title || item.filename}" loading="lazy" class="w-full h-full object-cover" />` :
             item.mime_type.startsWith('video/') ?
-            `<video src="${item.file_url}" class="w-full h-full object-cover" muted></video>` :
+            `<video src="${item.file_url}" class="w-full h-full object-cover" muted loading="lazy"></video>` :
             item.mime_type.startsWith('audio/') ?
             `<div class="text-center"><div class="text-4xl mb-2">🎵</div><div class="text-sm text-gray-600">Audio</div></div>` :
             `<div class="text-center"><div class="text-4xl mb-2">📄</div><div class="text-sm text-gray-600">${item.file_extension?.toUpperCase()}</div></div>`
@@ -691,6 +724,38 @@ if (!session) {
         </div>
       </div>
     `).join('');
+
+    container.innerHTML = mediaHTML;
+
+    // Update load more button visibility
+    const hasMore = endIndex < filteredMedia.length;
+    if (hasMore) {
+      loadMoreContainer.classList.remove('hidden');
+      mediaCount.textContent = `Showing ${displayedMedia.length} of ${filteredMedia.length} items`;
+    } else {
+      loadMoreContainer.classList.add('hidden');
+    }
+
+    currentPage++;
+  }
+
+  // Load more media items
+  function loadMoreMedia() {
+    if (isLoading) return;
+    isLoading = true;
+    
+    const btn = document.getElementById('loadMoreBtn') as HTMLButtonElement;
+    const originalText = btn.textContent;
+    btn.textContent = 'Loading...';
+    btn.disabled = true;
+
+    // Simulate async load (render is sync but we add a small delay for UX)
+    setTimeout(() => {
+      renderMedia(true);
+      isLoading = false;
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }, 100);
   }
 
   // Modal controls
@@ -737,6 +802,9 @@ if (!session) {
 
   // Event listeners
   document.addEventListener('DOMContentLoaded', () => {
+    // Load More button
+    document.getElementById('loadMoreBtn')?.addEventListener('click', loadMoreMedia);
+
     // Selector change handlers
     document.getElementById('eventSelector')?.addEventListener('change', (e) => {
       (window as any).addEvent((e.target as HTMLSelectElement).value);
