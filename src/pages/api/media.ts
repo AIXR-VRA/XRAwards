@@ -256,18 +256,18 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     const currentTagIds = tagsData.data?.map(t => t.tag_id) || [];
 
     // Calculate differences
-    const eventsToAdd = newEventIds.filter(id => !currentEventIds.includes(id));
-    const eventsToRemove = currentEventIds.filter(id => !newEventIds.includes(id));
-    const categoriesToAdd = newCategoryIds.filter(id => !currentCategoryIds.includes(id));
-    const categoriesToRemove = currentCategoryIds.filter(id => !newCategoryIds.includes(id));
-    const finalistsToAdd = newFinalistIds.filter(id => !currentFinalistIds.includes(id));
-    const finalistsToRemove = currentFinalistIds.filter(id => !newFinalistIds.includes(id));
-    const sponsorsToAdd = newSponsorIds.filter(id => !currentSponsorIds.includes(id));
-    const sponsorsToRemove = currentSponsorIds.filter(id => !newSponsorIds.includes(id));
-    const judgesToAdd = newJudgeIds.filter(id => !currentJudgeIds.includes(id));
-    const judgesToRemove = currentJudgeIds.filter(id => !newJudgeIds.includes(id));
-    const tagsToAdd = newTagIds.filter(id => !currentTagIds.includes(id));
-    const tagsToRemove = currentTagIds.filter(id => !newTagIds.includes(id));
+    const eventsToAdd = newEventIds.filter((id: string) => !currentEventIds.includes(id));
+    const eventsToRemove = currentEventIds.filter((id: string) => !newEventIds.includes(id));
+    const categoriesToAdd = newCategoryIds.filter((id: string) => !currentCategoryIds.includes(id));
+    const categoriesToRemove = currentCategoryIds.filter((id: string) => !newCategoryIds.includes(id));
+    const finalistsToAdd = newFinalistIds.filter((id: string) => !currentFinalistIds.includes(id));
+    const finalistsToRemove = currentFinalistIds.filter((id: string) => !newFinalistIds.includes(id));
+    const sponsorsToAdd = newSponsorIds.filter((id: string) => !currentSponsorIds.includes(id));
+    const sponsorsToRemove = currentSponsorIds.filter((id: string) => !newSponsorIds.includes(id));
+    const judgesToAdd = newJudgeIds.filter((id: string) => !currentJudgeIds.includes(id));
+    const judgesToRemove = currentJudgeIds.filter((id: string) => !newJudgeIds.includes(id));
+    const tagsToAdd = newTagIds.filter((id: string) => !currentTagIds.includes(id));
+    const tagsToRemove = currentTagIds.filter((id: string) => !newTagIds.includes(id));
 
     // Remove relationships using authenticated client
     const removeOps = [];
@@ -281,12 +281,12 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
 
     // Add new relationships using authenticated client
     const addOps = [];
-    if (eventsToAdd.length) addOps.push(supabaseServer.from('media_events').insert(eventsToAdd.map(event_id => ({ media_id: id, event_id }))));
-    if (categoriesToAdd.length) addOps.push(supabaseServer.from('media_categories').insert(categoriesToAdd.map(category_id => ({ media_id: id, category_id }))));
-    if (finalistsToAdd.length) addOps.push(supabaseServer.from('media_finalists').insert(finalistsToAdd.map(finalist_id => ({ media_id: id, finalist_id }))));
-    if (sponsorsToAdd.length) addOps.push(supabaseServer.from('media_sponsors').insert(sponsorsToAdd.map(sponsor_id => ({ media_id: id, sponsor_id }))));
-    if (judgesToAdd.length) addOps.push(supabaseServer.from('media_judges').insert(judgesToAdd.map(judge_id => ({ media_id: id, judge_id }))));
-    if (tagsToAdd.length) addOps.push(supabaseServer.from('media_tags').insert(tagsToAdd.map(tag_id => ({ media_id: id, tag_id }))));
+    if (eventsToAdd.length) addOps.push(supabaseServer.from('media_events').insert(eventsToAdd.map((event_id: string) => ({ media_id: id, event_id }))));
+    if (categoriesToAdd.length) addOps.push(supabaseServer.from('media_categories').insert(categoriesToAdd.map((category_id: string) => ({ media_id: id, category_id }))));
+    if (finalistsToAdd.length) addOps.push(supabaseServer.from('media_finalists').insert(finalistsToAdd.map((finalist_id: string) => ({ media_id: id, finalist_id }))));
+    if (sponsorsToAdd.length) addOps.push(supabaseServer.from('media_sponsors').insert(sponsorsToAdd.map((sponsor_id: string) => ({ media_id: id, sponsor_id }))));
+    if (judgesToAdd.length) addOps.push(supabaseServer.from('media_judges').insert(judgesToAdd.map((judge_id: string) => ({ media_id: id, judge_id }))));
+    if (tagsToAdd.length) addOps.push(supabaseServer.from('media_tags').insert(tagsToAdd.map((tag_id: string) => ({ media_id: id, tag_id }))));
     if (addOps.length) {
       const results = await Promise.all(addOps);
       const errors = results.filter(r => r.error);

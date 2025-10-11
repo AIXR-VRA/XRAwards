@@ -111,10 +111,10 @@ const { data: judges } = await supabase
                   {/* Tag Pills - positioned at top */}
                   {judge.judge_tags && judge.judge_tags.length > 0 && (
                     <div class="absolute top-3 left-3 flex flex-wrap gap-2">
-                      {judge.judge_tags.map((judgeTag) => (
+                      {judge.judge_tags.map((judgeTag: any) => (
                         judgeTag.tags && (
                           <span class="px-3 py-1 text-white text-xs font-medium rounded-full uppercase tracking-wide" style="background-color: rgb(147 51 234);">
-                            {judgeTag.tags.name}
+                            {(judgeTag.tags as any).name}
                           </span>
                         )
                       ))}

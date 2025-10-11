@@ -67,9 +67,9 @@ const { data: categoryEvents } = await supabase
   .eq('event_id', event.id);
 
 const categories = categoryEvents
-  ?.map(ce => ce.categories)
-  .filter(cat => cat?.is_visible)
-  .sort((a, b) => (a?.sort_order || 0) - (b?.sort_order || 0)) || [];
+  ?.map((ce: any) => ce.categories)
+  .filter((cat: any) => cat?.is_visible)
+  .sort((a: any, b: any) => (a?.sort_order || 0) - (b?.sort_order || 0)) || [];
 
 // Fetch finalists for this event
 const { data: allFinalists } = await supabase
@@ -80,8 +80,8 @@ const { data: allFinalists } = await supabase
   .order('placement', { ascending: true });
 
 // Group finalists by category
-const categoriesWithFinalists = categories.map(category => {
-  const categoryFinalists = allFinalists?.filter(f => f.category_id === category.id) || [];
+const categoriesWithFinalists = categories.map((category: any) => {
+  const categoryFinalists = allFinalists?.filter((f: any) => f.category_id === category.id) || [];
   const winners = categoryFinalists.filter(f => f.is_winner);
   const finalists = categoryFinalists.filter(f => !f.is_winner);
   const mainWinner = winners.find(w => w.placement === 1) || winners[0];
@@ -232,7 +232,7 @@ const categoriesWithFinalists = categories.map(category => {
           {category.finalists.length > 0 && (
             <div>
               <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-                {category.finalists.map((finalist) => (
+                {category.finalists.map((finalist: any) => (
                   <div class="finalist-card">
                     <div class="aspect-square bg-gray-100 rounded-2xl overflow-hidden mb-4">
                       {finalist.image_url ? (

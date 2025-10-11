@@ -30,6 +30,7 @@ export default defineConfig({
     inlineStylesheets: 'auto',
   },
   vite: {
+    // @ts-ignore - tailwindcss plugin type compatibility
     plugins: [tailwindcss()],
     build: {
       cssCodeSplit: true,

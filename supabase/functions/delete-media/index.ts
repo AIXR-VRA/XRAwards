@@ -1,3 +1,4 @@
+// @ts-nocheck - Deno edge function
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { S3Client } from "https://deno.land/x/s3_lite_client@0.7.0/mod.ts"
@@ -17,7 +18,7 @@ interface DeleteResponse {
   error?: string;
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   console.log('🚀 Delete edge function invoked:', req.method, req.url)
   
   // Handle CORS preflight requests

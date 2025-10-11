@@ -60,7 +60,7 @@ const categoriesWithTags = categories?.map(cat => ({
 // Group categories by their tags dynamically
 const tagGroups = tags?.map(tag => {
   const categoriesForTag = categoriesWithTags.filter(cat => 
-    cat.tags.some(catTag => catTag.id === tag.id)
+    cat.tags.some((catTag: any) => catTag.id === tag.id)
   );
   
   return {
