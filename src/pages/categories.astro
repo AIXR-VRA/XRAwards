@@ -18,16 +18,57 @@ const supabase = createClient(
   import.meta.env.SUPABASE_ANON_KEY
 );
 
+// Fetch categories with their tags and events, filtered for active events only
 const { data: categories, error } = await supabase
   .from('categories')
-  .select('*')
+  .select(`
+    *,
+    category_tags (
+      tag_id,
+      tags (*)
+    ),
+    category_events (
+      event_id,
+      event_details!inner (
+        id,
+        is_active
+      )
+    )
+  `)
   .eq('is_visible', true)
+  .eq('category_events.event_details.is_active', true)
   .order('sort_order', { ascending: true })
   .order('name', { ascending: true });
 
 if (error) {
   console.error('Error fetching categories:', error);
 }
+
+// Transform the data and group by tags
+const categoriesWithTags = categories?.map(cat => ({
+  ...cat,
+  tags: cat.category_tags?.map((ct: any) => ct.tags) || [],
+  events: cat.category_events?.map((ce: any) => ce.event_details) || []
+})) || [];
+
+// Group categories by their tags
+const globalTagId = '34c778ff-b76f-4a82-a941-b3448c0df5a6';
+const euTagId = 'bf2511f3-267e-4acb-ba79-a6003f715fe3';
+
+const crossShowCategories = categoriesWithTags.filter(cat => 
+  cat.tags.some(tag => tag.id === globalTagId) && 
+  cat.tags.some(tag => tag.id === euTagId)
+);
+
+const globalOnlyCategories = categoriesWithTags.filter(cat => 
+  cat.tags.some(tag => tag.id === globalTagId) && 
+  !cat.tags.some(tag => tag.id === euTagId)
+);
+
+const euOnlyCategories = categoriesWithTags.filter(cat => 
+  cat.tags.some(tag => tag.id === euTagId) && 
+  !cat.tags.some(tag => tag.id === globalTagId)
+);
 ---
 
 <Layout
@@ -72,33 +113,143 @@ if (error) {
       </div>
     </section>
 
-    <!-- Categories Grid -->
+    <!-- Categories Sections -->
     <section class="py-16" style="background-color: #F2F2F2;">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {categories && categories.length > 0 ? (
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
-              <a
-                href={`/categories/${category.slug}`}
-                class="category-card-item rounded-md px-8 pt-6 pb-5 hover:shadow-xl group block relative overflow-hidden"
-              >
-                <h3 class="text-xl font-bold text-white mb-2">
-                  {category.name}
-                </h3>
-                <div class="flex items-center gap-2">
-                  <span class="text-white text-sm font-medium">
-                    Explore Category
-                  </span>
-                  <div class="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 group-hover:bg-white/30 transition-colors flex-shrink-0">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
-                    </svg>
+        
+        <!-- Cross-Show Categories (Global) -->
+        {crossShowCategories.length > 0 && (
+          <div class="mb-16">
+            <div class="text-left mb-12">
+              <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                Cross-Show Categories (Global)
+              </h2>
+              <div class="max-w-4xl">
+                <p class="text-lg text-gray-600 mb-4">
+                  For the first time, the AIXR XR Awards and the European XR Awards® come together under one roof at the XR Gala, uniting two major award shows in a single, unforgettable celebration.
+                </p>
+                <p class="text-lg text-gray-600">
+                  The Cross-Show Categories represent the shared creative core of both programs — where the most outstanding XR games and immersive experiences, regardless of origin, compete for global recognition.
+                </p>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {crossShowCategories.map((category) => (
+                <a
+                  href={`/categories/${category.slug}`}
+                  class="category-card-item rounded-md px-8 pt-6 pb-5 hover:shadow-xl group block relative overflow-hidden"
+                >
+                  <h3 class="text-xl font-bold text-white mb-2">
+                    {category.name}
+                  </h3>
+                  <div class="flex items-center gap-2">
+                    <span class="text-white text-sm font-medium">
+                      Explore Category
+                    </span>
+                    <div class="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 group-hover:bg-white/30 transition-colors flex-shrink-0">
+                      <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
+                      </svg>
+                    </div>
                   </div>
-                </div>
-              </a>
-            ))}
+                </a>
+              ))}
+            </div>
           </div>
-        ) : (
+        )}
+
+        <!-- Divider -->
+        {crossShowCategories.length > 0 && (globalOnlyCategories.length > 0 || euOnlyCategories.length > 0) && (
+          <div class="my-16">
+            <div class="w-full border-t-2 border-dotted border-gray-500"></div>
+          </div>
+        )}
+
+        <!-- AIXR XR Awards (Global Applications) -->
+        {globalOnlyCategories.length > 0 && (
+          <div class="mb-16">
+            <div class="text-left mb-12">
+              <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                AIXR XR Awards (Global Applications)
+              </h2>
+              <div class="max-w-4xl">
+                <p class="text-lg text-gray-600">
+                  Celebrating global excellence across the XR industry, these categories are open to creators and companies worldwide. From healthcare to education, enterprise to hardware innovation, this is where the world's leading XR work competes on a global stage.
+                </p>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {globalOnlyCategories.map((category) => (
+                <a
+                  href={`/categories/${category.slug}`}
+                  class="category-card-item rounded-md px-8 pt-6 pb-5 hover:shadow-xl group block relative overflow-hidden"
+                >
+                  <h3 class="text-xl font-bold text-white mb-2">
+                    {category.name}
+                  </h3>
+                  <div class="flex items-center gap-2">
+                    <span class="text-white text-sm font-medium">
+                      Explore Category
+                    </span>
+                    <div class="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 group-hover:bg-white/30 transition-colors flex-shrink-0">
+                      <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
+                      </svg>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Divider -->
+        {(crossShowCategories.length > 0 || globalOnlyCategories.length > 0) && euOnlyCategories.length > 0 && (
+          <div class="my-16">
+            <div class="w-full border-t-2 border-dotted border-gray-500"></div>
+          </div>
+        )}
+
+        <!-- European XR Awards® -->
+        {euOnlyCategories.length > 0 && (
+          <div class="mb-16">
+            <div class="text-left mb-12">
+              <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                European XR Awards®
+              </h2>
+              <div class="max-w-4xl">
+                <p class="text-lg text-gray-600">
+                  Dedicated to recognizing the best of Europe's immersive arts and innovation, these awards spotlight the continent's creative and technical leadership in XR. Projects must be produced at least 50% within Europe to qualify.
+                </p>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {euOnlyCategories.map((category) => (
+                <a
+                  href={`/categories/${category.slug}`}
+                  class="category-card-item rounded-md px-8 pt-6 pb-5 hover:shadow-xl group block relative overflow-hidden"
+                >
+                  <h3 class="text-xl font-bold text-white mb-2">
+                    {category.name}
+                  </h3>
+                  <div class="flex items-center gap-2">
+                    <span class="text-white text-sm font-medium">
+                      Explore Category
+                    </span>
+                    <div class="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 group-hover:bg-white/30 transition-colors flex-shrink-0">
+                      <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H7M17 7V17" />
+                      </svg>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- No categories message -->
+        {crossShowCategories.length === 0 && globalOnlyCategories.length === 0 && euOnlyCategories.length === 0 && (
           <div class="text-center py-12">
             <p class="text-gray-500 text-lg">
               Categories will be announced soon. Stay tuned!

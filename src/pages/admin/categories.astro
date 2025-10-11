@@ -540,6 +540,7 @@ if (!session) {
             <h3 class="text-lg font-semibold text-gray-900">${escapeHtml(category.name)}</h3>
             ${category.slug ? `<p class="text-xs text-gray-500 font-mono mt-1">/categories/${escapeHtml(category.slug)}</p>` : ''}
             ${!category.is_visible ? '<span class="text-xs text-orange-600 font-medium">Hidden from public</span>' : ''}
+            <p class="text-xs text-gray-400 mt-1 font-mono">ID: ${category.id}</p>
           </div>
           <span class="text-xs text-gray-400">Order: ${category.sort_order || 0}</span>
         </div>

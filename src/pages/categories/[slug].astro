@@ -48,6 +48,13 @@ if (categoryError || !category) {
   return Astro.redirect('/404');
 }
 
+// Fetch active event details for nomination URL and deadline
+const { data: eventDetails } = await supabase
+  .from('event_details')
+  .select('nomination_portal_url, nominations_close')
+  .eq('is_active', true)
+  .single();
+
 // Fetch finalists for this category
 const { data: finalists } = await supabase
   .from('finalists')
@@ -119,15 +126,17 @@ const { data: otherCategories } = await supabase
               <h2 class="category-overview-title font-bold text-gray-900 mb-6">
                 Category Overview
               </h2>
-              {category.additional_info ? (
+              {category.description && (
+                <div class="category-description-text prose prose-sm max-w-none mb-6">
+                  <div set:html={nl2br(category.description)} />
+                </div>
+              )}
+              {category.additional_info && (
                 <div class="category-description-text prose prose-sm max-w-none">
                   <div set:html={nl2br(category.additional_info)} />
                 </div>
-              ) : category.description ? (
-                <div class="category-description-text prose prose-sm max-w-none">
-                  <div set:html={nl2br(category.description)} />
-                </div>
-              ) : (
+              )}
+              {!category.description && !category.additional_info && (
                 <p class="category-description-text">
                   More information about this category will be available soon.
                 </p>
@@ -167,7 +176,7 @@ const { data: otherCategories } = await supabase
                   Download Entry Kit
                 </a>
                 <a
-                  href="#"
+                  href={eventDetails?.nomination_portal_url || 'https://app.aixr.org/e/20a6e09d-7e86-488d-8436-1cd162d0f5df'}
                   class="block w-full text-center text-white px-6 py-3 rounded-lg font-semibold transition-colors"
                   style="background-color: #FF7733; color: #ffffff;"
                   onmouseover="this.style.backgroundColor='#ff6620'; this.style.color='#ffffff';"
@@ -175,6 +184,15 @@ const { data: otherCategories } = await supabase
                 >
                   Nominate Now
                 </a>
+                {eventDetails?.nominations_close && (
+                  <p class="text-gray-300 text-sm mt-3 text-left">
+                    Deadline: {new Date(eventDetails.nominations_close).toLocaleDateString('en-GB', { 
+                      day: '2-digit', 
+                      month: 'long', 
+                      year: 'numeric' 
+                    })}
+                  </p>
+                )}
               </div>
             </div>
           </div>

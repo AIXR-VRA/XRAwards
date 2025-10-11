@@ -493,6 +493,7 @@ if (!session) {
                 ${finalist.placement ? ` • ${finalist.placement}${finalist.placement === 1 ? 'st' : finalist.placement === 2 ? 'nd' : finalist.placement === 3 ? 'rd' : 'th'} Place` : ''}
                 ${finalist.is_winner ? ' • <span class="text-yellow-600 font-medium">Winner</span>' : ''}
               </p>
+              <p class="text-xs text-gray-400 mt-1 font-mono">ID: ${finalist.id}</p>
               ${finalist.description ? `<div class="text-sm text-gray-600 mt-2">${nl2br(finalist.description)}</div>` : ''}
               ${finalist.website_url ? `<a href="${escapeHtml(finalist.website_url)}" target="_blank" class="text-xs text-blue-600 hover:underline mt-1 inline-block">${escapeHtml(finalist.website_url)}</a>` : ''}
             </div>

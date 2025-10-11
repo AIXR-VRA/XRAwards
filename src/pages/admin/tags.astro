@@ -164,6 +164,7 @@ if (!session) {
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
@@ -178,6 +179,9 @@ if (!session) {
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 ${tag.slug}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-400 font-mono">
+                ${tag.id}
               </td>
               <td class="px-6 py-4 text-sm text-gray-600">
                 ${tag.description || '<span class="text-gray-400 italic">No description</span>'}
