@@ -1,12 +1,14 @@
 ---
 export const prerender = true; // Static page for better performance
 
+import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import KeyDates from '../components/sections/KeyDates.astro';
 import CTAFooter from '../components/CTAFooter.astro';
 import { supabase } from '../utils/supabase';
+import { getR2ImageUrl } from '../utils/r2';
 
 // Fetch active event details
 const { data: eventDetails } = await supabase
@@ -38,6 +40,20 @@ const { data: judges } = await supabase
   .eq('is_visible', true)
   .order('sort_order', { ascending: true })
   .limit(4);
+
+// Get hero image URL
+const heroImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-hero_1760202291581.png');
+const unitedXRLogoUrl = getR2ImageUrl('/images/2025/10/xr-awards-united-xr-logo_1760202728750.png');
+const whatsNew2025ImageUrl = getR2ImageUrl('/images/2025/10/apple-holding-2024-trophy_1760204737832.jpg');
+const highlights2024ImageUrl = getR2ImageUrl('/images/2025/10/obsidian-award-winner-2024_1760204866862.png');
+
+// Testimonial logos
+const logoVirtualware = getR2ImageUrl('/images/2025/10/logo-virtualware-white_1760206577461.png');
+const logoCloudhead = getR2ImageUrl('/images/2025/10/logo-cloudhead-games-white_1760206625735.png');
+const logoVRScout = getR2ImageUrl('/images/2025/10/logo-vrscout-white_1760206759956.png');
+const logoMagnopus = getR2ImageUrl('/images/2025/10/logo-magnopus-white_1760206671197.png');
+const logoGoogle = getR2ImageUrl('/images/2025/10/logo-google-white_1760206709222.png');
+const logoMeta = getR2ImageUrl('/images/2025/10/logo-meta-white_1760205884886.png');
 ---
 
 <Layout
@@ -73,7 +89,19 @@ const { data: judges } = await supabase
 
   <main class="min-h-screen">
     <!-- Hero Section -->
-    <section class="relative min-h-screen flex items-center overflow-hidden bg-[#1e1b3c]">
+    <section class="relative min-h-screen flex items-center overflow-hidden bg-[#0E1022]">
+      <!-- Background Image -->
+      <div class="absolute inset-0 z-0">
+        <Image 
+          src={heroImageUrl} 
+          alt="XR Awards Hero Background"
+          class="w-full h-full object-cover"
+          width={1920}
+          height={1080}
+          loading="eager"
+        />
+        <div class="absolute inset-0 bg-gradient-to-r from-[#0E1022]/90 via-[#0E1022]/70 to-transparent"></div>
+      </div>
       
       <!-- Content -->
       <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-32 w-full">
@@ -87,34 +115,14 @@ const { data: judges } = await supabase
           
           <!-- Main Branding -->
           <div class="mb-8">
-            <div class="text-white/50 text-xs uppercase tracking-[0.3em] mb-2">Europe</div>
-            <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6">
-              United<span class="text-pink-500">XR</span>
-            </h1>
-            
-            <!-- Partner Logos -->
-            <div class="flex items-center gap-4 md:gap-6 mb-10 flex-wrap">
-              <div class="flex items-center gap-2 text-white/70 text-xs md:text-sm">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M3 3h18v18H3z"/>
-                </svg>
-                <span>AWE</span>
-              </div>
-              <span class="text-white/40 text-xl">+</span>
-              <div class="flex items-center gap-2 text-white/70 text-xs md:text-sm">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10"/>
-                </svg>
-                <span>stereopsis</span>
-              </div>
-              <span class="text-white/40 text-xl">+</span>
-              <div class="flex items-center gap-2 text-white/70 text-xs md:text-sm">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L2 7v10l10 5 10-5V7z"/>
-                </svg>
-                <span>XR AWARDS</span>
-              </div>
-            </div>
+            <Image 
+              src={unitedXRLogoUrl} 
+              alt="United XR" 
+              class="h-16 md:h-24 lg:h-28 w-auto mb-6"
+              width={400}
+              height={200}
+              loading="eager"
+            />
           </div>
           
           <!-- Headline -->
@@ -169,10 +177,12 @@ const { data: judges } = await supabase
         <div class="flex flex-col md:flex-row gap-8 md:gap-24 mb-16 max-w-full">
           <!-- Card 1: What's new for 2025? -->
           <a href="#" class="group relative w-[85vw] md:w-[41%] aspect-video mb-8 md:mb-12">
-            <img 
-              src="https://picsum.photos/600/340" 
+            <Image 
+              src={whatsNew2025ImageUrl} 
               alt="What's new for 2025?"
               class="w-full h-full object-cover rounded-lg"
+              width={600}
+              height={340}
             />
             <div class="feature-banner absolute bottom-8 md:bottom-12 md:left-8 md:-right-4 rounded-md p-4 md:p-6" style="left: 5vw; right: -5vw;">
               <div class="flex items-start justify-between">
@@ -186,10 +196,12 @@ const { data: judges } = await supabase
 
           <!-- Card 2: See 2024 Highlights -->
           <a href="#" class="group relative w-[85vw] md:w-[41%] aspect-video mb-8 md:mb-12">
-            <img 
-              src="https://picsum.photos/600/340?random=2" 
+            <Image 
+              src={highlights2024ImageUrl} 
               alt="See 2024 Highlights"
-              class="w-full h-full object-cover rounded-lg"
+              class="w-full h-full object-cover object-top rounded-lg"
+              width={600}
+              height={340}
             />
             <div class="feature-banner absolute bottom-8 md:bottom-12 md:left-8 md:-right-4 rounded-md p-4 md:p-6" style="left: 5vw; right: -5vw;">
               <div class="flex items-start justify-between">
@@ -293,10 +305,12 @@ const { data: judges } = await supabase
           <div class="grid grid-rows-2 gap-6">
             <!-- Apple Vision Pro -->
             <div class="relative group overflow-hidden rounded-2xl aspect-[16/10]">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1591799265444-d66432b91588?w=800&h=500&fit=crop"
                 alt="Apple Vision Pro"
                 class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                width={800}
+                height={500}
               />
               <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
               <div class="absolute bottom-0 left-0 p-6 text-white">
@@ -314,10 +328,12 @@ const { data: judges } = await supabase
 
             <!-- Qualcomm -->
             <div class="relative group overflow-hidden rounded-2xl aspect-[16/10]">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=500&fit=crop"
                 alt="Qualcomm"
                 class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                width={800}
+                height={500}
               />
               <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
               <div class="absolute bottom-0 left-0 p-6 text-white">
@@ -334,10 +350,12 @@ const { data: judges } = await supabase
 
           <!-- Right Column: 1 full height image -->
           <div class="relative group overflow-hidden rounded-2xl">
-            <img
+            <Image
               src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&h=1000&fit=crop"
               alt="Meta & Sanzaru Games – Asgard's Wrath 2"
               class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+              width={800}
+              height={1000}
             />
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
             <div class="absolute bottom-0 left-0 p-6 text-white">
@@ -385,10 +403,12 @@ const { data: judges } = await supabase
               {/* Judge Image */}
               <div class="relative aspect-square overflow-hidden">
                 {judge.profile_image_url ? (
-                  <img
+                  <Image
                     src={judge.profile_image_url}
                     alt={`${judge.first_name} ${judge.last_name}`}
                     class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                    width={400}
+                    height={400}
                   />
                 ) : (
                   <div class="w-full h-full bg-gray-700 transition-transform duration-500 ease-out group-hover:scale-110"></div>
@@ -456,13 +476,18 @@ const { data: judges } = await supabase
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 mt-16">
           <!-- Google Testimonial -->
           <div class="text-left">
             <div class="mb-6">
-              <svg class="h-8 w-auto text-white" viewBox="0 0 272 92" fill="currentColor">
-                <text x="0" y="60" font-family="Arial, sans-serif" font-size="60" font-weight="bold">Google</text>
-              </svg>
+              <Image 
+                src={logoGoogle} 
+                alt="Google" 
+                class="h-10 w-auto"
+                width={120}
+                height={32}
+                loading="lazy"
+              />
             </div>
             <blockquote class="text-base text-white mb-6 leading-relaxed">
               The AIXR XR Awards is a very important event for us and we're so excited to see all the great companies participating.
@@ -475,9 +500,14 @@ const { data: judges } = await supabase
           <!-- VR Scout Testimonial -->
           <div class="text-left">
             <div class="mb-6">
-              <svg class="h-8 w-auto text-white" viewBox="0 0 272 92" fill="currentColor">
-                <text x="0" y="60" font-family="Arial, sans-serif" font-size="48" font-weight="bold">VR SCOUT</text>
-              </svg>
+              <Image 
+                src={logoVRScout} 
+                alt="VR Scout" 
+                class="h-6 w-auto"
+                width={160}
+                height={32}
+                loading="lazy"
+              />
             </div>
             <blockquote class="text-base text-white mb-6 leading-relaxed">
               Some of XR's biggest luminaries in attendance all there to celebrate some of the outstanding milestones in the industry.
@@ -490,9 +520,14 @@ const { data: judges } = await supabase
           <!-- Meta Testimonial -->
           <div class="text-left">
             <div class="mb-6">
-              <svg class="h-8 w-auto text-white" viewBox="0 0 272 92" fill="currentColor">
-                <text x="0" y="60" font-family="Arial, sans-serif" font-size="60" font-weight="bold">Meta</text>
-              </svg>
+              <Image 
+                src={logoMeta} 
+                alt="Meta" 
+                class="h-6 w-auto"
+                width={120}
+                height={32}
+                loading="lazy"
+              />
             </div>
             <blockquote class="text-base text-white mb-6 leading-relaxed">
               A great event that brings the XR community together to celebrate each other's success.
@@ -505,9 +540,14 @@ const { data: judges } = await supabase
           <!-- Cloudhead Games Testimonial -->
           <div class="text-left">
             <div class="mb-6">
-              <svg class="h-8 w-auto text-white" viewBox="0 0 272 92" fill="currentColor">
-                <text x="0" y="30" font-family="Arial, sans-serif" font-size="28" font-weight="bold">CLOUDHEAD GAMES</text>
-              </svg>
+              <Image 
+                src={logoCloudhead} 
+                alt="Cloudhead Games" 
+                class="h-10 w-auto"
+                width={180}
+                height={32}
+                loading="lazy"
+              />
             </div>
             <blockquote class="text-base text-white mb-6 leading-relaxed">
               The AIXR XR Awards is a fun and sophisticated event that truly connected all facets of this burgeoning industry.
@@ -520,9 +560,14 @@ const { data: judges } = await supabase
           <!-- Magnopus Testimonial -->
           <div class="text-left">
             <div class="mb-6">
-              <svg class="h-8 w-auto text-white" viewBox="0 0 272 92" fill="currentColor">
-                <text x="0" y="60" font-family="Arial, sans-serif" font-size="48" font-weight="bold">MAGNOPUS</text>
-              </svg>
+              <Image 
+                src={logoMagnopus} 
+                alt="Magnopus" 
+                class="h-6 w-auto"
+                width={160}
+                height={32}
+                loading="lazy"
+              />
             </div>
             <blockquote class="text-base text-white mb-6 leading-relaxed">
               Can't thank the judges, the organisers and the community enough for the passion that has gone into this event.
@@ -535,9 +580,14 @@ const { data: judges } = await supabase
           <!-- Virtualware Testimonial -->
           <div class="text-left">
             <div class="mb-6">
-              <svg class="h-8 w-auto text-white" viewBox="0 0 272 92" fill="currentColor">
-                <text x="0" y="60" font-family="Arial, sans-serif" font-size="42" font-weight="bold">VIRTUALWARE</text>
-              </svg>
+              <Image 
+                src={logoVirtualware} 
+                alt="Virtualware" 
+                class="h-10 w-auto"
+                width={180}
+                height={32}
+                loading="lazy"
+              />
             </div>
             <blockquote class="text-base text-white mb-6 leading-relaxed">
               The celebration of the Oscars in Virtual & Augmented reality. Unforgettable red carpet night.
