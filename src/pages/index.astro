@@ -41,6 +41,20 @@ const { data: judges } = await supabase
   .order('sort_order', { ascending: true })
   .limit(4);
 
+// Fetch sponsors for the active event
+const { data: sponsors } = await supabase
+  .from('sponsors')
+  .select(`
+    id,
+    name,
+    logo_url,
+    sort_order,
+    sponsor_events!inner(event_id)
+  `)
+  .eq('sponsor_events.event_id', eventDetails?.id)
+  .eq('is_visible', true)
+  .order('sort_order', { ascending: true });
+
 // Get hero image URL
 const heroImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-hero_1760202291581.png');
 const unitedXRLogoUrl = getR2ImageUrl('/images/2025/10/xr-awards-united-xr-logo_1760202728750.png');
@@ -183,16 +197,18 @@ const asgardsWrathImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-win
         </div>
 
         <!-- Feature Cards -->
-        <div class="flex flex-col md:flex-row gap-8 md:gap-24 mb-16 max-w-full">
+        <div class="flex flex-col md:flex-row gap-8 md:gap-24 mb-4 md:mb-6 max-w-full">
           <!-- Card 1: What's new for 2025? -->
-          <a href="#" class="group relative w-[85vw] md:w-[41%] aspect-video mb-8 md:mb-12">
-            <Image 
-              src={whatsNew2025ImageUrl} 
-              alt="What's new for 2025?"
-              class="w-full h-full object-cover rounded-lg"
-              width={600}
-              height={340}
-            />
+          <a href="#" class="group relative w-[85vw] md:w-[41%]">
+            <div class="aspect-video overflow-hidden rounded-lg">
+              <Image 
+                src={whatsNew2025ImageUrl} 
+                alt="What's new for 2025?"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
             <div class="feature-banner absolute bottom-8 md:bottom-12 md:left-8 md:-right-4 rounded-md p-4 md:p-6" style="left: 5vw; right: -5vw;">
               <div class="flex items-start justify-between">
                 <p class="text-white text-lg md:text-xl font-medium pr-3 font-['Jura']">What's new for 2025?</p>
@@ -204,14 +220,16 @@ const asgardsWrathImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-win
           </a>
 
           <!-- Card 2: See 2024 Highlights -->
-          <a href="#" class="group relative w-[85vw] md:w-[41%] aspect-video mb-8 md:mb-12">
-            <Image 
-              src={highlights2024ImageUrl} 
-              alt="See 2024 Highlights"
-              class="w-full h-full object-cover object-top rounded-lg"
-              width={600}
-              height={340}
-            />
+          <a href="#" class="group relative w-[85vw] md:w-[41%]">
+            <div class="aspect-video overflow-hidden rounded-lg">
+              <Image 
+                src={highlights2024ImageUrl} 
+                alt="See 2024 Highlights"
+                class="w-full h-full object-cover object-top"
+                width={600}
+                height={340}
+              />
+            </div>
             <div class="feature-banner absolute bottom-8 md:bottom-12 md:left-8 md:-right-4 rounded-md p-4 md:p-6" style="left: 5vw; right: -5vw;">
               <div class="flex items-start justify-between">
                 <p class="text-white text-lg md:text-xl font-medium pr-3 font-['Jura']">See 2024 Highlights</p>
@@ -224,50 +242,35 @@ const asgardsWrathImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-win
         </div>
 
         <!-- Sponsors -->
-        <div class="text-left mb-8">
-          <p class="text-sm text-gray-600">Thank you to our sponsors</p>
-        </div>
-        
-        <!-- Sponsor Logos - Row 1 -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-8 items-center mb-6">
-          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
-            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">PICO</div>
-          </div>
-          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
-            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">Niantic</div>
-          </div>
-          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
-            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">MGW</div>
-          </div>
-          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
-            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">Bird&Bird</div>
-          </div>
-          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
-            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">TroposAR</div>
-          </div>
-        </div>
-        
-        <!-- Sponsor Logos - Row 2 -->
-        <div class="grid grid-cols-2 md:grid-cols-6 gap-8 items-center">
-          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
-            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">XRAI</div>
-          </div>
-          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
-            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">UploadVR</div>
-          </div>
-          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
-            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">Sidequest</div>
-          </div>
-          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
-            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">Noetic</div>
-          </div>
-          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
-            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">AWE</div>
-          </div>
-          <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
-            <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">Norcat</div>
-          </div>
-        </div>
+        {sponsors && sponsors.length > 0 && (
+          <>
+            <div class="text-left mb-8">
+              <p class="text-sm text-gray-600 font-mono">Thank you to our Sponsors & Partners</p>
+            </div>
+            
+            <!-- Sponsor Logos Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-8 items-center">
+              {sponsors.map((sponsor) => (
+                <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
+                  {sponsor.logo_url ? (
+                    <Image
+                      src={sponsor.logo_url}
+                      alt={sponsor.name}
+                      class="max-h-12 w-auto object-contain"
+                      width={120}
+                      height={48}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">
+                      {sponsor.name}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </section>
 
