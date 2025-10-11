@@ -46,9 +46,12 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
 
 <!-- Media Browser Modal -->
 <div id={`media-browser-${uniqueId}`} class="hidden fixed inset-0 bg-black/50 items-center justify-center z-50 p-4" style="z-index: 9999;">
-  <div class="bg-white rounded-lg max-w-5xl w-full p-6 max-h-[90vh] overflow-y-auto">
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-xl font-semibold text-gray-900">Select Media from Library</h2>
+  <div class="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900">Select Media from Library</h2>
+        {multiple && <p class="text-sm text-gray-500 mt-1">Select multiple images, then click Done</p>}
+      </div>
       <button id={`close-browser-${uniqueId}`} class="text-gray-400 hover:text-gray-600">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -56,22 +59,43 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
       </button>
     </div>
 
-    <!-- Search -->
-    <div class="mb-4">
-      <input
-        type="text"
-        id={`search-media-${uniqueId}`}
-        placeholder="Search media..."
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-      />
-    </div>
+    <div class="overflow-y-auto flex-1 p-6">
+      <!-- Selected Count -->
+      {multiple && (
+        <div id={`selected-count-${uniqueId}`} class="mb-4 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+          <span id={`count-text-${uniqueId}`}>0 images selected</span>
+        </div>
+      )}
 
-    <!-- Media Grid -->
-    <div id={`media-grid-${uniqueId}`} class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      <div class="col-span-full text-center py-8 text-gray-500">
-        Loading media...
+      <!-- Search -->
+      <div class="mb-4">
+        <input
+          type="text"
+          id={`search-media-${uniqueId}`}
+          placeholder="Search media..."
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <!-- Media Grid -->
+      <div id={`media-grid-${uniqueId}`} class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div class="col-span-full text-center py-8 text-gray-500">
+          Loading media...
+        </div>
       </div>
     </div>
+
+    {multiple && (
+      <div class="border-t border-gray-200 px-6 py-4 flex-shrink-0 bg-gray-50">
+        <button
+          type="button"
+          id={`done-button-${uniqueId}`}
+          class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        >
+          Done
+        </button>
+      </div>
+    )}
   </div>
 </div>
 
@@ -197,19 +221,29 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
       
       const selectedIds = selectedMedia.map(m => m.id);
       
-      const mediaItems = filtered.map(media => `
+      const mediaItems = filtered.map(media => {
+        const isSelected = selectedIds.includes(media.id);
+        return `
         <button
           type="button"
           data-media-id="${media.id}"
-          class="media-select-btn border-2 ${selectedIds.includes(media.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'} rounded-lg overflow-hidden transition-all"
+          class="media-select-btn border-2 ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'} rounded-lg overflow-hidden transition-all relative"
         >
+          ${isSelected && allowMultiple ? `
+            <div class="absolute top-2 right-2 bg-blue-600 text-white rounded-full p-1 z-10">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          ` : ''}
           <img src="${media.file_url}" alt="${media.title || media.filename}" class="w-full aspect-square object-cover" />
           <div class="p-2 bg-white">
             <p class="text-xs font-medium truncate">${media.title || media.filename}</p>
             <p class="text-xs text-gray-500">${media.file_size >= 1000000 ? (media.file_size / 1000 / 1000).toFixed(2) + ' MB' : (media.file_size / 1000).toFixed(2) + ' kB'}</p>
           </div>
         </button>
-      `).join('');
+      `;
+      }).join('');
       
       // Add "Load More" button if there's more to load (only when not searching)
       const loadMoreButton = (!searchQuery && hasMore) ? `
@@ -246,19 +280,35 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
       }
     }
 
+    // Update selected count (for multi-select)
+    function updateSelectedCount() {
+      if (allowMultiple) {
+        const countText = document.getElementById(`count-text-${selectorId}`);
+        if (countText) {
+          const count = selectedMedia.length;
+          countText.textContent = `${count} image${count !== 1 ? 's' : ''} selected`;
+        }
+      }
+    }
+
     // Select media
     function selectMedia(mediaId) {
       const media = availableMedia.find(m => m.id === mediaId);
       if (!media) return;
       
       if (allowMultiple) {
-        if (!selectedMedia.find(m => m.id === mediaId)) {
+        // Toggle selection in multi-select mode
+        const index = selectedMedia.findIndex(m => m.id === mediaId);
+        if (index >= 0) {
+          selectedMedia.splice(index, 1);
+        } else {
           selectedMedia.push(media);
-          renderSelected();
-          renderGrid();
         }
+        renderSelected();
+        renderGrid();
+        updateSelectedCount();
       } else {
-        // Single selection - replace
+        // Single selection - replace and auto-close
         selectedMedia = [media];
         renderSelected();
         closeModal();
@@ -275,6 +325,7 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
       selectedMedia = selectedMedia.filter(m => m.id !== mediaId);
       renderSelected();
       renderGrid();
+      updateSelectedCount();
       
       // Dispatch custom event
       document.dispatchEvent(new CustomEvent(`mediaRemoved_${selectorId}`, {
@@ -287,6 +338,9 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
       modal.classList.remove('hidden');
       modal.classList.add('flex');
       
+      // Update selected count if multi-select
+      updateSelectedCount();
+      
       // Only load media if not already loaded
       if (availableMedia.length === 0 && !isLoading) {
         // Show loading state
@@ -298,7 +352,12 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
     }
 
     // Close modal
-    function closeModal() {
+    function closeModal(e) {
+      // Stop propagation to prevent closing parent modals
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       modal.classList.add('hidden');
       modal.classList.remove('flex');
     }
@@ -326,8 +385,28 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
     window[`clearSelectedMedia_${selectorId}`] = clearSelected;
 
     // Event listeners
-    openButton.addEventListener('click', openModal);
+    openButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openModal();
+    });
     closeButton.addEventListener('click', closeModal);
+    
+    // Done button (multi-select only)
+    if (allowMultiple) {
+      const doneButton = document.getElementById(`done-button-${selectorId}`);
+      if (doneButton) {
+        doneButton.addEventListener('click', closeModal);
+      }
+    }
+    
+    // Close modal when clicking backdrop
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal(e);
+      }
+    });
+    
     searchInput.addEventListener('input', (e) => {
       searchQuery = e.target.value;
       // Reset pagination when searching
