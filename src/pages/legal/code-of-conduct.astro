@@ -1,0 +1,147 @@
+---
+export const prerender = true;
+
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+---
+
+<Layout
+  title="Code of Conduct - XR Awards 2025"
+  description="Code of Conduct for the XR Awards events and participants."
+>
+  <Header />
+  
+  <main class="min-h-screen bg-white">
+    <!-- Code of Conduct Header -->
+    <section class="relative bg-[#0E1022] pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <!-- Left Ring -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <!-- Right Ring -->
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      
+      <!-- Content -->
+      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="page-title text-white mb-6">
+          Code of Conduct
+        </h1>
+        
+        <!-- Decorative Dots -->
+        <div class="flex justify-center gap-2 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        </div>
+        
+        <p class="page-subtitle text-white">
+          Last updated: 01 January 2024
+        </p>
+      </div>
+    </section>
+
+    <!-- Code of Conduct Content -->
+    <section class="py-16" style="background-color: #F2F2F2;">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="prose prose-lg max-w-none bg-white rounded-lg shadow-sm p-8 md:p-12">
+          <p>At XR Awards, we are committed to fostering a respectful and safe environment for all participants. By purchasing tickets or nominating for XR Awards, you agree to abide by our code of conduct, ensuring a positive and inclusive experience for everyone.</p>
+          
+          <h2>1. Respect and Civility</h2>
+          <p>We expect all participants to treat each other with respect and civility.</p>
+          <p>Harassment of any form will not be tolerated at any AIXR events.</p>
+          
+          <h2>2. Ticket Sales and Transfers</h2>
+          <p>Tickets may not be sold or transferred without the written consent of XR Awards.</p>
+          
+          <h2>3. Use of Media</h2>
+          <p>XR Awards may use photographs, audio, or visual recordings taken at the event for various purposes in all media and mediums, without compensation to you.</p>
+          
+          <h2>4. Accuracy of Information</h2>
+          <p>All information provided when purchasing a ticket or submitting a nomination must be correct and accurate to the best of your knowledge. All information must be in English.</p>
+          
+          <h2>5. Communication</h2>
+          <p>By purchasing a ticket or submitting a nomination, you agree to allow XR Awards to contact you regarding your registration and attendance via email or phone with event-related information.</p>
+          
+          <h2>6. Risks and Precautions</h2>
+          <p>You understand that there are inherent risks, including personal injury, death, sickness, and property damage, associated with the use of virtual reality products.</p>
+          <p>While XR Awards strives to create a safe environment, accidents may occur. You are responsible for considering the inherent risks in any activities you choose to participate in and taking reasonable precautions.</p>
+          
+          <h2>7. Admission and Termination</h2>
+          <p>XR Awards reserves the right to refuse admittance or terminate your attendance at any time, at its sole discretion, if you fail to adhere to these terms or for any other reason, without notice or liability.</p>
+          
+          <h2>8. Representation</h2>
+          <p>You agree not to represent yourself as an employee or representative of XR Awards.</p>
+          <p>We appreciate your cooperation in making XR Awards a welcoming and secure space for all attendees. If you have any questions or concerns, please do not hesitate to contact us.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .page-title {
+    font-size: 35px;
+    font-weight: 600;
+  }
+
+  .page-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  .prose {
+    color: #374151;
+  }
+  
+  .prose h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: #111827;
+  }
+  
+  .prose h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: #111827;
+  }
+  
+  .prose p {
+    margin-bottom: 1rem;
+    line-height: 1.75;
+  }
+  
+  .prose ul,
+  .prose ol {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+  
+  .prose li {
+    margin-bottom: 0.5rem;
+  }
+  
+  .prose ul {
+    list-style-type: disc;
+  }
+  
+  .prose ol {
+    list-style-type: decimal;
+  }
+</style>
+
