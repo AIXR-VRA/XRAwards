@@ -1,8 +1,8 @@
 ---
 /**
- * XR Awards Programme Page
+ * XR Awards 2025 Programme Page
  * URL: /programme
- * Dynamic programme page that fetches event details from database
+ * What's new for 2025 - Updates from the 9th International AIXR XR Awards (XR Awards Gala 2025)
  */
 export const prerender = true;
 
@@ -24,45 +24,8 @@ const { data: eventDetails } = await supabase
 // Get hero image from R2 - using a generic awards/event image
 const heroImage = getR2ImageUrl('/images/2025/10/xr-awards-2022-combat-waffle-studios_1760356010976.jpg');
 
-// Calculate reading time based on word count
-// Average reading speed: 250 words per minute
-const articleContent = `
-The XR Awards Programme is your comprehensive guide to the most prestigious celebration of extended reality excellence. This meticulously crafted document captures the essence of innovation, creativity, and technological advancement that defines the XR industry today.
-
-From groundbreaking virtual reality experiences to cutting-edge augmented reality applications, the programme showcases the remarkable achievements of studios, developers, and visionaries who are pushing the boundaries of what's possible in immersive technology.
-
-The programme serves as both a celebration of current achievements and a roadmap for the future of XR. It highlights the incredible diversity of applications across industries - from entertainment and gaming to healthcare, education, enterprise solutions, and beyond.
-
-Each category represents a unique facet of the XR ecosystem, showcasing how different approaches to immersive technology can create meaningful, impactful experiences that resonate with users worldwide.
-
-The anticipation surrounding this year's awards is palpable. The XR community has witnessed unprecedented growth and innovation, with new technologies, platforms, and creative approaches emerging at an incredible pace.
-
-This year's programme reflects the maturity and sophistication that the XR industry has achieved, while still maintaining the pioneering spirit that has always defined this space.
-
-The awards ceremony represents more than just recognition - it's a celebration of the collective effort, creativity, and determination that drives the XR industry forward. It's a moment to honor not just the winners, but every participant who has contributed to advancing the field of extended reality.
-
-The programme will be available for viewing on the night of the awards, providing attendees and viewers with a comprehensive overview of all nominees, categories, and the incredible work being recognized.
-
-This carefully curated collection represents the pinnacle of XR achievement, showcasing projects that have not only met but exceeded the highest standards of innovation, technical excellence, and user experience.
-
-From immersive storytelling experiences that transport users to new worlds, to practical applications that solve real-world problems, the programme demonstrates the incredible versatility and potential of XR technology.
-
-The awards recognize excellence across multiple dimensions - technical innovation, creative vision, user experience design, and real-world impact. Each nominee represents a unique approach to harnessing the power of immersive technology.
-
-The programme also highlights the collaborative nature of the XR industry, showcasing how different disciplines come together to create experiences that are greater than the sum of their parts.
-
-From concept to execution, each project featured in the programme represents countless hours of dedication, innovation, and passion from teams around the world.
-
-The XR Awards Programme is more than just a document - it's a testament to the incredible talent, creativity, and vision that defines the extended reality community.
-
-As we look forward to the awards ceremony, the programme serves as a reminder of how far the XR industry has come and the exciting possibilities that lie ahead.
-
-The future of XR is being written today, and the projects featured in this programme are leading the way forward.
-
-`;
-
-const wordCount = articleContent.trim().split(/\s+/).filter(word => word.length > 0).length;
-const readingTime = Math.ceil(wordCount / 250);
+// Calculate reading time - 3 minutes as per live site
+const readingTime = 3;
 ---
 
 <Layout
@@ -114,36 +77,28 @@ const readingTime = Math.ceil(wordCount / 250);
         <!-- Introduction with Programme Info Box -->
         <div class="intro-with-sidebar">
           <div class="intro-content">
-          <p>The {eventDetails?.event_name || 'XR Awards'} Programme is your comprehensive guide to the most prestigious celebration of extended reality excellence.</p>
+          <p>We're excited to share the biggest news yet! As announced at the close of the 2024 AIXR XR Awards, Ori Inbar from AWE revealed that we'll be joining forces for the 2025 AWE EU.</p>
           
-          <p><strong>This meticulously crafted document captures the essence of innovation, creativity, and technological advancement that defines the XR industry today.</strong></p>
-          
-          <p>From groundbreaking virtual reality experiences to cutting-edge augmented reality applications, the programme showcases the remarkable achievements of studios, developers, and visionaries who are pushing the boundaries of what's possible in immersive technology.</p>
-          
-          <p><strong>The programme serves as both a celebration of current achievements and a roadmap for the future of XR.</strong></p>
-          
-          <p>It highlights the incredible diversity of applications across industries - from entertainment and gaming to healthcare, education, enterprise solutions, and beyond.</p>
-          
-          <p>Each category represents a unique facet of the XR ecosystem, showcasing how different approaches to immersive technology can create meaningful, impactful experiences that resonate with users worldwide.</p>
+          <p><strong>Even bigger news: AWE and Stereopsia have united to create UnitedXR, and now AIXR is proud to announce its integration into UnitedXR, partnering with Stereopsia's European XR Awards® to present the XR Gala, a truly international, impactful, and definitive celebration of immersive technology globally.</strong></p>
           </div>
           
           <!-- Programme Info Box -->
           <div class="case-study-info-box">
-            <p class="info-title">Programme</p>
+            <p class="info-title">Key Dates</p>
             <div class="info-grid">
-              <p><strong>Event:</strong> {eventDetails?.event_name || 'XR Awards 2025'}</p>
-              <p><strong>Type:</strong> Awards Ceremony</p>
-              <p><strong>Focus:</strong> XR Excellence</p>
-              <p><strong>Availability:</strong> Awards Night</p>
+              <p><strong>Entries Open:</strong> {eventDetails?.nominations_open ? new Date(eventDetails.nominations_open).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '13 May 2025'}</p>
+              <p><strong>Entries Deadline (late fees apply):</strong> {eventDetails?.nominations_close ? new Date(eventDetails.nominations_close).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '09 Sep 2025'}</p>
+              <p><strong>Finalists Announced:</strong> {eventDetails?.finalists_announced ? new Date(eventDetails.finalists_announced).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '23 Sep 2025'}</p>
+              <p><strong>Ceremony:</strong> {eventDetails?.awards_ceremony ? new Date(eventDetails.awards_ceremony).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '09 Dec 2025'}, {eventDetails?.location || 'Brussels'}</p>
             </div>
             
-            <p class="contents-title">What's Inside</p>
+            <p class="contents-title">Contents</p>
             <div class="contents-list">
-              <p><a href="#section-01"><strong>01.</strong> Celebrating XR Innovation</a></p>
-              <p><a href="#section-02"><strong>02.</strong> Award Categories & Nominees</a></p>
-              <p><a href="#section-03"><strong>03.</strong> Industry Excellence</a></p>
-              <p><a href="#section-04"><strong>04.</strong> Future of XR</a></p>
-              <p><a href="#section-05"><strong>05.</strong> Programme Availability</a></p>
+              <p><a href="#section-01"><strong>01.</strong> XR Awards Gala Partnership</a></p>
+              <p><a href="#section-02"><strong>02.</strong> Attending the XR Awards Gala</a></p>
+              <p><a href="#section-03"><strong>03.</strong> Using XR Accolades</a></p>
+              <p><a href="#section-04"><strong>04.</strong> Financial Support for creators</a></p>
+              <p><a href="#section-05"><strong>05.</strong> Better showcasing for entries</a></p>
             </div>
           </div>
         </div>
@@ -152,226 +107,156 @@ const readingTime = Math.ceil(wordCount / 250);
           
           <!-- Section 1 -->
           <div id="section-01" class="section-marker">
-            <p class="section-number">01 Celebrating XR Innovation</p>
-          <h2>The Anticipation and Excitement of XR Awards 2025</h2>
+            <p class="section-number">Updates // 01</p>
+            <h2>What the XR Awards Gala means for you</h2>
           </div>
           
-          <p>The anticipation surrounding this year's awards is palpable. The XR community has witnessed unprecedented growth and innovation, with new technologies, platforms, and creative approaches emerging at an incredible pace.</p>
+          <h3>Bigger and better than ever.</h3>
           
-          <p>This year's programme reflects the maturity and sophistication that the XR industry has achieved, while still maintaining the pioneering spirit that has always defined this space.</p>
+          <p>The combined forces of 3 industry leading events for XR means a bigger, more vibrant and fulfilling celebration of your work.</p>
+          
+          <p><strong>During this years celebrations:</strong></p>
+          
+          <ul>
+            <li>Apply for global or European Categories from both AIXR & Stereopsia</li>
+            <li>Save money by buying tickets to attend the ceremony and conference at packaged rates</li>
+            <li>Enjoy industry leading programming from AWE</li>
+          </ul>
+          
+          <p>As this is our first year, we expect some initial adjustments. Our priority is recognizing all XR applications while managing categories and programming. Some categories will be announced during our online-only opening show to keep the main ceremony concise.</p>
           
           <!-- Quote Callout -->
           <div class="quote-callout">
             <div class="quote-icon">"</div>
-            <p class="quote-text">The XR Awards Programme represents the pinnacle of achievement in extended reality, showcasing the incredible talent and innovation that drives our industry forward.</p>
-            <p class="quote-attribution">— XR Awards Committee</p>
-          </div>
-          
-          <p>The awards ceremony represents more than just recognition - it's a celebration of the collective effort, creativity, and determination that drives the XR industry forward.</p>
-          
-          <p>It's a moment to honor not just the winners, but every participant who has contributed to advancing the field of extended reality.</p>
-          
-          <h3>What Makes This Year Special:</h3>
-          
-          <!-- Numbered List with Styled Numbers -->
-          <div class="numbered-list">
-            <div class="numbered-item">
-              <div class="number-badge">1</div>
-              <div class="numbered-content">
-                <h4>Unprecedented Innovation</h4>
-                <p>This year has seen remarkable breakthroughs in XR technology, from advanced haptic feedback systems to photorealistic virtual environments.</p>
-                <p>The programme showcases projects that push the boundaries of what's technically possible while maintaining exceptional user experiences.</p>
-              </div>
-            </div>
-            
-            <div class="numbered-item">
-              <div class="number-badge">2</div>
-              <div class="numbered-content">
-                <h4>Diverse Applications</h4>
-                <p>From immersive storytelling experiences that transport users to new worlds, to practical applications that solve real-world problems.</p>
-                <p>The programme demonstrates the incredible versatility and potential of XR technology across multiple industries and use cases.</p>
-              </div>
-            </div>
-            
-            <div class="numbered-item">
-              <div class="number-badge">3</div>
-              <div class="numbered-content">
-                <h4>Global Impact</h4>
-                <p>The awards recognize excellence across multiple dimensions - technical innovation, creative vision, user experience design, and real-world impact.</p>
-                <p>Each nominee represents a unique approach to harnessing the power of immersive technology for meaningful outcomes.</p>
-              </div>
-            </div>
-            
-            <div class="numbered-item">
-              <div class="number-badge">4</div>
-              <div class="numbered-content">
-                <h4>Collaborative Excellence</h4>
-                <p>The programme highlights the collaborative nature of the XR industry, showcasing how different disciplines come together to create experiences that are greater than the sum of their parts.</p>
-                <p>From concept to execution, each project represents countless hours of dedication, innovation, and passion from teams around the world.</p>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Takeaway Box -->
-          <div class="studio-advice-box">
-            <h3>Why This Programme Matters:</h3>
-            <p>The XR Awards Programme is more than just a document - it's a testament to the incredible talent, creativity, and vision that defines the extended reality community.</p>
-            <p>As we look forward to the awards ceremony, the programme serves as a reminder of how far the XR industry has come and the exciting possibilities that lie ahead.</p>
+            <p class="quote-text">This United XR collaboration allows us to bring the incredible creativity and technical prowess flourishing here to a truly global audience through the XR Awards Gala. We are excited to celebrate European excellence alongside groundbreaking work from innovators worldwide, highlighting the dynamic contributions from every region shaping our collective immersive future in Brussels</p>
+            <p class="quote-attribution">— Alexandra Gérard, Executive Producer and General Manager of United XR Europe</p>
           </div>
           
           <!-- Section 2 -->
           <div id="section-02" class="section-marker">
-            <p class="section-number">02 Award Categories & Nominees</p>
-            <h2>Comprehensive Coverage of XR Excellence</h2>
+            <p class="section-number">Updates // 02</p>
+            <h2>New ways to attend the ceremony and conference</h2>
           </div>
           
-          <p>The {eventDetails?.event_name || 'XR Awards'} Programme provides comprehensive coverage of all award categories, showcasing the incredible breadth and depth of innovation in extended reality.</p>
+          <h3>It's never been easier to attend.</h3>
           
-          <p>Each category represents a unique facet of the XR ecosystem, highlighting different approaches to immersive technology and their applications across various industries.</p>
+          <p>With the merging of AWE EU, Stereopsia, and the AIXR XR Awards, attendees can now conveniently purchase gala tickets directly through the United XR Conference website. Package deals for combined conference and gala attendance are available at reduced rates.</p>
           
-          <h3>Featured Categories Include:</h3>
+          <p>Hosted in Brussels, Belgium, the United XR Conference promises unmatched international collaboration, extensive workshops, and an expansive expo floor. Coupled with the XR Gala, home to industry-leading figures, this is an essential event for XR enthusiasts worldwide.</p>
           
-          <ul>
-            <li><strong>XR Game of the Year:</strong> Recognizing outstanding achievements in immersive gaming experiences that push the boundaries of interactive entertainment.</li>
-            <li><strong>Technical Achievement:</strong> Honoring groundbreaking technical innovations that advance the capabilities of XR hardware and software.</li>
-            <li><strong>User Experience Excellence:</strong> Celebrating projects that demonstrate exceptional attention to user-centered design and accessibility.</li>
-            <li><strong>Industry Applications:</strong> Highlighting XR solutions that solve real-world problems across healthcare, education, enterprise, and other sectors.</li>
-            <li><strong>Creative Innovation:</strong> Showcasing artistic and creative achievements that expand the possibilities of immersive storytelling.</li>
-          </ul>
+          <p>Based on feedback, dinner service will now be interspersed between award categories, enhancing the flow of the gala experience. Online viewers can enjoy dedicated industry content throughout the event.</p>
           
-          <h3>What You'll Discover in Each Category:</h3>
+          <p>To book package rate tickets, please visit the <a href="https://events.unitedxr.eu/2025" target="_blank" rel="noopener noreferrer">ticketing website for UnitedXR</a>.</p>
           
-          <p>From immersive storytelling experiences that transport users to new worlds, to practical applications that solve real-world problems, the programme demonstrates the incredible versatility and potential of XR technology.</p>
-          
-          <p>Each category features detailed information about nominees, their projects, and the innovative approaches that set them apart in the competitive XR landscape.</p>
-          
-          <!-- Advice Box -->
-          <div class="studio-advice-box">
-            <h3>Programme Highlights:</h3>
-            <p>The programme provides in-depth coverage of each category, including project descriptions, technical achievements, and the impact of each nomination on the XR industry.</p>
-            <p>This comprehensive approach ensures that viewers gain a complete understanding of the current state and future potential of extended reality technology.</p>
-          </div>
-          
-          <!-- Section 3 -->
-          <div id="section-03" class="section-marker">
-            <p class="section-number">03 Industry Excellence</p>
-            <h2>Recognizing the Best in XR Innovation</h2>
-          </div>
-          
-          <p>The {eventDetails?.event_name || 'XR Awards'} Programme celebrates the remarkable achievements of studios, developers, and visionaries who are pushing the boundaries of what's possible in immersive technology.</p>
-          
-          <p>This carefully curated collection represents the pinnacle of XR achievement, showcasing projects that have not only met but exceeded the highest standards of innovation, technical excellence, and user experience.</p>
-          
-          <h3>The Selection Process:</h3>
-          
-          <p>Each project featured in the programme has undergone rigorous evaluation by industry experts, ensuring that only the most exceptional work receives recognition.</p>
-          
-          <!-- Quote Callout -->
-          <div class="quote-callout">
-            <div class="quote-icon">"</div>
-            <p class="quote-text">The quality and innovation demonstrated in this year's nominations represents the incredible growth and maturity of the XR industry.</p>
-            <p class="quote-attribution">— XR Awards Judging Panel</p>
-          </div>
-          
-          <p>The programme highlights projects that demonstrate exceptional technical achievement, creative vision, and real-world impact.</p>
-          
-          <p>From concept to execution, each project represents countless hours of dedication, innovation, and passion from teams around the world.</p>
-          
-          <h3>Global Representation:</h3>
-          
-          <p>The XR Awards Programme features nominees from around the world, reflecting the global nature of the XR industry and the diverse perspectives that drive innovation.</p>
-          
-          <p>This international representation ensures that the programme captures the full spectrum of XR excellence, from established studios to emerging talent.</p>
-          
-          <!-- Advice Box -->
-          <div class="studio-advice-box">
-            <h3>Industry Impact:</h3>
-            <p>The projects featured in the programme demonstrate the incredible potential of XR technology to transform industries, enhance human experiences, and create new possibilities for interaction and engagement.</p>
-            <p>Each nomination represents a significant contribution to the advancement of extended reality technology and its applications.</p>
-          </div>
-          
-          <!-- Section 4 -->
-          <div id="section-04" class="section-marker">
-            <p class="section-number">04 Future of XR</p>
-            <h2>Charting the Path Forward for Extended Reality</h2>
-          </div>
-          
-          <p>The {eventDetails?.event_name || 'XR Awards'} Programme not only celebrates current achievements but also provides insights into the future direction of extended reality technology.</p>
-          
-          <p>Through the featured projects and innovations, the programme offers a glimpse into the exciting possibilities that lie ahead for the XR industry.</p>
-          
-          <h3>Emerging Trends and Technologies:</h3>
-          
-          <p>The programme showcases cutting-edge developments in areas such as:</p>
-          
-          <ul>
-            <li><strong>Advanced Haptic Technology:</strong> Projects that push the boundaries of tactile feedback and sensory immersion.</li>
-            <li><strong>AI Integration:</strong> XR experiences that leverage artificial intelligence to create more intelligent and responsive environments.</li>
-            <li><strong>Cross-Platform Experiences:</strong> Solutions that seamlessly bridge different XR platforms and devices.</li>
-            <li><strong>Spatial Computing:</strong> Applications that blend physical and digital worlds in innovative ways.</li>
-            <li><strong>Accessibility Innovation:</strong> XR solutions designed to be inclusive and accessible to users with diverse needs.</li>
-          </ul>
-          
-          <p>These emerging trends represent the next frontier of XR development, pointing toward a future where immersive technology becomes even more integrated into our daily lives.</p>
-          
-          <!-- Advice Box -->
-          <div class="studio-advice-box">
-            <h3>Looking Ahead:</h3>
-            <p>The future of XR is being written today, and the projects featured in this programme are leading the way forward.</p>
-            <p>As we celebrate current achievements, we also look forward to the incredible innovations that will continue to shape the extended reality landscape.</p>
-          </div>
-          
-          <!-- Section 5 -->
-          <div id="section-05" class="section-marker">
-            <p class="section-number">05 Programme Availability</p>
-            <h2>Accessing the XR Awards Programme</h2>
-          </div>
-          
-          <p>The {eventDetails?.event_name || 'XR Awards'} Programme will be available for viewing on the night of the awards, providing attendees and viewers with a comprehensive overview of all nominees, categories, and the incredible work being recognized.</p>
-          
-          <p>This carefully crafted document serves as your complete guide to the awards ceremony, ensuring you don't miss any of the remarkable achievements being celebrated.</p>
-          
-          <h3>What to Expect:</h3>
-          
-          <p>The programme will be published and available to view on the night of the awards, featuring:</p>
+          <h3>Key Takeaways:</h3>
           
           <!-- Numbered List -->
           <div class="numbered-list-simple">
             <div class="numbered-item-simple">
               <div class="number-badge">1</div>
-              <div class="numbered-content-simple">Complete category listings with detailed nominee information</div>
+              <div class="numbered-content-simple">Book package rate tickets - Go to the <a href="https://events.unitedxr.eu/2025" target="_blank" rel="noopener noreferrer">UnitedXR conference page</a> to book tickets for the conference and ceremony at the same time for a discounted rate.</div>
             </div>
             <div class="numbered-item-simple">
               <div class="number-badge">2</div>
-              <div class="numbered-content-simple">Project descriptions and technical achievements</div>
+              <div class="numbered-content-simple">Gain access to the network of Stereopsia, AWE and AIXR - This year all three organisations come together to provide you unprecedented access to the VR/AR industry.</div>
+            </div>
+          </div>
+          
+          <!-- Section 3 -->
+          <div id="section-03" class="section-marker">
+            <p class="section-number">Updates // 03</p>
+            <h2>Maximise recognition through an XR Accolade</h2>
+          </div>
+          
+          <h3>Be awarded an XR Accolade</h3>
+          
+          <p><strong>Following last year's successful debut, XR Accolades will continue with slight category modifications:</strong></p>
+          
+          <ul>
+            <li>Accolades offer specialized recognition within broader categories (e.g., 'XR Healthcare: Patient Education').</li>
+            <li>Not every entry receives an accolade; awards are based purely on entry quality and standout excellence.</li>
+            <li>Accolades recognize excellence without guaranteeing main category wins.</li>
+          </ul>
+          
+          <p>Accolade recipients receive a digital crest and certificate, along with an official listing on the awards website. For those who'd like a lasting memento, a physical keepsake can also be ordered to proudly display in your office.</p>
+          
+          <h3>Key Takeaways:</h3>
+          
+          <!-- Numbered List -->
+          <div class="numbered-list-simple">
+            <div class="numbered-item-simple">
+              <div class="number-badge">1</div>
+              <div class="numbered-content-simple">Increase your chances of being awarded an XR Accolade - In your entry make sure to highlight the niche areas of your work and what made it stand out in these particular areas of interests under the main category you are nominating for.</div>
+            </div>
+            <div class="numbered-item-simple">
+              <div class="number-badge">2</div>
+              <div class="numbered-content-simple">XR Accolades can be earned in addition to main category awards - In 2024 on average 2-3 accolades were awarded per categories at the judges discretion only. Accolades can only be earned not applied for directly.</div>
+            </div>
+          </div>
+          
+          <!-- Section 4 -->
+          <div id="section-04" class="section-marker">
+            <p class="section-number">Updates // 04</p>
+            <h2>Expanded support for independent creators</h2>
+          </div>
+          
+          <h3>Creators Fund and Inclusivity XR Grant</h3>
+          
+          <p>Building on last year's successful launch of the AIXR Inclusivity XR Grant, we proudly supported underrepresented creators worldwide. For 2025, we're expanding with the XR Creators Fund, jointly supported by the AIXR XR Awards and European XR Awards®:</p>
+          
+          <ul>
+            <li>Nomination fees waived across all categories, including European XR Awards®, through the Inclusivity Grant.</li>
+            <li>Subsidized nomination fees for independent creators under the Creators Fund.</li>
+            <li>Complimentary tickets to both the XR Gala and the United XR Conference for those in either programme.</li>
+            <li>Opportunity for subsidized travel and accommodation for creators with proven financial need (subject to review).</li>
+          </ul>
+          
+          <p>Grant applications must be submitted through our dedicated portal and are reviewed by an expert industry panel. This initiative is generously supported by collective sponsors and EU government funding.</p>
+          
+          <h3>Key Takeaways:</h3>
+          
+          <!-- Numbered List -->
+          <div class="numbered-list-simple">
+            <div class="numbered-item-simple">
+              <div class="number-badge">1</div>
+              <div class="numbered-content-simple">If you are an independent creator and need financial support apply for support - Your application for financial support will be assessed against a set criteria to ensure those who need support get access to discounted nominations and support to attend / travel to the ceremony</div>
+            </div>
+            <div class="numbered-item-simple">
+              <div class="number-badge">2</div>
+              <div class="numbered-content-simple">You can start your entry for nomination before your application has been approved - Entries are pay on submission only, meaning you can start your entry while you wait for your creator fund or inclusivity grant application to be reviewed.</div>
+            </div>
+          </div>
+          
+          <!-- Section 5 -->
+          <div id="section-05" class="section-marker">
+            <p class="section-number">Updates // 05</p>
+            <h2>Your achievement and entries will remain persistent in 2025</h2>
+          </div>
+          
+          <h3>You'll submit your entries directly on holito</h3>
+          
+          <p>We're excited to launch holito, the new platform for the 2025 XR Awards, designed to make submitting your entry faster and more valuable. We've streamlined the process by focusing on clear screen recordings to showcase your work, reducing lengthy written responses and complex questions. This lets you easily upload materials and spend significantly less time on the nomination itself.</p>
+          
+          <p>The biggest advantage? Your work lives on. Submitting through holito creates a permanent online showcase for your project, keeping it visible and discoverable by the XR community long after the awards. It's more than an entry; it's a lasting asset highlighting your innovation.</p>
+          
+          <h3>Key Takeaways:</h3>
+          
+          <!-- Numbered List -->
+          <div class="numbered-list-simple">
+            <div class="numbered-item-simple">
+              <div class="number-badge">1</div>
+              <div class="numbered-content-simple">Faster Entries - Simplified process emphasizes screen recordings over extensive writing.</div>
+            </div>
+            <div class="numbered-item-simple">
+              <div class="number-badge">2</div>
+              <div class="numbered-content-simple">Permanent Showcase - Your entry creates a lasting online hub for your work via holito.</div>
             </div>
             <div class="numbered-item-simple">
               <div class="number-badge">3</div>
-              <div class="numbered-content-simple">Industry insights and future trends</div>
-            </div>
-            <div class="numbered-item-simple">
-              <div class="number-badge">4</div>
-              <div class="numbered-content-simple">Awards ceremony schedule and highlights</div>
+              <div class="numbered-content-simple">Ongoing Visibility - Gain continuous exposure within the XR community year-round.</div>
             </div>
           </div>
           
-          <p>Whether you're attending in person or watching remotely, the programme ensures you have all the information you need to fully appreciate the incredible work being recognized.</p>
-          
-          <!-- Final Section - Your Next Steps -->
-          <div class="studio-advice-box">
-            <h3>Join the Celebration</h3>
-            <p>The XR Awards Programme is your invitation to be part of the most exciting celebration in extended reality.</p>
-            <p>Don't miss the opportunity to discover the incredible innovations, creative achievements, and technical breakthroughs that are shaping the future of XR.</p>
-            <p><strong>Mark your calendar and prepare to be amazed by the incredible talent and innovation showcased in this year's programme.</strong></p>
-          </div>
-          
-          <h3>Get Ready for an Unforgettable Experience</h3>
-          
-          <p>The {eventDetails?.event_name || 'XR Awards'} Programme represents the culmination of a year of incredible innovation and achievement in extended reality.</p>
-          
-          <p>Join us as we celebrate the visionaries, creators, and innovators who are pushing the boundaries of what's possible in immersive technology.</p>
-          
-          <p><strong>The future of XR starts here - and the programme is your guide to discovering it.</strong></p>
           
         </div>
       </div>
