@@ -10,7 +10,7 @@ export default defineConfig({
   site: 'https://xr-awards.daniel-12f.workers.dev/',
   output: 'server', // Changed from 'static' to support API routes and admin pages
   adapter: cloudflare({
-    mode: 'directory',
+    mode: 'advanced',
   }),
   image: {
     // Disable remote image optimization entirely to avoid build failures
