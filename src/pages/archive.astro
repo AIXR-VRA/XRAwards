@@ -74,34 +74,17 @@ function formatEventDate(dateStr: string | null): string {
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <!-- Years Navigation - Left Side -->
           <div class="lg:col-span-5">
-            <div class="grid grid-cols-2 gap-x-12 gap-y-4">
-              <!-- Column 1 -->
-              <div class="space-y-4">
-                {yearsColumn1.map((year) => {
-                  return (
-                    <a
-                      href={`#${year}`}
-                      class="block text-2xl font-bold text-gray-900 hover:text-[#4923EB] transition-colors smooth-scroll-link"
-                    >
-                      {year}
-                    </a>
-                  );
-                })}
-              </div>
-              
-              <!-- Column 2 -->
-              <div class="space-y-4">
-                {yearsColumn2.map((year) => {
-                  return (
-                    <a
-                      href={`#${year}`}
-                      class="block text-2xl font-bold text-gray-900 hover:text-[#4923EB] transition-colors smooth-scroll-link"
-                    >
-                      {year}
-                    </a>
-                  );
-                })}
-              </div>
+            <div class="grid grid-cols-2 gap-4">
+              {years.map((year) => {
+                return (
+                  <a
+                    href={`#${year}`}
+                    class="flex items-center justify-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors smooth-scroll-link"
+                  >
+                    {year}
+                  </a>
+                );
+              })}
             </div>
           </div>
 
