@@ -156,7 +156,7 @@ const categoriesWithFinalists = categories.map((category: any) => {
               <!-- Social Share Icons -->
               <div class="flex gap-2">
                 <a 
-                  href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(Astro.url.href)}&title=${encodeURIComponent(`AIXR XR Awards ${year} - ${category.name} Winners & Finalists`)}&summary=${encodeURIComponent(`Check out the winners and finalists in the ${category.name} category at the ${year} AIXR XR Awards!`)}&source=${encodeURIComponent('AIXR XR Awards')}`}
+                  href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(Astro.url.href)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   class="w-9 h-9 flex items-center justify-center bg-[#0077B5] text-white rounded hover:opacity-80 transition-opacity" 
