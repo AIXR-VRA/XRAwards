@@ -246,10 +246,58 @@ const timelineEvents = [
       </div>
     </section>
 
-    <!-- Timeline Section - WILL BE REBUILT -->
+    <!-- Timeline Section -->
     <section class="relative py-16 md:py-24 overflow-hidden" style="background-color: #0E1022;">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <p class="text-white text-center">Timeline will be here</p>
+        <div class="text-center mb-16">
+          <h2 class="text-4xl font-bold text-white mb-4">Our Journey</h2>
+          <p class="text-lg text-gray-300">Over 8 years of celebrating excellence in XR</p>
+        </div>
+
+        <ol class="relative space-y-8 before:absolute before:top-0 before:left-1/2 before:h-full before:w-0.5 before:-translate-x-1/2 before:rounded-full before:bg-gray-700">
+          {timelineEvents.map((event, index) => (
+            <li class={`timeline-item group relative grid grid-cols-1 md:grid-cols-2 ${event.position === 'left' ? 'md:odd:-me-3' : 'md:even:-ms-3'} ${event.isMilestone ? 'milestone-item' : ''}`}>
+              <div class={`relative flex items-start gap-4 ${event.position === 'left' ? 'md:flex-row-reverse md:text-right' : 'md:order-last'}`}>
+                <span 
+                  class={`timeline-dot size-3 shrink-0 rounded-full ${event.dotColor === 'orange' ? 'bg-orange-500' : 'bg-cyan-400'}`}
+                  style={event.isMilestone ? 'width: 1rem; height: 1rem;' : ''}
+                ></span>
+
+                <div class="-mt-2 flex-1">
+                  <time class="text-xs font-medium text-gray-400 uppercase tracking-wide">{event.date}</time>
+                  <h3 class="text-xl font-bold text-white mt-1">{event.title}</h3>
+                  <p class="mt-2 text-sm text-gray-300 leading-relaxed">
+                    {event.description}
+                  </p>
+                  {event.link && event.linkText && (
+                    <a 
+                      href={event.link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      class="inline-block mt-2 text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+                    >
+                      {event.linkText} →
+                    </a>
+                  )}
+                  {event.image && (
+                    <div class="mt-4 rounded-lg overflow-hidden shadow-lg">
+                      <Image
+                        src={event.image}
+                        alt={event.title}
+                        width={400}
+                        height={300}
+                        class="w-full h-auto object-cover"
+                        format="webp"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div aria-hidden="true" class="hidden md:block"></div>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
 
