@@ -38,7 +38,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
+          name: dist-folder
           path: dist/
           retention-days: 1
 
@@ -50,11 +50,14 @@ jobs:
     # Security: Only deploy from the original repository on push to main/master
     if: github.event_name == 'push' && github.repository == 'AIXR-VRA/XRAwards'
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build-artifacts
-          path: ./dist # Download directly into a dist folder
+          name: dist-folder
+          path: ./dist
 
       - name: Deploy to Cloudflare Pages
         run: npx wrangler@latest pages deploy dist --project-name=xr-awards
