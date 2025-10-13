@@ -120,12 +120,12 @@ const accoladesImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-accolades-tro
                   
                   <div class="flex-1">
                     <div class="block text-xs mb-1 invisible">‎</div>
-                    <button
-                      onclick="handleOrder('trophy')"
-                      class="w-full px-4 py-2 bg-[#4923EB] text-white text-sm font-medium rounded-sm hover:bg-[#3a1bb8] transition-colors"
+                    <a
+                      href="mailto:awards@aixr.org?subject=XR%20Awards%20Store%20-%20Trophy%20Order&body=Hello%2C%0A%0AI%20would%20like%20to%20order%20the%20following%3A%0A%0AProduct%3A%20XR%20Awards%20Trophy%20%26%20Certificates%0AQuantity%3A%201%0AUnit%20Price%3A%20%C2%A3820.00%0A%0APlease%20send%20me%20payment%20and%20shipping%20details.%0A%0AThank%20you!"
+                      class="block w-full px-4 py-2 bg-[#4923EB] text-white text-sm font-medium rounded-sm hover:bg-[#3a1bb8] transition-colors text-center"
                     >
                       Order
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -191,12 +191,12 @@ const accoladesImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-accolades-tro
                   
                   <div class="flex-1">
                     <div class="block text-xs mb-1 invisible">‎</div>
-                    <button
-                      onclick="handleOrder('accolade')"
-                      class="w-full px-4 py-2 bg-[#4923EB] text-white text-sm font-medium rounded-sm hover:bg-[#3a1bb8] transition-colors"
+                    <a
+                      href="mailto:awards@aixr.org?subject=XR%20Awards%20Store%20-%20Accolade%20Order&body=Hello%2C%0A%0AI%20would%20like%20to%20order%20the%20following%3A%0A%0AProduct%3A%20XR%20Accolades%0AQuantity%3A%201%0AUnit%20Price%3A%20%C2%A3395.00%0A%0APlease%20send%20me%20payment%20and%20shipping%20details.%0A%0AThank%20you!"
+                      class="block w-full px-4 py-2 bg-[#4923EB] text-white text-sm font-medium rounded-sm hover:bg-[#3a1bb8] transition-colors text-center"
                     >
                       Order
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -211,31 +211,7 @@ const accoladesImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-accolades-tro
   <Footer />
 </Layout>
 
-<script>
-  // TODO: Replace with proper Stripe payment form
-  // For now, using mailto as a temporary solution
-  (window as any).handleOrder = function(productType: string) {
-    const quantityInput = document.getElementById(
-      productType === 'trophy' ? 'trophy-quantity' : 'accolade-quantity'
-    ) as HTMLInputElement;
-    
-    const quantity = quantityInput?.value || '1';
-    const productName = productType === 'trophy' ? 'XR Awards Trophy & Certificates' : 'XR Accolades';
-    const price = productType === 'trophy' ? '£820.00' : '£395.00';
-    
-    const subject = encodeURIComponent(`XR Awards Store - ${productName} Order`);
-    const body = encodeURIComponent(
-      `Hello,\n\nI would like to order the following:\n\n` +
-      `Product: ${productName}\n` +
-      `Quantity: ${quantity}\n` +
-      `Unit Price: ${price}\n\n` +
-      `Please send me payment and shipping details.\n\n` +
-      `Thank you!`
-    );
-    
-    window.location.href = `mailto:awards@aixr.org?subject=${subject}&body=${body}`;
-  };
-</script>
+<!-- TODO: Replace mailto links with proper Stripe payment form -->
 
 <style>
   .store-title {
