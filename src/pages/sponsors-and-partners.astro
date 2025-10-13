@@ -1,0 +1,263 @@
+---
+/**
+ * Sponsors & Partners Page
+ * URL: /sponsors-and-partners
+ * Information about sponsorship opportunities and current partners
+ */
+export const prerender = true;
+
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CTAFooter from '../components/CTAFooter.astro';
+import { Image } from 'astro:assets';
+import { getR2ImageUrl } from '../utils/r2';
+import { supabase } from '../utils/supabase';
+
+// Fetch active event details
+const { data: eventDetails } = await supabase
+  .from('event_details')
+  .select('*')
+  .eq('is_active', true)
+  .single();
+
+// Fetch sponsors for the active event
+const { data: sponsors } = await supabase
+  .from('sponsors')
+  .select(`
+    id,
+    name,
+    logo_url,
+    sort_order,
+    sponsor_events!inner(event_id)
+  `)
+  .eq('sponsor_events.event_id', eventDetails?.id)
+  .eq('is_visible', true)
+  .order('sort_order', { ascending: true });
+
+// Get images for sponsorship sections
+const recognitionImage = getR2ImageUrl('/images/2025/10/xr-awards-2022-combat-waffle-studios_1760356010976.jpg');
+const engagementImage = getR2ImageUrl('/images/2025/10/vr-awards-2019-john-carmack-acceptance_1760362505111.png');
+const integrationImage = getR2ImageUrl('/images/2025/10/vr-awards-2022-lifetime-acheivement-winner_1760362527976.png');
+---
+
+<Layout
+  title="Sponsors & Partners - AIXR XR Awards"
+  description="Join the XR Awards as a sponsor or partner. Discover exclusive sponsorship opportunities and connect with industry leaders in immersive technology."
+>
+  <Header />
+
+  <main class="min-h-screen bg-white">
+    <!-- Page Header -->
+    <section class="relative bg-[#0E1022] pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+
+      <!-- Content -->
+      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="page-title text-white mb-6">
+          Sponsors & Partners
+        </h1>
+
+        <!-- Decorative Dots -->
+        <div class="flex justify-center gap-2 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        </div>
+
+        <p class="page-subtitle text-white">
+          Join the XR Awards as a sponsor or partner and connect with industry leaders.
+        </p>
+      </div>
+    </section>
+
+    <!-- Current Sponsors Section -->
+    {sponsors && sponsors.length > 0 && (
+      <section class="py-16 md:py-24 bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-left mb-12">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Our Sponsors & Partners</h2>
+            <p class="text-lg text-gray-600">Thank you to our sponsors and partners for supporting the XR Awards</p>
+          </div>
+          
+          <!-- Sponsor Logos Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-8 items-center">
+            {sponsors.map((sponsor) => (
+              <div class="opacity-70 hover:opacity-100 transition-opacity flex items-center justify-start">
+                {sponsor.logo_url ? (
+                  <Image
+                    src={sponsor.logo_url}
+                    alt={sponsor.name}
+                    class="max-h-12 w-auto object-contain"
+                    width={120}
+                    height={48}
+                    loading="lazy"
+                  />
+                ) : (
+                  <div class="h-10 w-20 bg-gray-300 rounded flex items-center justify-center text-xs">
+                    {sponsor.name}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- Sponsorship Opportunities Section -->
+    <section class="py-16 md:py-24 bg-gray-50">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-left mb-12">
+          <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Why Partner with XR Awards?</h2>
+          <p class="text-lg text-gray-600">Discover the benefits of becoming a sponsor or partner</p>
+        </div>
+
+        <!-- Three Column Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Pinnacle of Recognition -->
+          <div class="bg-[#0E1022] rounded-2xl overflow-hidden">
+            <div class="aspect-video overflow-hidden">
+              <Image 
+                src={recognitionImage} 
+                alt="Pinnacle of Recognition"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="p-8">
+              <h3 class="text-2xl font-bold text-white mb-6">Pinnacle of Recognition</h3>
+              <div class="space-y-6">
+                <div>
+                  <h4 class="text-lg font-bold text-white mb-2">Exclusivity</h4>
+                  <p class="text-gray-300">Secure your place among a select group of leaders in the immersive tech sector.</p>
+                </div>
+                <div>
+                  <h4 class="text-lg font-bold text-white mb-2">Industry Prestige</h4>
+                  <p class="text-gray-300">Be part of an event that stands as the pinnacle of recognition for innovation.</p>
+                </div>
+                <div>
+                  <h4 class="text-lg font-bold text-white mb-2">Thought Leadership</h4>
+                  <p class="text-gray-300">Showcase your commitment to pushing the boundaries of immersive technology.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Strategic Engagement -->
+          <div class="bg-[#0E1022] rounded-2xl overflow-hidden">
+            <div class="aspect-video overflow-hidden">
+              <Image 
+                src={engagementImage} 
+                alt="Strategic Engagement"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="p-8">
+              <h3 class="text-2xl font-bold text-white mb-6">Strategic Engagement</h3>
+              <div class="space-y-6">
+                <div>
+                  <h4 class="text-lg font-bold text-white mb-2">Quality Over Quantity</h4>
+                  <p class="text-gray-300">Engage with a focused, high-caliber audience, not just numbers.</p>
+                </div>
+                <div>
+                  <h4 class="text-lg font-bold text-white mb-2">Unique Demographics</h4>
+                  <p class="text-gray-300">Reach industry decision-makers, creators, and top talent.</p>
+                </div>
+                <div>
+                  <h4 class="text-lg font-bold text-white mb-2">Market Insights</h4>
+                  <p class="text-gray-300">Stay ahead by gaining insights into emerging trends and innovations.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Brand Integration -->
+          <div class="bg-[#0E1022] rounded-2xl overflow-hidden">
+            <div class="aspect-video overflow-hidden">
+              <Image 
+                src={integrationImage} 
+                alt="Brand Integration"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="p-8">
+              <h3 class="text-2xl font-bold text-white mb-6">Brand Integration</h3>
+              <div class="space-y-6">
+                <div>
+                  <h4 class="text-lg font-bold text-white mb-2">Tailored Sponsorship</h4>
+                  <p class="text-gray-300">Craft a sponsorship that aligns perfectly with your niche goals.</p>
+                </div>
+                <div>
+                  <h4 class="text-lg font-bold text-white mb-2">Comprehensive Promotion</h4>
+                  <p class="text-gray-300">Full-fledged digital marketing campaigns tailored to a niche audience.</p>
+                </div>
+                <div>
+                  <h4 class="text-lg font-bold text-white mb-2">Award Presentation</h4>
+                  <p class="text-gray-300">Associate your brand with an award category that reflects your ambitions.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="py-16 md:py-24 bg-white">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Ready to Partner with Us?</h2>
+        <p class="text-lg text-gray-700 mb-8">
+          Get in touch to discuss sponsorship opportunities and how we can work together to showcase your brand at the XR Awards.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a 
+            href="mailto:awards@aixr.org"
+            class="inline-flex items-center justify-center px-8 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors"
+          >
+            Contact Sponsorship Team
+          </a>
+          <a 
+            href="/travel-accommodation"
+            class="inline-flex items-center justify-center px-8 py-3 bg-white text-[#4923EB] font-medium rounded-lg border-2 border-[#4923EB] hover:bg-[#4923EB] hover:text-white transition-colors"
+          >
+            Learn About the Event
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Footer -->
+    <CTAFooter />
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .page-title {
+    font-size: 35px;
+    font-weight: 600;
+  }
+
+  .page-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    font-family: "IBM Plex Mono", monospace;
+  }
+</style>
