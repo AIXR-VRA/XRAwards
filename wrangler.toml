@@ -1,0 +1,7 @@
+name = "xr-awards"
+main = "src/worker.js"
+compatibility_date = "2025-10-13"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
