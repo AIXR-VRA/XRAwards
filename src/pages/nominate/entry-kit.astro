@@ -131,7 +131,7 @@ const { data: eventDetails } = await supabase
                 </h3>
               </div>
               
-              <form class="space-y-6">
+              <form id="entry-kit-form" class="space-y-6">
                 <!-- Name Fields -->
                 <div>
                   <label class="block text-sm font-bold text-gray-900 mb-2">
@@ -143,6 +143,7 @@ const { data: eventDetails } = await supabase
                       <input 
                         type="text" 
                         name="firstName"
+                        id="firstName"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4923EB] focus:border-transparent"
                         placeholder=""
                         required
@@ -153,6 +154,7 @@ const { data: eventDetails } = await supabase
                       <input 
                         type="text" 
                         name="lastName"
+                        id="lastName"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4923EB] focus:border-transparent"
                         placeholder=""
                         required
@@ -169,8 +171,11 @@ const { data: eventDetails } = await supabase
                   <input 
                     type="email" 
                     name="email"
+                    id="email"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4923EB] focus:border-transparent"
                     placeholder=""
+                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                    title="Please enter a valid email address"
                     required
                   />
                 </div>
@@ -178,23 +183,35 @@ const { data: eventDetails } = await supabase
                 <!-- Phone Field -->
                 <div>
                   <label class="block text-sm font-bold text-gray-900 mb-2">
-                    Phone
+                    Phone (Required)
                   </label>
                   <input 
                     type="tel" 
                     name="phone"
+                    id="phone"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4923EB] focus:border-transparent"
-                    placeholder=""
+                    placeholder="+1 (555) 123-4567"
+                    pattern="^\+[1-9]\d{1,14}$"
+                    title="Please enter your phone number with country code (e.g., +1 555 123 4567)"
+                    required
                   />
+                  <p class="text-xs text-gray-500 mt-1">
+                    Include your country code (e.g., +1 for US, +44 for UK)
+                  </p>
                 </div>
 
                 <!-- Submit Button -->
                 <button 
                   type="submit"
-                  class="w-full bg-[#4923EB] text-white font-medium py-3 px-6 rounded-lg hover:bg-[#3a1bb8] transition-colors focus:outline-none focus:ring-2 focus:ring-[#4923EB] focus:ring-offset-2"
+                  id="submit-btn"
+                  class="w-full bg-[#4923EB] text-white font-medium py-3 px-6 rounded-lg hover:bg-[#3a1bb8] transition-colors focus:outline-none focus:ring-2 focus:ring-[#4923EB] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Next
+                  <span id="submit-text">Next</span>
+                  <span id="loading-text" class="hidden">Submitting...</span>
                 </button>
+
+                <!-- Success/Error Messages -->
+                <div id="form-message" class="hidden text-sm font-medium"></div>
               </form>
             </div>
           </div>
@@ -222,3 +239,83 @@ const { data: eventDetails } = await supabase
     font-family: "IBM Plex Mono", monospace;
   }
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('entry-kit-form') as HTMLFormElement;
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+    const submitText = document.getElementById('submit-text');
+    const loadingText = document.getElementById('loading-text');
+    const formMessage = document.getElementById('form-message');
+
+    if (!form || !submitBtn || !submitText || !loadingText || !formMessage) {
+      console.error('Required form elements not found');
+      return;
+    }
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      // Get form data
+      const formData = new FormData(form);
+      const firstName = formData.get('firstName')?.toString().trim();
+      const lastName = formData.get('lastName')?.toString().trim();
+      const email = formData.get('email')?.toString().trim();
+      const phone = formData.get('phone')?.toString().trim();
+
+      // Let browser handle all validation - no JavaScript validation needed
+
+      const data = {
+        type: 'entry_kit',
+        firstName,
+        lastName,
+        email,
+        phone: phone || undefined
+      };
+
+      // Show loading state
+      submitBtn.disabled = true;
+      submitText.classList.add('hidden');
+      loadingText.classList.remove('hidden');
+      formMessage.classList.add('hidden');
+
+      try {
+        const response = await fetch(`${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/brevo-forms`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.PUBLIC_SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Show success message
+          formMessage.textContent = 'Thank you! Your entry kit download request has been submitted successfully.';
+          formMessage.className = 'text-green-600 text-sm font-medium';
+          formMessage.classList.remove('hidden');
+          
+          // Reset form
+          form.reset();
+        } else {
+          // Show error message
+          formMessage.textContent = result.error || 'Something went wrong. Please try again.';
+          formMessage.className = 'text-red-600 text-sm font-medium';
+          formMessage.classList.remove('hidden');
+        }
+      } catch (error) {
+        console.error('Form submission error:', error);
+        formMessage.textContent = 'Something went wrong. Please try again.';
+        formMessage.className = 'text-red-600 text-sm font-medium';
+        formMessage.classList.remove('hidden');
+      } finally {
+        // Reset button state
+        submitBtn.disabled = false;
+        submitText.classList.remove('hidden');
+        loadingText.classList.add('hidden');
+      }
+    });
+  });
+</script>
