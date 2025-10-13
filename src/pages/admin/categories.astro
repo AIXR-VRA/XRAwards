@@ -14,7 +14,7 @@ if (!authResult.authenticated) {
   return Astro.redirect(authResult.redirect);
 }
 
-const { session, supabase } = authResult;
+const { session } = authResult;
 ---
 
 <AdminLayout title="Categories" activePage="categories" session={session}>

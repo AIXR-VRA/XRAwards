@@ -24,11 +24,8 @@ const { data: events } = await supabase
   .select('*')
   .order('event_year', { ascending: false });
 
-// Split years into two columns for navigation
+// Get years for navigation
 const years = events?.map(e => e.event_year) || [];
-const midPoint = Math.ceil(years.length / 2);
-const yearsColumn1 = years.slice(0, midPoint);
-const yearsColumn2 = years.slice(midPoint);
 
 // Function to format date nicely
 function formatEventDate(dateStr: string | null): string {

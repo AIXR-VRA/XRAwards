@@ -15,7 +15,7 @@ if (!authResult.authenticated) {
   return Astro.redirect(authResult.redirect);
 }
 
-const { session, supabase } = authResult;
+const { session } = authResult;
 
 // Get all the date checker information
 const { 
@@ -30,7 +30,7 @@ const {
 
 const eventPhase = await getEventPhase();
 const headerCTA = await getCTAButton('header');
-const statusMessage = await getStatusMessage();
+// const statusMessage = await getStatusMessage(); // Unused variable
 const countdownInfo = await getCountdownInfo();
 const nominationsOpen = await areNominationsOpen();
 const afterCeremony = await isAfterCeremony();

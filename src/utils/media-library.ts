@@ -709,7 +709,7 @@ export async function removeMediaRelationships(
  * @param mediaId - Media ID to delete
  * @returns Promise with result
  */
-export async function deleteMedia(mediaId: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteMedia(_mediaId: string): Promise<{ success: boolean; error?: string }> {
   try {
     // The frontend (media-library.astro) calls /api/media DELETE endpoint directly
     // This function is kept for consistency but shouldn't be used

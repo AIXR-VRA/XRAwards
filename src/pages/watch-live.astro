@@ -112,7 +112,7 @@ const embedUrl = hasLivestream ? getEmbedUrl(eventDetails.livestream_link) : '';
             <iframe
               src={embedUrl}
               class="w-full h-full"
-              frameborder="0"
+              style="border: 0;"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowfullscreen
               title={`${eventDetails.event_name} Livestream`}

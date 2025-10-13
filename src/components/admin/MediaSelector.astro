@@ -99,7 +99,7 @@ const uniqueId = `media-selector-${Math.random().toString(36).substring(7)}`;
   </div>
 </div>
 
-<script define:vars={{ uniqueId, multiple, mimeTypes }}>
+<script is:inline define:vars={{ uniqueId, multiple, mimeTypes }}>
   (function() {
     const selectorId = uniqueId;
     const allowMultiple = multiple;

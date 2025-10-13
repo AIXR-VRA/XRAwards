@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { supabase } from '../../utils/supabase';
+// import { supabase } from '../../utils/supabase'; // Unused import
 import { createServerClient } from '@supabase/ssr';
 import { getMedia } from '../../utils/media-library';
 

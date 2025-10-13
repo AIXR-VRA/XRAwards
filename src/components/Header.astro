@@ -1,11 +1,10 @@
 ---
 // Header component with navigation - transparent until scroll
-import { getActiveEventYear, getRecentEventYears, isAfterCeremonyDate } from '../utils/supabase';
+import { getRecentEventYears, isAfterCeremonyDate } from '../utils/supabase';
 import { getCTAButton } from '../utils/date-checker';
 import { createClient } from '@supabase/supabase-js';
 
-// Get active event year and recent years for dynamic navigation
-const eventYear = await getActiveEventYear();
+// Get recent years for dynamic navigation
 const recentYears = await getRecentEventYears();
 const [currentYear, previousYear, thirdYear] = recentYears;
 
@@ -31,7 +30,6 @@ const yearToSlug = events?.reduce((acc: any, event: any) => {
 }, {}) || {};
 
 // Check if years are after ceremony date
-const isCurrentAfterCeremony = await isAfterCeremonyDate(currentYear);
 const isPreviousAfterCeremony = await isAfterCeremonyDate(previousYear);
 const isThirdAfterCeremony = await isAfterCeremonyDate(thirdYear);
 

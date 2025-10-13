@@ -1,6 +1,6 @@
 ---
 import '../styles/globals.css';
-import { ViewTransitions } from 'astro:transitions';
+// ViewTransitions is now built into Astro by default
 
 export interface Props {
 	title?: string;
@@ -84,8 +84,7 @@ const siteTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
 		<meta name="theme-color" content="#0E0F21" />
 		<meta name="color-scheme" content="dark" />
 
-		<!-- View Transitions for smooth page navigation -->
-		<ViewTransitions />
+		<!-- View Transitions are now enabled by default in Astro -->
 
 		<!-- Additional head content from pages -->
 		<slot name="head" />

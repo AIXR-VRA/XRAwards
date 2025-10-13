@@ -39,9 +39,7 @@ const mapEmbedUrl = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie
 const heroImage = getR2ImageUrl('/images/2025/10/xr-awards-dinner-cheers-rotterdam-2023_1760216494171.png');
 const conferenceImage = getR2ImageUrl('/images/2025/10/brussles-xra_1760216262140.jpg');
 const galaImage = getR2ImageUrl('/images/2025/10/xr-awards-dinner-rotterdam-2023_1760216550174.png');
-const networkingImage = getR2ImageUrl('/images/2025/10/vr-awards-htc-team-2019_1760216397468.png');
 const venueImage = getR2ImageUrl('/images/2025/10/gala-stereopsia-brussles_1760216291947.png');
-const packageImage = getR2ImageUrl('/images/2025/10/hotel-xra_1760216332619.jpg');
 
 // Testimonial logos
 const logoGoogle = getR2ImageUrl('/images/2025/10/logo-google-white_1760206709222.png');
@@ -56,7 +54,7 @@ const logoVirtualware = getR2ImageUrl('/images/2025/10/logo-virtualware-white_17
   title="Get Your Tickets - XR Awards Gala & United XR Conference 2025"
   description="Join the world's leading XR Awards Gala and United XR Conference in Brussels. Get your tickets for the biggest celebration of VR, AR, and MR innovation. Package deals available."
 >
-  <script type="application/ld+json" slot="head">
+  <script is:inline type="application/ld+json" slot="head">
 {
   "@context": "https://schema.org",
   "@type": "Event",

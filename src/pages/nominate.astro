@@ -26,13 +26,11 @@ const { data: eventDetails } = await supabase
   .single();
 
 // Get images for sections
-const heroImage = getR2ImageUrl('/images/2025/10/xr-awards-hero_1760202291581.png');
 const winnerImage = getR2ImageUrl('/images/2025/10/apple-holding-2024-trophy_1760204737832.jpg');
 const ceremonyImage = getR2ImageUrl('/images/2025/10/obsidian-award-winner-2024_1760204866862.png');
 const categoriesImage = getR2ImageUrl('/images/2025/10/xr-head-mounted-display-of-the-year-winner-2024_1760207686185.jpg');
 const entrykitImage = getR2ImageUrl('/images/2025/10/outstanding-xr-company-of-the-year-winner-2024_1760207732668.jpg');
 const faqImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-winner-2024_1760207777680.jpg');
-const inspirationImage = getR2ImageUrl('/images/2025/10/xr-awards-dinner-cheers-rotterdam-2023_1760216494171.png');
 
 // Testimonial logos
 const logoGoogle = getR2ImageUrl('/images/2025/10/logo-google-white_1760206709222.png');
@@ -58,7 +56,7 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
   title="Nominate Your XR Work - Get Recognized at the XR Awards Gala 2025"
   description="Submit your groundbreaking VR, AR, or MR project for recognition at the world's leading XR Awards. Join industry leaders, gain global exposure, and celebrate innovation. Nominations open now for 2025."
 >
-  <script type="application/ld+json" slot="head">
+  <script is:inline type="application/ld+json" slot="head">
 {
   "@context": "https://schema.org",
   "@type": "Event",
