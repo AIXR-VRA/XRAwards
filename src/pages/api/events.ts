@@ -85,6 +85,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const eventData = {
       event_name: body.event_name,
       event_year: body.event_year,
+      slug: body.slug,
       location: body.location,
       venue_address: body.venue_address,
       organizer_name: body.organizer_name,
@@ -186,6 +187,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     const updateData = {
       event_name: eventData.event_name,
       event_year: eventData.event_year,
+      slug: eventData.slug,
       location: eventData.location,
       venue_address: eventData.venue_address,
       organizer_name: eventData.organizer_name,

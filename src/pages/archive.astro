@@ -1,0 +1,359 @@
+---
+/**
+ * Archive Page - Historical XR Awards
+ * URL: /archive
+ * Shows all past awards ceremonies with links to ceremony pages and finalists
+ */
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CTAFooter from '../components/CTAFooter.astro';
+import { Image } from 'astro:assets';
+import { createClient } from '@supabase/supabase-js';
+
+export const prerender = true;
+
+const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY
+);
+
+// Get all events sorted by year descending
+const { data: events } = await supabase
+  .from('event_details')
+  .select('*')
+  .order('event_year', { ascending: false });
+
+// Split years into two columns for navigation
+const years = events?.map(e => e.event_year) || [];
+const midPoint = Math.ceil(years.length / 2);
+const yearsColumn1 = years.slice(0, midPoint);
+const yearsColumn2 = years.slice(midPoint);
+
+// Function to format date nicely
+function formatEventDate(dateStr: string | null): string {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+---
+
+<Layout
+  title="Awards Archive - AIXR XR Awards"
+  description="Explore the rich history of the Academy's XR Awards. From 2017 to today, celebrating excellence in XR innovation."
+>
+  <Header />
+
+  <main class="min-h-screen bg-white">
+    <!-- Hero Section -->
+    <section class="relative bg-[#0E1022] pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+      <!-- Content -->
+      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="archive-title text-white mb-6">
+          Awards Archive
+        </h1>
+
+        <!-- Decorative Dots -->
+        <div class="flex justify-center gap-2 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        </div>
+
+        <p class="archive-subtitle text-white">
+          Explore the rich history of the Academy's XR Awards
+        </p>
+      </div>
+    </section>
+
+    <!-- Year Navigation and Legacy Section -->
+    <section class="py-16 md:py-20 bg-white">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <!-- Years Navigation - Left Side -->
+          <div class="lg:col-span-5">
+            <div class="grid grid-cols-2 gap-x-12 gap-y-4">
+              <!-- Column 1 -->
+              <div class="space-y-4">
+                {yearsColumn1.map((year) => {
+                  return (
+                    <a
+                      href={`#${year}`}
+                      class="block text-2xl font-bold text-gray-900 hover:text-[#4923EB] transition-colors smooth-scroll-link"
+                    >
+                      {year}
+                    </a>
+                  );
+                })}
+              </div>
+              
+              <!-- Column 2 -->
+              <div class="space-y-4">
+                {yearsColumn2.map((year) => {
+                  return (
+                    <a
+                      href={`#${year}`}
+                      class="block text-2xl font-bold text-gray-900 hover:text-[#4923EB] transition-colors smooth-scroll-link"
+                    >
+                      {year}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <!-- Legacy Text - Right Side -->
+          <div class="lg:col-span-7">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+              A strong legacy of recognizing and celebrating outstanding achievement
+            </h2>
+            <div class="space-y-4 text-gray-700 leading-relaxed">
+              <p>
+                Founded in 2017, for over {new Date().getFullYear() - 2017} years the XR Awards has been crowning the XR industries greatest triumphs.
+              </p>
+              <p>
+                Our journey has taken our global celebration across physical and digital realms. Check out the best bits from every XR Awards show below.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Separator -->
+        <div class="mt-16 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+      </div>
+    </section>
+
+    <!-- Event Sections -->
+    {events?.map((event, index) => {
+      const ceremonyImage = event.entertainment_images?.[0] || event.hero_image;
+      const finalistsImage = event.hero_image;
+      const ceremonyLink = event.slug ? `/${event.slug}` : null;
+      const finalistsLink = `/winners-and-finalists-${event.event_year}`;
+      
+      return (
+        <section 
+          id={event.event_year.toString()}
+          class={`py-12 md:py-16 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${index >= 3 ? 'lazy-section' : ''}`}
+          data-index={index}
+        >
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Event Header -->
+            <div class="mb-8">
+              <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                {event.event_name}
+              </h2>
+              <h3 class="text-xl md:text-2xl text-gray-600">
+                {event.location}, {formatEventDate(event.awards_ceremony)}
+              </h3>
+            </div>
+
+            <!-- Two Column Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <!-- Left: Ceremony Section -->
+              <div class="space-y-6">
+                {ceremonyImage && (
+                  <div class="aspect-video rounded-2xl overflow-hidden shadow-lg bg-gray-900">
+                    <Image
+                      src={ceremonyImage}
+                      alt={`${event.event_name} ceremony`}
+                      width={800}
+                      height={450}
+                      class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      format="webp"
+                    />
+                  </div>
+                )}
+                {event.highlight_blurb_1 && (
+                  <p class="text-base text-gray-700 leading-relaxed">
+                    {event.highlight_blurb_1}
+                  </p>
+                )}
+                {ceremonyLink && (
+                  <a
+                    href={ceremonyLink}
+                    class="inline-block px-8 py-3 bg-[#4923EB] text-white text-sm font-bold rounded-full hover:bg-[#3a1bb8] transition-colors"
+                  >
+                    View Ceremony
+                  </a>
+                )}
+              </div>
+
+              <!-- Right: Finalists Section -->
+              <div class="space-y-6">
+                {finalistsImage && (
+                  <div class="aspect-video rounded-2xl overflow-hidden shadow-lg bg-gray-100">
+                    <Image
+                      src={finalistsImage}
+                      alt={`${event.event_name} finalists`}
+                      width={800}
+                      height={450}
+                      class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      format="webp"
+                    />
+                  </div>
+                )}
+                {event.finalists_winners_blurb && (
+                  <p class="text-base text-gray-700 leading-relaxed">
+                    {event.finalists_winners_blurb}
+                  </p>
+                )}
+                <a
+                  href={finalistsLink}
+                  class="inline-block px-8 py-3 bg-[#4923EB] text-white text-sm font-bold rounded-full hover:bg-[#3a1bb8] transition-colors"
+                >
+                  View Winners & Finalists
+                </a>
+              </div>
+            </div>
+
+            <!-- Separator (not on last item) -->
+            {index < (events?.length || 0) - 1 && (
+              <div class="mt-12 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+            )}
+          </div>
+        </section>
+      );
+    })}
+
+    <!-- CTA Section -->
+    <CTAFooter />
+  </main>
+
+  <Footer />
+</Layout>
+
+<script>
+  function initArchivePage() {
+    const smoothScrollLinks = document.querySelectorAll('.smooth-scroll-link');
+    
+    // Smooth scroll for year navigation links
+    smoothScrollLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = link.getAttribute('href')?.substring(1);
+        const targetElement = document.getElementById(targetId || '');
+        
+        if (targetElement) {
+          const headerOffset = 100;
+          const elementPosition = targetElement.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+          
+          // Update URL hash
+          history.pushState(null, '', `#${targetId}`);
+        }
+      });
+    });
+
+    // Lazy loading for sections after the first 3
+    const lazySections = document.querySelectorAll('.lazy-section');
+    
+    if (lazySections.length > 0) {
+      // First, check if any sections are already in viewport (e.g., after back navigation)
+      lazySections.forEach(section => {
+        const rect = section.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+        if (isVisible) {
+          section.classList.add('section-visible');
+        }
+      });
+
+      // Then set up the observer for remaining sections
+      const observerOptions = {
+        root: null,
+        rootMargin: '200px',
+        threshold: 0.01
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const section = entry.target as HTMLElement;
+            section.classList.add('section-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+
+      lazySections.forEach(section => {
+        // Only observe if not already visible
+        if (!section.classList.contains('section-visible')) {
+          observer.observe(section);
+        }
+      });
+    }
+
+    // If page loaded with hash, scroll to it
+    if (window.location.hash) {
+      setTimeout(() => {
+        const targetId = window.location.hash.substring(1);
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+          const headerOffset = 100;
+          const elementPosition = targetElement.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    }
+  }
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', initArchivePage);
+  
+  // Re-initialize on navigation back (for SPAs or browser back button)
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      // Page was loaded from bfcache (back/forward cache)
+      initArchivePage();
+    }
+  });
+</script>
+
+<style>
+  .archive-title {
+    font-size: 35px;
+    font-weight: 600;
+  }
+
+  .archive-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  /* Lazy loading animation */
+  .lazy-section {
+    opacity: 0.3;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  }
+
+  .lazy-section.section-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Ensure smooth scrolling on the page */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (max-width: 768px) {
+    .archive-title {
+      font-size: 28px;
+    }
+  }
+</style>
+

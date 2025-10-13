@@ -779,6 +779,18 @@ if (!session) {
     modal.classList.add('hidden');
     form.reset();
     (document.getElementById('mediaId') as HTMLInputElement).value = '';
+    
+    // Reset file input and preview
+    const fileInput = document.getElementById('file') as HTMLInputElement;
+    const filePreview = document.getElementById('filePreview')!;
+    const previewImage = document.getElementById('previewImage') as HTMLImageElement;
+    const fileName = document.getElementById('fileName')!;
+    
+    if (fileInput) fileInput.value = '';
+    filePreview.classList.add('hidden');
+    previewImage.src = '';
+    fileName.textContent = '';
+    
     selectedEvents = [];
     selectedCategories = [];
     selectedFinalists = [];
