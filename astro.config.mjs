@@ -2,15 +2,15 @@
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
-import node from '@astrojs/node';
+import cloudflare from '@astrojs/cloudflare';
 import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://yoursite.com/',
+  site: 'https://xr-awards.daniel-12f.workers.dev/',
   output: 'server', // Changed from 'static' to support API routes and admin pages
-  adapter: node({
-    mode: 'standalone',
+  adapter: cloudflare({
+    mode: 'directory',
   }),
   image: {
     // Disable remote image optimization entirely to avoid build failures

@@ -1,5 +1,5 @@
 name = "xr-awards"
-main = "src/worker.js"
+main = "dist/_worker.js/index.js"
 compatibility_date = "2025-10-13"
 
 [assets]
