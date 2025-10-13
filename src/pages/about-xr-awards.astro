@@ -1,0 +1,630 @@
+---
+/**
+ * About XR Awards Page
+ * Showcases the history and evolution of the XR Awards
+ */
+export const prerender = true;
+
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CTAFooter from '../components/CTAFooter.astro';
+import { Image } from 'astro:assets';
+import { getR2ImageUrl } from '../utils/r2';
+import { supabase } from '../utils/supabase';
+
+// Get hero image and other images from R2
+const heroImage = getR2ImageUrl('/images/2025/10/vr-awards-2023-hero_1760297409086.jpg');
+const legacyImage = getR2ImageUrl('/images/2025/10/vr-awards-2017-black-and-white_1760350306676.png');
+const testimonialImage = getR2ImageUrl('/images/2025/10/vr-awards-2018-highlight-3_1760303842225.jpg');
+
+// Timeline milestone images
+const endorsedBoardImage = getR2ImageUrl('/images/2025/10/xr-awards-2024-entertainment-highlight-1_1760219098428.jpg');
+const inauguralAwardsImage = getR2ImageUrl('/images/2025/10/vr-awards-2017-entertainment-3_1760350315691.png');
+const vrAtAwardsImage = getR2ImageUrl('/images/2025/10/vr-awards-2018-altspace_1760350324995.png');
+const aixrLaunchedImage = getR2ImageUrl('/images/2025/10/aixr-founded-opening-party_1760350266326.png');
+const lifetimeAchievementImage = getR2ImageUrl('/images/2025/10/john-carmack-lta-winner_1760350297574.png');
+const globalPandemicImage = getR2ImageUrl('/images/2025/10/vr-awards-2020-pandemic-support_1760350333881.png');
+const fiveYearImage = getR2ImageUrl('/images/2025/10/vr-awards-2021-world-hop_1760350342932.png');
+const rotterdamImage = getR2ImageUrl('/images/2025/10/vr-awards-2022-entertainment-1_1760298799280.jpg');
+const aiMeetsXRImage = getR2ImageUrl('/images/2025/10/vr-awards-2022-entertainment-highlight-3_1760350351929.png');
+const aixrXRAwardsImage = getR2ImageUrl('/images/2025/10/apple-holding-2024-trophy_1760204737832.jpg');
+const cruiseShipImage = getR2ImageUrl('/images/2025/10/xr-awards-2024-highlight-2_1760219152714.jpg');
+const unitedXRImage = getR2ImageUrl('/images/2025/10/xr-awards-united-xr-logo_1760202728750.png');
+
+// Fetch first 4 judges for display
+const { data: judges } = await supabase
+  .from('judges')
+  .select(`
+    id,
+    first_name,
+    last_name,
+    job_title,
+    organization,
+    profile_image_url,
+    sort_order,
+    judge_events!inner(event_id),
+    judge_tags(
+      tags(
+        id,
+        name
+      )
+    )
+  `)
+  .eq('is_visible', true)
+  .order('sort_order', { ascending: true })
+  .limit(4);
+
+// Timeline data
+const timelineEvents = [
+  {
+    date: 'May 2016',
+    title: 'Founded',
+    description: 'It began with a vision—creating the first-ever global celebration dedicated entirely to extended reality. Thus, the VR Awards were born, marking the dawn of a transformative legacy.',
+    link: 'https://danielcolaianni.com',
+    linkText: 'Founded by Daniel Colaianni',
+    position: 'left',
+    dotColor: 'orange'
+  },
+  {
+    date: 'March 2017',
+    title: 'Endorsed Board',
+    description: 'Industry giants including Disney, AMD, Nvidia, Meta, HTC, Microsoft, and Snapchat backed the awards, joining its board to shape its future',
+    image: endorsedBoardImage,
+    position: 'right',
+    dotColor: 'orange'
+  },
+  {
+    date: '2017 October',
+    title: 'Inaugural Awards',
+    description: 'The vision became reality as London hosted the glittering inaugural VR Awards, laying foundations for years of XR celebration to come.',
+    image: inauguralAwardsImage,
+    position: 'left',
+    dotColor: 'cyan'
+  },
+  {
+    date: '2018 October',
+    title: 'VR at the Awards',
+    description: 'Always pioneering, the awards stepped boldly into virtual space via AltspaceVR, seamlessly blending physical and digital worlds.',
+    image: vrAtAwardsImage,
+    position: 'right',
+    dotColor: 'cyan'
+  },
+  {
+    date: 'January 2019',
+    title: 'AIXR Launched',
+    description: 'AIXR was founded as a not-for-profit type entity, driven by a mission to nurture, expand, and empower the XR community worldwide.',
+    image: aixrLaunchedImage,
+    position: 'left',
+    dotColor: 'cyan'
+  },
+  {
+    date: '2019 November',
+    title: 'Lifetime Achievement',
+    description: 'The prestigious Lifetime Achievement Award debuted, honoring Meta CTO John Carmack, recognizing enduring contributions to XR',
+    image: lifetimeAchievementImage,
+    position: 'right',
+    dotColor: 'cyan'
+  },
+  {
+    date: '2020 November',
+    title: 'Global Pandemic',
+    description: 'Amid a global pandemic, the community united to create a groundbreaking VRChat experience, transforming adversity into immersive innovation.',
+    image: globalPandemicImage,
+    position: 'left',
+    dotColor: 'cyan'
+  },
+  {
+    date: 'November 2021',
+    title: '5 Year Celebration',
+    description: 'AIXR proudly celebrated 5 years of relentless dedication, marking half a decade of shaping XR history.',
+    image: fiveYearImage,
+    position: 'left',
+    dotColor: 'cyan',
+    isMilestone: true
+  },
+  {
+    date: '2022 December',
+    title: 'Rotterdam',
+    description: 'Breaking tradition, the XR Awards traveled internationally for the first time, revitalizing the event with vibrant celebrations in Rotterdam.',
+    image: rotterdamImage,
+    position: 'right',
+    dotColor: 'cyan'
+  },
+  {
+    date: '2022 December',
+    title: 'AI Meets XR',
+    description: 'Audiences witnessed history with the first-ever live VR musical, a mesmerizing blend of artificial intelligence and immersive performance',
+    image: aiMeetsXRImage,
+    position: 'left',
+    dotColor: 'cyan'
+  },
+  {
+    date: 'January 2024',
+    title: 'AIXR XR Awards',
+    description: 'Reflecting the evolution of the industry itself, VR Awards became the AIXR XR Awards, embracing the full spectrum of immersive technology',
+    image: aixrXRAwardsImage,
+    position: 'right',
+    dotColor: 'cyan'
+  },
+  {
+    date: 'December 2024',
+    title: 'Taking over a cruise ship',
+    description: 'XR Awards took to the sea, hosting an unparalleled event on a luxury cruise ship, many boat puns were made',
+    image: cruiseShipImage,
+    position: 'left',
+    dotColor: 'cyan'
+  },
+  {
+    date: 'April 2025',
+    title: 'UnitedXR',
+    description: 'In a defining moment, XR Awards united with AWE and Stereopsia under UnitedXR, heralding a new era of prestige, recognition, and global excellence in XR.',
+    image: unitedXRImage,
+    position: 'right',
+    dotColor: 'cyan'
+  }
+];
+---
+
+<Layout
+  title="About XR Awards - AIXR XR Awards"
+  description="For Over 8 Years AIXR has been Celebrating Excellence in Spatial Computing & Extended Reality"
+>
+  <Header />
+
+  <main class="min-h-screen bg-white">
+    <!-- Hero Section -->
+    <section class="relative pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+      <div class="absolute inset-0 z-0">
+        <Image
+          src={heroImage}
+          alt="XR Awards History"
+          width={1920}
+          height={800}
+          class="w-full h-full object-cover"
+          format="webp"
+        />
+        <div class="absolute inset-0 z-10" style="background-color: rgba(0, 0, 0, 0.6);"></div>
+      </div>
+
+      <div class="relative z-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="hero-title text-white mb-6">
+          The largest International XR Awards Show
+        </h1>
+
+        <!-- Decorative Dots -->
+        <div class="flex justify-center mb-6">
+          <svg width="101" height="9" viewBox="0 0 101 9" fill="none" xmlns="http://www.w3.org/2000/svg" class="opacity-80">
+            <circle cx="4.5" cy="4.5" r="4.5" fill="#00D4D8"/>
+            <circle cx="25.5" cy="4.5" r="4.5" fill="#00D4D8"/>
+            <circle cx="46.5" cy="4.5" r="4.5" fill="#00D4D8"/>
+            <circle cx="67.5" cy="4.5" r="4.5" fill="#00D4D8"/>
+            <circle cx="88.5" cy="4.5" r="4.5" fill="#00D4D8"/>
+          </svg>
+        </div>
+
+        <p class="hero-subtitle text-gray-200">
+          For Over 8 Years AIXR has been Celebrating Excellence in Spatial Computing & Extended Reality
+        </p>
+      </div>
+    </section>
+
+    <!-- Legacy Section -->
+    <section class="py-16 md:py-24 bg-white">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <!-- Left: Text Content -->
+          <div>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+              A Strong Legacy in Awarding XR projects
+            </h2>
+            <div class="space-y-4 text-lg text-gray-700 leading-relaxed">
+              <p>
+                In 2025, AIXR joined forces with UnitedXR, now bringing together AWE, Stereopsia, and AIXR under one unified banner. This merger has created the largest XR Gala in the world, celebrating global excellence in XR innovation and achievement.
+              </p>
+              <p class="font-semibold">
+                About the UnitedXR Gala:
+              </p>
+              <p>
+                The UnitedXR Gala is the premier event recognizing groundbreaking achievements across virtual reality, augmented reality, and mixed reality. With combined expertise, reach, and influence from AWE, Stereopsia, and AIXR, the gala sets a new global standard in XR excellence.
+              </p>
+            </div>
+          </div>
+
+          <!-- Right: Image -->
+          <div class="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-xl">
+            <Image
+              src={legacyImage}
+              alt="VR Awards 2017"
+              width={800}
+              height={600}
+              class="w-full h-full object-cover"
+              format="webp"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section class="relative py-16 md:py-24 overflow-hidden" style="background-color: #0E1022;">
+      <!-- Decorative floating dots -->
+      <div class="absolute top-20 right-1/4 w-16 h-16 rounded-full bg-cyan-400 opacity-60"></div>
+      <div class="absolute top-60 right-1/3 w-20 h-20 rounded-full bg-cyan-400 opacity-40"></div>
+      <div class="absolute top-96 left-1/4 w-12 h-12 rounded-full bg-cyan-400 opacity-50"></div>
+      
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Timeline Container -->
+        <div class="relative timeline-wrapper" style="min-height: 100px;">
+          <!-- Visible Center Dotted Line -->
+          <div class="absolute left-1/2 top-0 bottom-0 w-0.5 bg-transparent z-0" style="border-left: 2px dotted #6B7280; margin-left: -1px;"></div>
+
+          <!-- Timeline Events -->
+          {timelineEvents.map((event, index) => (
+            <div 
+              class={`timeline-item relative ${event.isMilestone ? 'mb-32' : 'mb-16'}`}
+              data-index={index}
+            >
+              {event.position === 'left' ? (
+                <!-- Left Side Event -->
+                <div class="flex items-start">
+                  <!-- Left Half: Text Content (right-aligned) -->
+                  <div class="w-1/2 pr-12 text-right">
+                    <div class="flex items-center justify-end gap-2 mb-2">
+                      {event.dotColor === 'orange' && (
+                        <svg class="w-3 h-3 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      )}
+                      <span class={`text-xs font-mono uppercase tracking-wide ${event.dotColor === 'orange' ? 'text-orange-400' : 'text-cyan-400'}`}>
+                        {event.date}
+                      </span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">
+                      {event.title}
+                    </h3>
+                    <p class="text-sm text-gray-300 leading-relaxed">
+                      {event.description}
+                      {event.link && (
+                        <span>
+                          {' '}
+                          <a href={event.link} target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 underline">
+                            {event.linkText}
+                          </a>
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  <!-- Right Half: Image -->
+                  <div class="w-1/2 pl-12">
+                    {event.image && (
+                      <div class="w-64 aspect-[4/3] rounded-lg overflow-hidden shadow-xl">
+                        <Image
+                          src={event.image}
+                          alt={event.title}
+                          width={400}
+                          height={300}
+                          class="w-full h-full object-cover"
+                          format="webp"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <!-- Right Side Event -->
+                <div class="flex items-start">
+                  <!-- Left Half: Image -->
+                  <div class="w-1/2 pr-12 flex justify-end">
+                    {event.image && (
+                      <div class="w-64 aspect-[4/3] rounded-lg overflow-hidden shadow-xl">
+                        <Image
+                          src={event.image}
+                          alt={event.title}
+                          width={400}
+                          height={300}
+                          class="w-full h-full object-cover"
+                          format="webp"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <!-- Right Half: Text Content (left-aligned) -->
+                  <div class="w-1/2 pl-12 text-left">
+                    <div class="flex items-center gap-2 mb-2">
+                      {event.dotColor === 'orange' && (
+                        <svg class="w-3 h-3 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      )}
+                      <span class={`text-xs font-mono uppercase tracking-wide ${event.dotColor === 'orange' ? 'text-orange-400' : 'text-cyan-400'}`}>
+                        {event.date}
+                      </span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">
+                      {event.title}
+                    </h3>
+                    <p class="text-sm text-gray-300 leading-relaxed">
+                      {event.description}
+                      {event.link && (
+                        <span>
+                          {' '}
+                          <a href={event.link} target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:text-cyan-300 underline">
+                            {event.linkText}
+                          </a>
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <!-- Timeline Dot (centered on the line) -->
+              <div 
+                class={`timeline-dot absolute left-1/2 top-0 -ml-2 w-4 h-4 rounded-full z-10 transition-all duration-300 ease-out ${event.dotColor === 'orange' ? 'bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.8)]' : 'bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.8)]'}`}
+                data-dot={index}
+              ></div>
+
+              <!-- Orange star badge for special milestones -->
+              {event.dotColor === 'orange' && (
+                <div class="absolute left-1/2 top-0 -ml-4 -mt-1 w-8 h-8 z-20">
+                  <div class="w-full h-full rounded-full bg-orange-500 flex items-center justify-center shadow-lg">
+                    <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Judges Section -->
+    {judges && judges.length > 0 && (
+      <section class="section relative overflow-hidden">
+        <!-- Grid Pattern Background -->
+        <div class="absolute inset-0 judges-grid-wrapper" style="perspective: 1000px;">
+          <div class="absolute judges-grid" style="top: -150%; left: -100%; right: -100%; bottom: -100%; background-image:
+            repeating-linear-gradient(0deg, transparent, transparent 58px, rgba(73, 35, 235, 0.15) 58px, rgba(73, 35, 235, 0.15) 60px),
+            repeating-linear-gradient(90deg, transparent, transparent 58px, rgba(73, 35, 235, 0.15) 58px, rgba(73, 35, 235, 0.15) 60px),
+            radial-gradient(circle at center, rgba(73, 35, 235, 0.3) 1px, transparent 1px);
+            background-size: 60px 60px, 60px 60px, 10px 10px;
+            background-position: center center;
+            transform: rotateX(55deg) rotateZ(-8deg);
+            transform-origin: center center;"></div>
+        </div>
+
+        <!-- Top Fade Overlay -->
+        <div class="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none"></div>
+
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div class="text-left mb-12">
+            <h2 class="text-4xl font-bold mb-4">Over 70 Expert Judges</h2>
+            <p class="text-lg text-secondary max-w-4xl mb-8">
+              Our judging panel is made up of industry-leading creatives in virtual reality. We have gathered experts in various sectors of XR, from academics, journalists, and creative directors to founders and C-Suite executives. We tailor and match our judges' specific areas of expertise to our award categories in order to ensure that our judging is of the highest-possible quality.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {judges.map((judge) => (
+              <div class="relative bg-gray-900 rounded-2xl overflow-hidden group">
+                {/* Judge Image */}
+                <div class="relative aspect-square overflow-hidden">
+                  {judge.profile_image_url ? (
+                    <Image
+                      src={judge.profile_image_url}
+                      alt={`${judge.first_name} ${judge.last_name}`}
+                      class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                      width={400}
+                      height={400}
+                    />
+                  ) : (
+                    <div class="w-full h-full bg-gray-700 transition-transform duration-500 ease-out group-hover:scale-110"></div>
+                  )}
+
+                  {/* Tag Pills - positioned at top */}
+                  {judge.judge_tags && judge.judge_tags.length > 0 && (
+                    <div class="absolute top-3 left-3 flex flex-wrap gap-2">
+                      {judge.judge_tags.map((judgeTag: any) => (
+                        judgeTag.tags && (
+                          <span class="px-3 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-full uppercase tracking-wide">
+                            {(judgeTag.tags as any).name}
+                          </span>
+                        )
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Judge Info - left aligned */}
+                <div class="p-5 text-left">
+                  <h3 class="text-xl font-bold text-white mb-2">{judge.first_name} {judge.last_name}</h3>
+                  <p class="text-sm font-medium text-gray-300 mb-1">{judge.job_title}</p>
+                  <p class="text-sm text-gray-400">{judge.organization}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div class="text-center">
+            <a href="/judges" class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors">See the Full Judging Panel</a>
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- Testimonial Section -->
+    <section class="relative py-16 md:py-24 bg-[#0E1022] overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <div class="absolute -left-20 md:left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+
+      <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <!-- Left: Testimonial -->
+          <div>
+            <h3 class="text-3xl md:text-4xl font-bold text-white mb-8 leading-tight">
+              The celebration of the Oscars in Extended Reality. Unforgettable red carpet night.
+            </h3>
+            <div class="mb-6">
+              <!-- Decorative Quote Marks SVG -->
+              <svg width="47" height="36" viewBox="0 0 47 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="opacity-60">
+                <path d="M10.5 36C4.5 36 0 31.5 0 25.5C0 13.5 7.5 4.5 16.5 0L19.5 4.5C13.5 7.5 9 13.5 9 19.5C9 21 9.75 22.5 11.25 23.25C12 23.25 12.75 23.25 13.5 23.25C17.25 23.25 20.25 26.25 20.25 30C20.25 33.75 17.25 36 13.5 36H10.5ZM36.75 36C30.75 36 26.25 31.5 26.25 25.5C26.25 13.5 33.75 4.5 42.75 0L45.75 4.5C39.75 7.5 35.25 13.5 35.25 19.5C35.25 21 36 22.5 37.5 23.25C38.25 23.25 39 23.25 39.75 23.25C43.5 23.25 46.5 26.25 46.5 30C46.5 33.75 43.5 36 39.75 36H36.75Z" fill="#00D4D8"/>
+              </svg>
+            </div>
+            <p class="text-lg text-white/90 font-semibold mb-2">
+              David Moreno
+            </p>
+            <p class="text-base text-white/70">
+              Head of Marketing & Business Development, Virtualware
+            </p>
+          </div>
+
+          <!-- Right: Image -->
+          <div class="relative aspect-video rounded-2xl overflow-hidden shadow-2xl">
+            <Image
+              src={testimonialImage}
+              alt="XR Awards Event"
+              width={800}
+              height={450}
+              class="w-full h-full object-cover"
+              format="webp"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <CTAFooter />
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .hero-title {
+    font-size: 35px;
+    font-weight: 600;
+  }
+
+  .hero-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  .section {
+    padding: 4rem 0;
+  }
+
+  /* Timeline Scroll Animations */
+  .timeline-dot {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .timeline-item.active .timeline-dot {
+    transform: scale(1.6);
+    filter: brightness(1.3);
+  }
+
+  .milestone-item {
+    position: relative;
+  }
+
+  /* Extended dotted line for milestone */
+  .milestone-item::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: 2px;
+    height: 3rem;
+    border-left: 2px dotted rgba(156, 163, 175, 0.5);
+    margin-left: -1px;
+  }
+
+  @media (min-width: 768px) {
+    .milestone-item::after {
+      height: 6rem;
+    }
+  }
+
+  .milestone-item .timeline-dot {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-left: -0.625rem;
+  }
+
+  @media (max-width: 767px) {
+    .milestone-item .timeline-dot {
+      width: 1rem;
+      height: 1rem;
+      margin-left: -0.5rem;
+    }
+  }
+
+  .milestone-item.active .timeline-dot {
+    transform: scale(1.9);
+  }
+
+  /* Grid perspective - remove on mobile */
+  @media (max-width: 768px) {
+    .judges-grid-wrapper {
+      perspective: none !important;
+    }
+
+    .judges-grid {
+      transform: none !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+    }
+  }
+</style>
+
+<script>
+  // Timeline scroll animation
+  if (typeof window !== 'undefined') {
+    const observeTimeline = () => {
+      const timelineItems = document.querySelectorAll('.timeline-item');
+      
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('active');
+            } else {
+              entry.target.classList.remove('active');
+            }
+          });
+        },
+        {
+          threshold: 0.5,
+          rootMargin: '-100px 0px'
+        }
+      );
+
+      timelineItems.forEach((item) => {
+        observer.observe(item);
+      });
+    };
+
+    // Initialize on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', observeTimeline);
+    } else {
+      observeTimeline();
+    }
+  }
+</script>
+

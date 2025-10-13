@@ -1,0 +1,252 @@
+---
+/**
+ * Store Page - XR Awards Store
+ * Products: Trophies and Accolades
+ */
+export const prerender = true;
+
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { Image } from 'astro:assets';
+import { getR2ImageUrl } from '../utils/r2';
+
+// Product images from R2
+const trophyImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-main-trophy-design_1760351347176.png');
+const accoladesImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-accolades-tropy-design_1760351357634.png');
+---
+
+<Layout
+  title="XR Awards Store - AIXR XR Awards"
+  description="Purchase official XR Award trophies and accolades. Celebrate your achievement with custom-made awards handcrafted in the UK."
+>
+  <Header />
+
+  <main class="min-h-screen bg-white">
+    <!-- Store Header -->
+    <section class="relative bg-[#0E1022] pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <!-- Left Ring -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <!-- Right Ring -->
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      
+      <!-- Content -->
+      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="store-title text-white mb-6">
+          The XR Awards Store
+        </h1>
+        
+        <!-- Decorative Dots -->
+        <div class="flex justify-center gap-2 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        </div>
+        
+        <p class="store-subtitle text-white">
+          It's one feeling to win an XR Award, but it's another feeling entirely to take it home
+        </p>
+      </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="py-8 md:py-12 bg-white">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Duplicate Trophies -->
+        <div class="mb-16 md:mb-24">
+          <h2 class="text-xl md:text-2xl font-semibold text-gray-900 mb-8">Duplicate Trophies</h2>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+            <!-- Left: Image + Bullets -->
+            <div>
+              <div class="mb-6 overflow-hidden rounded-lg">
+                <Image
+                  src={trophyImageUrl}
+                  alt="XR Awards Trophy"
+                  width={600}
+                  height={600}
+                  class="w-full h-auto object-cover"
+                  loading="eager"
+                />
+              </div>
+              
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li>• Only for Award Category Winners</li>
+                <li>• 100% custom made to order</li>
+                <li>• Fully handmade and machined in the UK</li>
+                <li>• Manufacturing & insurance costs included</li>
+              </ul>
+            </div>
+
+            <!-- Right: Description + Order Form -->
+            <div class="flex flex-col">
+              <p class="text-base text-gray-700 mb-6 leading-relaxed">
+                Celebrate your win with an official XR Award trophy, designed to symbolize your achievement in excellence. Each trophy is custom-made and represents the highest recognition in immersive technology.
+              </p>
+
+              <!-- Order Form -->
+              <div class="bg-gray-50 border border-gray-200 rounded-sm p-6">
+                <div class="flex items-baseline justify-between mb-3">
+                  <p class="text-sm text-gray-700">XR Awards Trophy & Certificates</p>
+                  <p class="text-sm font-semibold text-gray-900">£ 820.00</p>
+                </div>
+                
+                <p class="text-xs text-gray-500 mb-4">Shipping added at checkout</p>
+
+                <div class="flex flex-row gap-3">
+                  <div class="w-auto">
+                    <label for="trophy-quantity" class="block text-xs text-gray-600 mb-1">
+                      Quantity <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="trophy-quantity"
+                      min="1"
+                      max="20"
+                      value="1"
+                      class="w-20 px-3 py-2 border border-gray-300 rounded-sm text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#4923EB] focus:border-[#4923EB]"
+                    />
+                  </div>
+                  
+                  <div class="flex-1">
+                    <div class="block text-xs mb-1 invisible">‎</div>
+                    <button
+                      onclick="handleOrder('trophy')"
+                      class="w-full px-4 py-2 bg-[#4923EB] text-white text-sm font-medium rounded-sm hover:bg-[#3a1bb8] transition-colors"
+                    >
+                      Order
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- XR Accolade Awards -->
+        <div class="mb-16 md:mb-24">
+          <h2 class="text-xl md:text-2xl font-semibold text-gray-900 mb-8">XR Accolade Awards</h2>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+            <!-- Left: Image + Bullets -->
+            <div>
+              <div class="mb-6 overflow-hidden rounded-lg">
+                <Image
+                  src={accoladesImageUrl}
+                  alt="XR Accolade Award"
+                  width={600}
+                  height={600}
+                  class="w-full h-auto object-cover"
+                  loading="lazy"
+                />
+              </div>
+              
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li>• Only for Accolade Winners</li>
+                <li>• Custom-made to order</li>
+                <li>• Fully handmade and machined in the UK</li>
+                <li>• Manufacturing & insurance costs included</li>
+              </ul>
+            </div>
+
+            <!-- Right: Description + Order Form -->
+            <div class="flex flex-col">
+              <p class="text-base text-gray-700 mb-6 leading-relaxed">
+                Winners of accolades receive digital recognition. For those looking to showcase their success, we offer the option to order a physical accolade award. These are half the size of an XR Award trophy and provide a keepsake of your accomplishment.
+              </p>
+
+              <!-- Order Form -->
+              <div class="bg-gray-50 border border-gray-200 rounded-sm p-6">
+                <div class="flex items-baseline justify-between mb-3">
+                  <p class="text-sm text-gray-700">XR Accolades</p>
+                  <p class="text-sm font-semibold text-gray-900">£ 395.00</p>
+                </div>
+                
+                <p class="text-xs text-gray-500 mb-4">Shipping added at checkout</p>
+
+                <div class="flex flex-row gap-3">
+                  <div class="w-auto">
+                    <label for="accolade-quantity" class="block text-xs text-gray-600 mb-1">
+                      Quantity <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="accolade-quantity"
+                      min="1"
+                      max="20"
+                      value="1"
+                      class="w-20 px-3 py-2 border border-gray-300 rounded-sm text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#4923EB] focus:border-[#4923EB]"
+                    />
+                  </div>
+                  
+                  <div class="flex-1">
+                    <div class="block text-xs mb-1 invisible">‎</div>
+                    <button
+                      onclick="handleOrder('accolade')"
+                      class="w-full px-4 py-2 bg-[#4923EB] text-white text-sm font-medium rounded-sm hover:bg-[#3a1bb8] transition-colors"
+                    >
+                      Order
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<script>
+  // TODO: Replace with proper Stripe payment form
+  // For now, using mailto as a temporary solution
+  (window as any).handleOrder = function(productType: string) {
+    const quantityInput = document.getElementById(
+      productType === 'trophy' ? 'trophy-quantity' : 'accolade-quantity'
+    ) as HTMLInputElement;
+    
+    const quantity = quantityInput?.value || '1';
+    const productName = productType === 'trophy' ? 'XR Awards Trophy & Certificates' : 'XR Accolades';
+    const price = productType === 'trophy' ? '£820.00' : '£395.00';
+    
+    const subject = encodeURIComponent(`XR Awards Store - ${productName} Order`);
+    const body = encodeURIComponent(
+      `Hello,\n\nI would like to order the following:\n\n` +
+      `Product: ${productName}\n` +
+      `Quantity: ${quantity}\n` +
+      `Unit Price: ${price}\n\n` +
+      `Please send me payment and shipping details.\n\n` +
+      `Thank you!`
+    );
+    
+    window.location.href = `mailto:awards@aixr.org?subject=${subject}&body=${body}`;
+  };
+</script>
+
+<style>
+  .store-title {
+    font-size: 35px;
+    font-weight: 600;
+  }
+
+  .store-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    font-family: "IBM Plex Mono", monospace;
+  }
+</style>
+
