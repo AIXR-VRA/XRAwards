@@ -95,7 +95,8 @@ export async function getEventPhase(): Promise<EventPhase> {
   }
 
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  // Create today's date in UTC to avoid timezone issues
+  const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
   
   // Parse event dates
   const nominationsOpen = eventDetails.nominations_open ? new Date(eventDetails.nominations_open) : null;
