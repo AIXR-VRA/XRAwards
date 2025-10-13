@@ -194,16 +194,16 @@ export function createSecureSupabaseClient(cookies: any, request?: Request) {
       cookies: {
         getAll() {
           if (request) {
-            return parseCookieHeader(request.headers.get('Cookie') ?? '');
+            const cookies = parseCookieHeader(request.headers.get('Cookie') ?? '');
+            // Filter out cookies without values and ensure value is string
+            return cookies.filter(cookie => cookie.value).map(cookie => ({
+              name: cookie.name,
+              value: cookie.value!
+            }));
           }
-          // Fallback to individual cookie access
-          const cookieArray: { name: string; value: string }[] = [];
-          for (const [name, cookie] of cookies.entries()) {
-            if (cookie.value) {
-              cookieArray.push({ name, value: cookie.value });
-            }
-          }
-          return cookieArray;
+          // For Astro pages without request object, return empty array
+          // The session will be handled through other means
+          return [];
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) =>

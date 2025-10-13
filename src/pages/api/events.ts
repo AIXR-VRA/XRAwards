@@ -39,7 +39,7 @@ export const GET: APIRoute = async ({ cookies }) => {
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   // Secure authentication check
-  const authResult = await requireApiAuth(cookies);
+  const authResult = await requireApiAuth(cookies, request);
   
   if (!authResult.authenticated) {
     return new Response(JSON.stringify({ error: authResult.error }), {
@@ -126,7 +126,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
 export const PUT: APIRoute = async ({ request, cookies }) => {
   // Secure authentication check
-  const authResult = await requireApiAuth(cookies);
+  const authResult = await requireApiAuth(cookies, request);
   
   if (!authResult.authenticated) {
     return new Response(JSON.stringify({ error: authResult.error }), {
@@ -222,7 +222,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
 
 export const DELETE: APIRoute = async ({ request, cookies }) => {
   // Secure authentication check
-  const authResult = await requireApiAuth(cookies);
+  const authResult = await requireApiAuth(cookies, request);
   
   if (!authResult.authenticated) {
     return new Response(JSON.stringify({ error: authResult.error }), {
