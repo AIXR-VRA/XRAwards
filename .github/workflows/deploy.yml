@@ -38,8 +38,11 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dist
-          path: dist/
+          name: build-artifacts
+          path: |
+            dist/
+            wrangler.toml
+          retention-days: 1
 
   # This job ONLY runs on the original repository, NOT on forks
   deploy:
@@ -64,8 +67,8 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: dist
-          path: dist/
+          name: build-artifacts
+          path: ./
 
       - name: Deploy to Cloudflare Workers
         run: npx wrangler@latest deploy
