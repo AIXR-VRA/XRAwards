@@ -5,7 +5,7 @@
  */
 
 import type { APIRoute } from 'astro';
-import { createServerClient, parseCookieHeader } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
@@ -49,20 +49,21 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       import.meta.env.SUPABASE_ANON_KEY,
       {
         cookies: {
-          getAll() {
-            return parseCookieHeader(request.headers.get('Cookie') ?? '');
+          get(name: string) {
+            return cookies.get(name)?.value;
           },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookies.set(name, value, {
-                path: '/',
-                httpOnly: true,
-                sameSite: 'lax',
-                secure: false, // Set to false for development
-                maxAge: options?.maxAge || 60 * 60 * 24 * 7, // 7 days
-                ...options
-              })
-            );
+          set(name: string, value: string, options: any) {
+            cookies.set(name, value, {
+              path: '/',
+              httpOnly: true,
+              sameSite: 'lax',
+              secure: false, // Set to false for development
+              maxAge: options?.maxAge || 60 * 60 * 24 * 7, // 7 days
+              ...options
+            });
+          },
+          remove(name: string, options: any) {
+            cookies.delete(name, options);
           },
         },
       }

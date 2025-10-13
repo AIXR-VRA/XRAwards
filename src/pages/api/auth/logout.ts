@@ -5,9 +5,9 @@
  */
 
 import type { APIRoute } from 'astro';
-import { createServerClient, parseCookieHeader } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ cookies }) => {
   try {
     // Check environment variables first
     if (!import.meta.env.SUPABASE_URL || !import.meta.env.SUPABASE_ANON_KEY) {
@@ -24,20 +24,21 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       import.meta.env.SUPABASE_ANON_KEY,
       {
         cookies: {
-          getAll() {
-            return parseCookieHeader(request.headers.get('Cookie') ?? '');
+          get(name: string) {
+            return cookies.get(name)?.value;
           },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookies.set(name, value, {
-                path: '/',
-                httpOnly: true,
-                sameSite: 'lax',
-                secure: false, // Set to false for development
-                maxAge: options?.maxAge || 0, // 0 for immediate expiration
-                ...options
-              })
-            );
+          set(name: string, value: string, options: any) {
+            cookies.set(name, value, {
+              path: '/',
+              httpOnly: true,
+              sameSite: 'lax',
+              secure: false, // Set to false for development
+              maxAge: options?.maxAge || 0, // 0 for immediate expiration
+              ...options
+            });
+          },
+          remove(name: string, options: any) {
+            cookies.delete(name, options);
           },
         },
       }
