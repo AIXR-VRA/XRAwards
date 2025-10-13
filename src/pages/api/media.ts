@@ -98,15 +98,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     );
 
     // Get session
-    const { data: { user }, error: sessionError } = await supabaseServer.auth.getUser();
+    const { data: { session }, error: sessionError } = await supabaseServer.auth.getSession();
     
-    console.log('🔑 User check:', {
-      hasUser: !!user,
-      userError: sessionError?.message,
+    console.log('🔑 Session check:', {
+      hasSession: !!session,
+      sessionError: sessionError?.message,
     });
 
-    if (!user) {
-      console.error('❌ No valid user found');
+    if (!session?.user) {
+      console.error('❌ No valid session found');
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' }
@@ -133,7 +133,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         tagIds,
       },
       headers: {
-        Authorization: `Bearer ${user.access_token}`,
+        Authorization: `Bearer ${session.access_token}`,
       },
     });
 
@@ -349,15 +349,15 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
     );
 
     // Get session
-    const { data: { user }, error: sessionError } = await supabaseServer.auth.getUser();
+    const { data: { session }, error: sessionError } = await supabaseServer.auth.getSession();
     
-    console.log('🔑 User check:', {
-      hasUser: !!user,
-      userError: sessionError?.message,
+    console.log('🔑 Session check:', {
+      hasSession: !!session,
+      sessionError: sessionError?.message,
     });
 
-    if (!user) {
-      console.error('❌ No valid user found');
+    if (!session?.user) {
+      console.error('❌ No valid session found');
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' }
@@ -372,7 +372,7 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
         mediaId: id,
       },
       headers: {
-        Authorization: `Bearer ${user.access_token}`,
+        Authorization: `Bearer ${session.access_token}`,
       },
     });
 

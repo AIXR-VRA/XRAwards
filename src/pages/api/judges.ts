@@ -67,6 +67,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const supabase = authResult.supabase;
+    if (!supabase) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication failed' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     const body = await request.json();
     const { first_name, last_name, job_title, organization, linkedin_url, profile_image_url, description, sort_order, is_visible, event_ids, tag_ids, media_ids } = body;
@@ -162,6 +168,12 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     const supabase = authResult.supabase;
+    if (!supabase) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication failed' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     const body = await request.json();
     const { id, first_name, last_name, job_title, organization, linkedin_url, profile_image_url, description, sort_order, is_visible, event_ids, tag_ids, media_ids } = body;
@@ -285,6 +297,12 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
     }
 
     const supabase = authResult.supabase;
+    if (!supabase) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication failed' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     const body = await request.json();
     const { id } = body;

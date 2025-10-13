@@ -49,6 +49,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const supabase = authResult.supabase;
+    if (!supabase) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication failed' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     const body = await request.json();
     const { name, description } = body;
@@ -96,6 +102,12 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     const supabase = authResult.supabase;
+    if (!supabase) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication failed' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     const body = await request.json();
     const { id, name, description } = body;
@@ -143,6 +155,12 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
     }
 
     const supabase = authResult.supabase;
+    if (!supabase) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication failed' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     const body = await request.json();
     const { id } = body;

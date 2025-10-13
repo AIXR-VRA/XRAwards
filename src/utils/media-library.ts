@@ -99,9 +99,9 @@ export async function uploadMedia(request: UploadMediaRequest): Promise<UploadMe
     };
 
     // Get the current session to pass JWT token to edge function
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
     
-    if (!user) {
+    if (!session?.user) {
       return {
         success: false,
         error: 'User not authenticated',
