@@ -14,6 +14,7 @@ import CTAFooter from '../components/CTAFooter.astro';
 import { Image } from 'astro:assets';
 import { getR2ImageUrl } from '../utils/r2';
 import { supabase } from '../utils/supabase';
+import { getCTAButton, getEventPhase } from '../utils/date-checker';
 
 // Fetch active event details
 const { data: eventDetails } = await supabase
@@ -21,6 +22,10 @@ const { data: eventDetails } = await supabase
   .select('*')
   .eq('is_active', true)
   .single();
+
+// Get current event phase and CTA button
+const eventPhase = await getEventPhase();
+const ctaButton = await getCTAButton('travel');
 
 // Fallback URL if tickets_portal_url is not set
 const ticketsUrl = eventDetails?.tickets_portal_url || 'https://events.unitedxr.eu/2025?utm_source=AIXR&utm_medium=XR+Awards+Website&utm_campaign=link';
@@ -113,7 +118,10 @@ const logoVirtualware = getR2ImageUrl('/images/2025/10/logo-virtualware-white_17
         </div>
 
         <p class="page-subtitle text-white">
-          Join the world's biggest celebration of XR innovation at the XR Awards Gala & United XR Conference
+          {eventPhase.phase === 'post-ceremony' 
+            ? `The ${eventDetails?.event_year || '2025'} XR Awards Gala has concluded. View the winners and prepare for next year.`
+            : 'Join the world\'s biggest celebration of XR innovation at the XR Awards Gala & United XR Conference'
+          }
         </p>
       </div>
     </section>
@@ -166,14 +174,26 @@ const logoVirtualware = getR2ImageUrl('/images/2025/10/logo-virtualware-white_17
               </div>
             </div>
             
-            <a 
-              href={ticketsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center px-8 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors mt-8"
-            >
-              Get Your Tickets Now
-            </a>
+            {eventPhase.phase === 'post-ceremony' ? (
+              <div class="mt-8">
+                <p class="text-lg text-gray-600 mb-4">The {eventDetails?.event_year || '2025'} XR Awards Gala has concluded. View the winners and prepare for next year.</p>
+                <a 
+                  href={ctaButton.href}
+                  class="inline-flex items-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors"
+                >
+                  {ctaButton.text}
+                </a>
+              </div>
+            ) : (
+              <a 
+                href={ticketsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-8 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors mt-8"
+              >
+                Get Your Tickets Now
+              </a>
+            )}
           </div>
 
           <!-- Right Column - Image -->
@@ -556,20 +576,39 @@ const logoVirtualware = getR2ImageUrl('/images/2025/10/logo-virtualware-white_17
           <h3 class="text-2xl font-bold text-gray-900 mb-4">Ready to Join the XR Community?</h3>
           <p class="text-gray-700 mb-6">Secure your spot at the world's leading XR Awards Gala and United XR Conference.</p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a 
-              href={ticketsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center justify-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors"
-            >
-              Get Your Tickets
-            </a>
-            <a 
-              href="/travel-accommodation"
-              class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
-            >
-              Travel & Accommodation
-            </a>
+            {eventPhase.phase === 'post-ceremony' ? (
+              <>
+                <a 
+                  href={ctaButton.href}
+                  class="inline-flex items-center justify-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors"
+                >
+                  {ctaButton.text}
+                </a>
+                <a 
+                  href="/about-xr-awards"
+                  class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
+                >
+                  Learn More
+                </a>
+              </>
+            ) : (
+              <>
+                <a 
+                  href={ticketsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center justify-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Get Your Tickets
+                </a>
+                <a 
+                  href="/travel-accommodation"
+                  class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
+                >
+                  Travel & Accommodation
+                </a>
+              </>
+            )}
           </div>
         </div>
       </div>

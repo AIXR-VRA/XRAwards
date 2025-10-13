@@ -152,8 +152,7 @@ export async function getEventPhase(): Promise<EventPhase> {
     }
   };
 
-  // Debug logging
-  console.log('Date Checker Debug Info:', JSON.stringify(debugInfo, null, 2));
+  // Debug logging disabled
 
   // Determine phase
   if (nominationsOpen && currentTime < nominationsOpen) {
@@ -253,7 +252,6 @@ export async function getEventPhase(): Promise<EventPhase> {
     };
   } else {
     // Default fallback
-    console.log('Date Checker: Falling back to default phase');
     return {
       phase: 'pre-nominations',
       daysUntilNext: 0,

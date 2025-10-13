@@ -9,6 +9,7 @@ import Footer from '../../components/Footer.astro';
 import CTAFooter from '../../components/CTAFooter.astro';
 import { createClient } from '@supabase/supabase-js';
 import { nl2br } from '../../utils/helpers';
+import { getCTAButton, getEventPhase } from '../../utils/date-checker';
 
 export const prerender = true;
 
@@ -51,9 +52,13 @@ if (categoryError || !category) {
 // Fetch active event details for nomination URL and deadline
 const { data: eventDetails } = await supabase
   .from('event_details')
-  .select('nomination_portal_url, nominations_close')
+  .select('nomination_portal_url, nominations_close, event_year')
   .eq('is_active', true)
   .single();
+
+// Get current event phase and CTA button
+const eventPhase = await getEventPhase();
+const ctaButton = await getCTAButton('header');
 
 // Fetch finalists for this category
 const { data: finalists } = await supabase
@@ -159,41 +164,114 @@ const { data: otherCategories } = await supabase
           <!-- Sidebar -->
           <div class="lg:col-span-1">
             <div class="rounded-lg p-8" style="background-color: #0E1021;">
-              <h3 class="text-lg font-bold text-white mb-4">
-                Judging Criteria & Eligibility
-              </h3>
-              <p class="text-gray-300 mb-6">
-                Download the Entry Kit to have a full breakdown of judging criteria.
-              </p>
-              <div class="space-y-4">
-                <a
-                  href="/nominate/entry-kit"
-                  class="block w-full text-center text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                  style="background-color: #4923EB; color: #ffffff;"
-                  onmouseover="this.style.backgroundColor='#3a1bbd'; this.style.color='#ffffff';"
-                  onmouseout="this.style.backgroundColor='#4923EB'; this.style.color='#ffffff';"
-                >
-                  Download Entry Kit
-                </a>
-                <a
-                  href={eventDetails?.nomination_portal_url || 'https://app.aixr.org/e/20a6e09d-7e86-488d-8436-1cd162d0f5df'}
-                  class="block w-full text-center text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                  style="background-color: #FF7733; color: #ffffff;"
-                  onmouseover="this.style.backgroundColor='#ff6620'; this.style.color='#ffffff';"
-                  onmouseout="this.style.backgroundColor='#FF7733'; this.style.color='#ffffff';"
-                >
-                  Nominate Now
-                </a>
-                {eventDetails?.nominations_close && (
-                  <p class="text-gray-300 text-sm mt-3 text-left">
-                    Deadline: {new Date(eventDetails.nominations_close).toLocaleDateString('en-GB', { 
-                      day: '2-digit', 
-                      month: 'long', 
-                      year: 'numeric' 
-                    })}
+              {eventPhase.phase === 'nominations-open' ? (
+                <>
+                  <h3 class="text-lg font-bold text-white mb-4">
+                    Judging Criteria & Eligibility
+                  </h3>
+                  <p class="text-gray-300 mb-6">
+                    Download the Entry Kit to have a full breakdown of judging criteria.
                   </p>
-                )}
-              </div>
+                  <div class="space-y-4">
+                    <a
+                      href="/nominate/entry-kit"
+                      class="block w-full text-center text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                      style="background-color: #4923EB; color: #ffffff;"
+                      onmouseover="this.style.backgroundColor='#3a1bbd'; this.style.color='#ffffff';"
+                      onmouseout="this.style.backgroundColor='#4923EB'; this.style.color='#ffffff';"
+                    >
+                      Download Entry Kit
+                    </a>
+                    <a
+                      href={ctaButton.href}
+                      class="block w-full text-center text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                      style="background-color: #FF7733; color: #ffffff;"
+                      onmouseover="this.style.backgroundColor='#ff6620'; this.style.color='#ffffff';"
+                      onmouseout="this.style.backgroundColor='#FF7733'; this.style.color='#ffffff';"
+                    >
+                      {ctaButton.text}
+                    </a>
+                    {eventDetails?.nominations_close && (
+                      <p class="text-gray-300 text-sm mt-3 text-left">
+                        Deadline: {new Date(eventDetails.nominations_close).toLocaleDateString('en-GB', { 
+                          day: '2-digit', 
+                          month: 'long', 
+                          year: 'numeric' 
+                        })}
+                      </p>
+                    )}
+                  </div>
+                </>
+              ) : eventPhase.phase === 'nominations-closed' || eventPhase.phase === 'finalists-announced' || eventPhase.phase === 'judging-period' ? (
+                <>
+                  <h3 class="text-lg font-bold text-white mb-4">
+                    Nominations Closed for {eventDetails?.event_year || '2025'}
+                  </h3>
+                  <p class="text-gray-300 mb-6">
+                    The nomination deadline has passed. Stay tuned for finalist announcements and secure your tickets to the awards ceremony.
+                  </p>
+                  <div class="space-y-4">
+                    <a
+                      href={ctaButton.href}
+                      class="block w-full text-center text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                      style="background-color: #FF7733; color: #ffffff;"
+                      onmouseover="this.style.backgroundColor='#ff6620'; this.style.color='#ffffff';"
+                      onmouseout="this.style.backgroundColor='#FF7733'; this.style.color='#ffffff';"
+                    >
+                      {ctaButton.text}
+                    </a>
+                    <a
+                      href={`/winners-and-finalists-${eventDetails?.event_year || '2025'}`}
+                      class="block w-full text-center text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                      style="background-color: #4923EB; color: #ffffff;"
+                      onmouseover="this.style.backgroundColor='#3a1bbd'; this.style.color='#ffffff';"
+                      onmouseout="this.style.backgroundColor='#4923EB'; this.style.color='#ffffff';"
+                    >
+                      View Finalists
+                    </a>
+                  </div>
+                </>
+              ) : eventPhase.phase === 'post-ceremony' ? (
+                <>
+                  <h3 class="text-lg font-bold text-white mb-4">
+                    Awards Ceremony Complete
+                  </h3>
+                  <p class="text-gray-300 mb-6">
+                    The {eventDetails?.event_year || '2025'} awards ceremony has concluded. View the winners and celebrate the achievements of the XR community.
+                  </p>
+                  <div class="space-y-4">
+                    <a
+                      href={ctaButton.href}
+                      class="block w-full text-center text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                      style="background-color: #FF7733; color: #ffffff;"
+                      onmouseover="this.style.backgroundColor='#ff6620'; this.style.color='#ffffff';"
+                      onmouseout="this.style.backgroundColor='#FF7733'; this.style.color='#ffffff';"
+                    >
+                      {ctaButton.text}
+                    </a>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 class="text-lg font-bold text-white mb-4">
+                    Nominations Opening Soon
+                  </h3>
+                  <p class="text-gray-300 mb-6">
+                    Nominations for the {eventDetails?.event_year || '2025'} XR Awards will open soon. Stay tuned for updates.
+                  </p>
+                  <div class="space-y-4">
+                    <a
+                      href="/about-xr-awards"
+                      class="block w-full text-center text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                      style="background-color: #4923EB; color: #ffffff;"
+                      onmouseover="this.style.backgroundColor='#3a1bbd'; this.style.color='#ffffff';"
+                      onmouseout="this.style.backgroundColor='#4923EB'; this.style.color='#ffffff';"
+                    >
+                      Learn More
+                    </a>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -16,6 +16,7 @@ import KeyDates from '../components/sections/KeyDates.astro';
 import { Image } from 'astro:assets';
 import { getR2ImageUrl } from '../utils/r2';
 import { supabase } from '../utils/supabase';
+import { getCTAButton, getEventPhase } from '../utils/date-checker';
 
 // Fetch active event details
 const { data: eventDetails } = await supabase
@@ -44,6 +45,10 @@ const logoVirtualware = getR2ImageUrl('/images/2025/10/logo-virtualware-white_17
 // Company logos for past nominees
 const logoApple = getR2ImageUrl('/images/2025/10/logo-apple-white_1760205864042.png');
 const logoQualcomm = getR2ImageUrl('/images/2025/10/logo-qualcomm-white_1760205901474.png');
+
+// Get current event phase and CTA button
+const eventPhase = await getEventPhase();
+const ctaButton = await getCTAButton('header');
 
 // Nomination URL
 const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.org/e/20a6e09d-7e86-488d-8436-1cd162d0f5df';
@@ -115,7 +120,14 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
         </div>
 
         <p class="page-subtitle text-white">
-          Nominations are open for the world's leading celebration of VR, AR, and MR innovation
+          {eventPhase.phase === 'nominations-open' 
+            ? 'Nominations are open for the world\'s leading celebration of VR, AR, and MR innovation'
+            : eventPhase.phase === 'nominations-closed' || eventPhase.phase === 'finalists-announced' || eventPhase.phase === 'judging-period'
+            ? `Nominations have closed for ${eventDetails?.event_year || '2025'}. Stay tuned for finalist announcements.`
+            : eventPhase.phase === 'post-ceremony'
+            ? `The ${eventDetails?.event_year || '2025'} XR Awards Gala has concluded. View the winners and prepare for next year.`
+            : 'Nominations will open soon for the world\'s leading celebration of VR, AR, and MR innovation'
+          }
         </p>
       </div>
     </section>
@@ -168,14 +180,46 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
               </div>
             </div>
             
-            <a 
-              href={nominationUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center px-8 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors mt-8"
-            >
-              Start Your Nomination
-            </a>
+            {eventPhase.phase === 'nominations-open' ? (
+              <a 
+                href={nominationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-8 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors mt-8"
+              >
+                Start Your Nomination
+              </a>
+            ) : eventPhase.phase === 'nominations-closed' || eventPhase.phase === 'finalists-announced' || eventPhase.phase === 'judging-period' ? (
+              <div class="mt-8">
+                <p class="text-lg text-gray-600 mb-4">Nominations have closed for {eventDetails?.event_year || '2025'}. Stay tuned for finalist announcements.</p>
+                <a 
+                  href={ctaButton.href}
+                  class="inline-flex items-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors"
+                >
+                  {ctaButton.text}
+                </a>
+              </div>
+            ) : eventPhase.phase === 'post-ceremony' ? (
+              <div class="mt-8">
+                <p class="text-lg text-gray-600 mb-4">The {eventDetails?.event_year || '2025'} XR Awards Gala has concluded. View the winners and prepare for next year.</p>
+                <a 
+                  href={ctaButton.href}
+                  class="inline-flex items-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors"
+                >
+                  {ctaButton.text}
+                </a>
+              </div>
+            ) : (
+              <div class="mt-8">
+                <p class="text-lg text-gray-600 mb-4">Nominations will open soon for the {eventDetails?.event_year || '2025'} XR Awards Gala.</p>
+                <a 
+                  href="/about-xr-awards"
+                  class="inline-flex items-center px-8 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors"
+                >
+                  Learn More
+                </a>
+              </div>
+            )}
           </div>
 
           <!-- Right Column - Image -->
@@ -357,14 +401,46 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
               </div>
             </div>
 
-            <a 
-              href={nominationUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors mt-8"
-            >
-              Start Nomination Process
-            </a>
+            {eventPhase.phase === 'nominations-open' ? (
+              <a 
+                href={nominationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors mt-8"
+              >
+                Start Nomination Process
+              </a>
+            ) : eventPhase.phase === 'nominations-closed' || eventPhase.phase === 'finalists-announced' || eventPhase.phase === 'judging-period' ? (
+              <div class="mt-8">
+                <p class="text-lg text-gray-600 mb-4">Nominations have closed for {eventDetails?.event_year || '2025'}. Stay tuned for finalist announcements.</p>
+                <a 
+                  href={ctaButton.href}
+                  class="inline-flex items-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors"
+                >
+                  {ctaButton.text}
+                </a>
+              </div>
+            ) : eventPhase.phase === 'post-ceremony' ? (
+              <div class="mt-8">
+                <p class="text-lg text-gray-600 mb-4">The {eventDetails?.event_year || '2025'} XR Awards Gala has concluded. View the winners and prepare for next year.</p>
+                <a 
+                  href={ctaButton.href}
+                  class="inline-flex items-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors"
+                >
+                  {ctaButton.text}
+                </a>
+              </div>
+            ) : (
+              <div class="mt-8">
+                <p class="text-lg text-gray-600 mb-4">Nominations will open soon for the {eventDetails?.event_year || '2025'} XR Awards Gala.</p>
+                <a 
+                  href="/about-xr-awards"
+                  class="inline-flex items-center px-8 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors"
+                >
+                  Learn More
+                </a>
+              </div>
+            )}
           </div>
 
           <!-- Right Column - Image -->
@@ -751,20 +827,69 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
           <h3 class="text-2xl font-bold text-gray-900 mb-4">Ready to Submit Your XR Innovation?</h3>
           <p class="text-gray-700 mb-6">Join the world's leading XR innovators and get your work recognized at the {eventDetails?.event_year} XR Awards Gala.</p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a 
-              href={nominationUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center justify-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors"
-            >
-              Start Your Nomination
-            </a>
-            <a 
-              href="/categories"
-              class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
-            >
-              View All Categories
-            </a>
+            {eventPhase.phase === 'nominations-open' ? (
+              <>
+                <a 
+                  href={nominationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center justify-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Start Your Nomination
+                </a>
+                <a 
+                  href="/categories"
+                  class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
+                >
+                  View All Categories
+                </a>
+              </>
+            ) : eventPhase.phase === 'nominations-closed' || eventPhase.phase === 'finalists-announced' || eventPhase.phase === 'judging-period' ? (
+              <>
+                <a 
+                  href={ctaButton.href}
+                  class="inline-flex items-center justify-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors"
+                >
+                  {ctaButton.text}
+                </a>
+                <a 
+                  href={`/winners-and-finalists-${eventDetails?.event_year || '2025'}`}
+                  class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
+                >
+                  View Finalists
+                </a>
+              </>
+            ) : eventPhase.phase === 'post-ceremony' ? (
+              <>
+                <a 
+                  href={ctaButton.href}
+                  class="inline-flex items-center justify-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors"
+                >
+                  {ctaButton.text}
+                </a>
+                <a 
+                  href="/about-xr-awards"
+                  class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
+                >
+                  Learn More
+                </a>
+              </>
+            ) : (
+              <>
+                <a 
+                  href="/about-xr-awards"
+                  class="inline-flex items-center justify-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Learn More
+                </a>
+                <a 
+                  href="/categories"
+                  class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
+                >
+                  View Categories
+                </a>
+              </>
+            )}
           </div>
         </div>
       </div>

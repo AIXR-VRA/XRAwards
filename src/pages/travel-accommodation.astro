@@ -13,6 +13,7 @@ import CTAFooter from '../components/CTAFooter.astro';
 import { Image } from 'astro:assets';
 import { getR2ImageUrl } from '../utils/r2';
 import { supabase } from '../utils/supabase';
+import { getCTAButton, getEventPhase } from '../utils/date-checker';
 
 // Fetch active event details
 const { data: eventDetails } = await supabase
@@ -20,6 +21,10 @@ const { data: eventDetails } = await supabase
   .select('*')
   .eq('is_active', true)
   .single();
+
+// Get current event phase and CTA button
+const eventPhase = await getEventPhase();
+const ctaButton = await getCTAButton('travel');
 
 // Fallback URL if tickets_portal_url is not set
 const ticketsUrl = eventDetails?.tickets_portal_url || 'https://events.unitedxr.eu/2025?utm_source=AIXR&utm_medium=XR+Awards+Website&utm_campaign=link';
@@ -77,7 +82,10 @@ const hotelImage2 = getR2ImageUrl('/images/2025/10/brussles-xra_1760216262140.jp
         </div>
 
         <p class="page-subtitle text-white">
-          {eventDetails?.awards_ceremony ? new Date(eventDetails.awards_ceremony).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '09 December 2025'}, {eventDetails?.venue_address || eventDetails?.location || 'Brussels, Belgium'}
+          {eventPhase.phase === 'post-ceremony' 
+            ? `The ${eventDetails?.event_year || '2025'} XR Awards Gala has concluded. View the winners and prepare for next year.`
+            : `${eventDetails?.awards_ceremony ? new Date(eventDetails.awards_ceremony).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '09 December 2025'}, ${eventDetails?.venue_address || eventDetails?.location || 'Brussels, Belgium'}`
+          }
         </p>
       </div>
     </section>
@@ -532,14 +540,23 @@ const hotelImage2 = getR2ImageUrl('/images/2025/10/brussles-xra_1760216262140.jp
             Secure your spot and be part of XR's biggest night.
           </p>
         </div>
-        <a 
-          href={ticketsUrl} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          class="inline-flex items-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors text-lg"
-        >
-          Book Tickets
-        </a>
+        {eventPhase.phase === 'post-ceremony' ? (
+          <a 
+            href={ctaButton.href}
+            class="inline-flex items-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors text-lg"
+          >
+            {ctaButton.text}
+          </a>
+        ) : (
+          <a 
+            href={ticketsUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="inline-flex items-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors text-lg"
+          >
+            Book Tickets
+          </a>
+        )}
       </div>
     </section>
 

@@ -9,12 +9,22 @@ import KeyDates from '../components/sections/KeyDates.astro';
 import CTAFooter from '../components/CTAFooter.astro';
 import { supabase } from '../utils/supabase';
 import { getR2ImageUrl } from '../utils/r2';
+import { getCTAButton } from '../utils/date-checker';
 
 // Fetch active event details
 const { data: eventDetails } = await supabase
   .from('event_details')
   .select('*')
   .eq('is_active', true)
+  .single();
+
+// Fetch previous event details (most recent non-active event)
+const { data: previousEventDetails } = await supabase
+  .from('event_details')
+  .select('*')
+  .eq('is_active', false)
+  .order('event_year', { ascending: false })
+  .limit(1)
   .single();
 
 // Fetch first 4 judges for the active event with their tags
@@ -54,6 +64,9 @@ const { data: sponsors } = await supabase
   .eq('sponsor_events.event_id', eventDetails?.id)
   .eq('is_visible', true)
   .order('sort_order', { ascending: true });
+
+// Get dynamic CTA button based on event phase
+const ctaButton = await getCTAButton('hero');
 
 // Get hero image URL
 const heroImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-hero_1760202291581.png');
@@ -166,10 +179,16 @@ const asgardsWrathImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-win
           <!-- CTA Button -->
           <div>
             <a
-              href={eventDetails?.nomination_portal_url || 'https://app.aixr.org/e/20a6e09d-7e86-488d-8436-1cd162d0f5df'}
-              class="inline-flex items-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors text-base md:text-lg"
+              href={ctaButton.href}
+              class={`inline-flex items-center px-8 py-3 font-medium rounded-lg transition-colors text-base md:text-lg ${
+                ctaButton.variant === 'primary' 
+                  ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                  : ctaButton.variant === 'secondary'
+                  ? 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                  : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
             >
-              Nominate Now
+              {ctaButton.text}
             </a>
           </div>
         </div>
@@ -199,11 +218,11 @@ const asgardsWrathImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-win
         <!-- Feature Cards -->
         <div class="flex flex-col md:flex-row gap-8 md:gap-24 mb-4 md:mb-6 max-w-full">
           <!-- Card 1: What's new for 2025? -->
-          <a href="#" class="group relative w-[85vw] md:w-[41%]">
+          <a href={eventDetails?.slug ? `/${eventDetails.slug}` : '#'} class="group relative w-[85vw] md:w-[41%]">
             <div class="aspect-video overflow-hidden rounded-lg">
               <Image 
                 src={whatsNew2025ImageUrl} 
-                alt="What's new for 2025?"
+                alt={`What's new for ${eventDetails?.event_year || '2025'}?`}
                 class="w-full h-full object-cover"
                 width={600}
                 height={340}
@@ -211,7 +230,7 @@ const asgardsWrathImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-win
             </div>
             <div class="feature-banner absolute bottom-8 md:bottom-12 md:left-8 md:-right-4 rounded-md p-4 md:p-6" style="left: 5vw; right: -5vw;">
               <div class="flex items-start justify-between">
-                <p class="text-white text-lg md:text-xl font-medium pr-3 font-['Jura']">What's new for 2025?</p>
+                <p class="text-white text-lg md:text-xl font-medium pr-3 font-['Jura']">What's new for {eventDetails?.event_year || '2025'}?</p>
                 <svg class="w-8 h-8 text-white flex-shrink-0 feature-arrow -mt-1 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19L19 5M19 5H7M19 5V17" />
                 </svg>
@@ -220,11 +239,11 @@ const asgardsWrathImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-win
           </a>
 
           <!-- Card 2: See 2024 Highlights -->
-          <a href="#" class="group relative w-[85vw] md:w-[41%]">
+          <a href={previousEventDetails?.slug ? `/${previousEventDetails.slug}` : '#'} class="group relative w-[85vw] md:w-[41%]">
             <div class="aspect-video overflow-hidden rounded-lg">
               <Image 
                 src={highlights2024ImageUrl} 
-                alt="See 2024 Highlights"
+                alt={`See ${previousEventDetails?.event_year || '2024'} Highlights`}
                 class="w-full h-full object-cover object-top"
                 width={600}
                 height={340}
@@ -232,7 +251,7 @@ const asgardsWrathImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-win
             </div>
             <div class="feature-banner absolute bottom-8 md:bottom-12 md:left-8 md:-right-4 rounded-md p-4 md:p-6" style="left: 5vw; right: -5vw;">
               <div class="flex items-start justify-between">
-                <p class="text-white text-lg md:text-xl font-medium pr-3 font-['Jura']">See 2024 Highlights</p>
+                <p class="text-white text-lg md:text-xl font-medium pr-3 font-['Jura']">See {previousEventDetails?.event_year || '2024'} Highlights</p>
                 <svg class="w-8 h-8 text-white flex-shrink-0 feature-arrow -mt-1 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19L19 5M19 5H7M19 5V17" />
                 </svg>
