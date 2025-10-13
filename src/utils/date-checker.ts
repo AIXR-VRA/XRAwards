@@ -148,6 +148,8 @@ export async function getEventPhase(): Promise<EventPhase> {
       currentTimeLessThanJudgingStart: judgingStart ? currentTime < judgingStart : 'N/A',
       currentTimeBetweenJudging: judgingStart && judgingEnd ? 
         (currentTime >= judgingStart && currentTime <= judgingEnd) : 'N/A',
+      currentTimeAfterJudgingBeforeCeremony: judgingEnd && ceremony ? 
+        (currentTime > judgingEnd && currentTime < ceremony) : 'N/A',
       currentTimeAfterCeremony: ceremony ? currentTime > ceremony : 'N/A'
     }
   };
@@ -233,6 +235,22 @@ export async function getEventPhase(): Promise<EventPhase> {
       },
       statusMessage: `Judging in progress - ${daysUntil} day${daysUntil !== 1 ? 's' : ''} remaining`,
       isUrgent: false,
+      debugInfo: debugInfo
+    };
+  } else if (judgingEnd && ceremony && currentTime > judgingEnd && currentTime < ceremony) {
+    // Post-judging, pre-ceremony phase
+    const daysUntil = daysBetween(today, ceremony);
+    return {
+      phase: 'finalists-announced',
+      daysUntilNext: daysUntil,
+      nextMilestone: `Awards ceremony ${formatDate(ceremony)}`,
+      ctaButton: {
+        text: 'Secure Tickets',
+        href: eventDetails.tickets_portal_url || 'https://events.unitedxr.eu/2025?utm_source=AIXR&utm_medium=XR+Awards+Website&utm_campaign=link',
+        variant: 'primary'
+      },
+      statusMessage: `Awards ceremony in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`,
+      isUrgent: daysUntil <= 7,
       debugInfo: debugInfo
     };
   } else if (ceremony && currentTime > ceremony) {

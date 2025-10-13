@@ -211,8 +211,16 @@ function getTimeDifference(targetDate: Date | null): string {
           <div>
             <h3 class="font-medium text-gray-900 mb-2">Current Phase</h3>
             <p class="text-lg">
-              <span class="px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full text-sm font-medium">
-                {eventPhase.phase}
+              <span class={`px-3 py-1 rounded-full text-sm font-medium ${
+                eventPhase.phase === 'pre-nominations' ? 'bg-gray-200 text-gray-800' :
+                eventPhase.phase === 'nominations-open' ? 'bg-green-200 text-green-800' :
+                eventPhase.phase === 'nominations-closed' ? 'bg-yellow-200 text-yellow-800' :
+                eventPhase.phase === 'finalists-announced' ? 'bg-blue-200 text-blue-800' :
+                eventPhase.phase === 'judging-period' ? 'bg-purple-200 text-purple-800' :
+                eventPhase.phase === 'post-ceremony' ? 'bg-red-200 text-red-800' :
+                'bg-gray-200 text-gray-800'
+              }`}>
+                {eventPhase.phase.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
               </span>
             </p>
           </div>
@@ -237,7 +245,13 @@ function getTimeDifference(targetDate: Date | null): string {
           
           <div>
             <h3 class="font-medium text-gray-900 mb-2">Is Urgent</h3>
-            <p class="text-sm">{eventPhase.isUrgent ? 'Yes' : 'No'}</p>
+            <p class="text-sm">
+              <span class={`px-2 py-1 rounded text-xs font-medium ${
+                eventPhase.isUrgent ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+              }`}>
+                {eventPhase.isUrgent ? 'Yes' : 'No'}
+              </span>
+            </p>
           </div>
         </div>
         
@@ -301,6 +315,84 @@ function getTimeDifference(targetDate: Date | null): string {
           </p>
           <p><strong>Message:</strong> {countdownInfo.message}</p>
           <p><strong>Is Urgent:</strong> {countdownInfo.isUrgent ? 'Yes' : 'No'}</p>
+        </div>
+      </div>
+    )}
+
+    <!-- Logic Flow Analysis -->
+    {eventPhase.debugInfo && (
+      <div class="bg-indigo-50 rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Logic Flow Analysis</h2>
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 class="font-medium text-gray-900 mb-2">Time Comparisons</h3>
+              <div class="space-y-1 text-sm">
+                <p><strong>Before Nominations Open:</strong> 
+                  <span class={`px-2 py-1 rounded text-xs ${
+                    eventPhase.debugInfo.comparisons.currentTimeLessThanNominationsOpen === true ? 'bg-green-100 text-green-800' : 
+                    eventPhase.debugInfo.comparisons.currentTimeLessThanNominationsOpen === false ? 'bg-red-100 text-red-800' : 'bg-gray-100'
+                  }`}>
+                    {eventPhase.debugInfo.comparisons.currentTimeLessThanNominationsOpen ? 'Yes' : 'No'}
+                  </span>
+                </p>
+                <p><strong>During Nominations:</strong> 
+                  <span class={`px-2 py-1 rounded text-xs ${
+                    eventPhase.debugInfo.comparisons.currentTimeBetweenNominations === true ? 'bg-green-100 text-green-800' : 
+                    eventPhase.debugInfo.comparisons.currentTimeBetweenNominations === false ? 'bg-red-100 text-red-800' : 'bg-gray-100'
+                  }`}>
+                    {eventPhase.debugInfo.comparisons.currentTimeBetweenNominations ? 'Yes' : 'No'}
+                  </span>
+                </p>
+                <p><strong>After Nominations Close:</strong> 
+                  <span class={`px-2 py-1 rounded text-xs ${
+                    eventPhase.debugInfo.comparisons.currentTimeAfterNominationsClose === true ? 'bg-green-100 text-green-800' : 
+                    eventPhase.debugInfo.comparisons.currentTimeAfterNominationsClose === false ? 'bg-red-100 text-red-800' : 'bg-gray-100'
+                  }`}>
+                    {eventPhase.debugInfo.comparisons.currentTimeAfterNominationsClose ? 'Yes' : 'No'}
+                  </span>
+                </p>
+                <p><strong>After Finalists Announced:</strong> 
+                  <span class={`px-2 py-1 rounded text-xs ${
+                    eventPhase.debugInfo.comparisons.currentTimeAfterFinalists === true ? 'bg-green-100 text-green-800' : 
+                    eventPhase.debugInfo.comparisons.currentTimeAfterFinalists === false ? 'bg-red-100 text-red-800' : 'bg-gray-100'
+                  }`}>
+                    {eventPhase.debugInfo.comparisons.currentTimeAfterFinalists ? 'Yes' : 'No'}
+                  </span>
+                </p>
+              </div>
+            </div>
+            
+            <div>
+              <h3 class="font-medium text-gray-900 mb-2">Judging & Ceremony</h3>
+              <div class="space-y-1 text-sm">
+                <p><strong>During Judging:</strong> 
+                  <span class={`px-2 py-1 rounded text-xs ${
+                    eventPhase.debugInfo.comparisons.currentTimeBetweenJudging === true ? 'bg-green-100 text-green-800' : 
+                    eventPhase.debugInfo.comparisons.currentTimeBetweenJudging === false ? 'bg-red-100 text-red-800' : 'bg-gray-100'
+                  }`}>
+                    {eventPhase.debugInfo.comparisons.currentTimeBetweenJudging ? 'Yes' : 'No'}
+                  </span>
+                </p>
+                <p><strong>After Judging, Before Ceremony:</strong> 
+                  <span class={`px-2 py-1 rounded text-xs ${
+                    eventPhase.debugInfo.comparisons.currentTimeAfterJudgingBeforeCeremony === true ? 'bg-green-100 text-green-800' : 
+                    eventPhase.debugInfo.comparisons.currentTimeAfterJudgingBeforeCeremony === false ? 'bg-red-100 text-red-800' : 'bg-gray-100'
+                  }`}>
+                    {eventPhase.debugInfo.comparisons.currentTimeAfterJudgingBeforeCeremony ? 'Yes' : 'No'}
+                  </span>
+                </p>
+                <p><strong>After Ceremony:</strong> 
+                  <span class={`px-2 py-1 rounded text-xs ${
+                    eventPhase.debugInfo.comparisons.currentTimeAfterCeremony === true ? 'bg-green-100 text-green-800' : 
+                    eventPhase.debugInfo.comparisons.currentTimeAfterCeremony === false ? 'bg-red-100 text-red-800' : 'bg-gray-100'
+                  }`}>
+                    {eventPhase.debugInfo.comparisons.currentTimeAfterCeremony ? 'Yes' : 'No'}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     )}
