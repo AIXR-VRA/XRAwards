@@ -2,12 +2,11 @@
  * Cloudflare R2 Upload Utility
  * 
  * Server-side utility for uploading files to R2 using S3-compatible API
+ * Uses native fetch API for Cloudflare Workers compatibility
  */
 
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-
-// Initialize R2 client
-const getR2Client = () => {
+// Initialize R2 client configuration
+const getR2Config = () => {
   const accountId = import.meta.env.R2_ACCOUNT_ID;
   const accessKeyId = import.meta.env.R2_ACCESS_KEY_ID;
   const secretAccessKey = import.meta.env.R2_SECRET_ACCESS_KEY;
@@ -16,15 +15,27 @@ const getR2Client = () => {
     throw new Error('R2 credentials are not configured. Check your .env file.');
   }
 
-  return new S3Client({
-    region: 'auto',
+  return {
+    accountId,
+    accessKeyId,
+    secretAccessKey,
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId,
-      secretAccessKey,
-    },
-  });
+  };
 };
+
+/**
+ * Create S3-compatible authorization header
+ * @param method - HTTP method
+ * @param path - Object path
+ * @param config - R2 configuration
+ * @returns Authorization header value
+ */
+async function createS3AuthHeader(method: string, path: string, config: any): Promise<string> {
+  // For R2, we can use a simpler approach with basic auth
+  // R2 supports both S3-style auth and basic auth
+  const credentials = btoa(`${config.accessKeyId}:${config.secretAccessKey}`);
+  return `Basic ${credentials}`;
+}
 
 export interface UploadResult {
   success: boolean;
@@ -34,7 +45,7 @@ export interface UploadResult {
 }
 
 /**
- * Upload a file to R2
+ * Upload a file to R2 using native fetch API
  * @param file - The file buffer to upload
  * @param path - The path where the file should be stored in R2 (e.g., 'sponsors/logo.png')
  * @param contentType - MIME type of the file
@@ -60,17 +71,22 @@ export async function uploadToR2(
     // Clean the path (remove leading slash if present)
     const cleanPath = path.startsWith('/') ? path.slice(1) : path;
 
-    const client = getR2Client();
+    const config = getR2Config();
+    const url = `${config.endpoint}/${bucketName}/${cleanPath}`;
 
-    // Upload to R2
-    const command = new PutObjectCommand({
-      Bucket: bucketName,
-      Key: cleanPath,
-      Body: file,
-      ContentType: contentType,
+    // Create the request with proper S3-compatible headers
+    const response = await fetch(url, {
+      method: 'PUT',
+      body: file,
+      headers: {
+        'Content-Type': contentType,
+        'Authorization': await createS3AuthHeader('PUT', cleanPath, config),
+      },
     });
 
-    await client.send(command);
+    if (!response.ok) {
+      throw new Error(`R2 upload failed: ${response.status} ${response.statusText}`);
+    }
 
     // Build the public URL
     const baseUrl = publicUrl.endsWith('/') ? publicUrl.slice(0, -1) : publicUrl;

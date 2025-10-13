@@ -30,16 +30,5 @@ export default defineConfig({
   vite: {
     // @ts-ignore - tailwindcss plugin type compatibility
     plugins: [tailwindcss()],
-    build: {
-      cssCodeSplit: true,
-      rollupOptions: {
-        output: {
-          // Generate stable chunk names for better caching
-          chunkFileNames: '_astro/[name]-[hash].mjs',
-          entryFileNames: '_astro/[name]-[hash].mjs',
-          assetFileNames: '_astro/[name]-[hash][extname]'
-        }
-      }
-    }
   },
 });
