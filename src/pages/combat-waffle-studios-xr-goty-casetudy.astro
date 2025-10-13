@@ -49,9 +49,9 @@ import Footer from '../components/Footer.astro';
     </section>
 
     <!-- Case Study Content -->
-    <section class="py-16" style="background-color: #F2F2F2;">
+    <section class="py-16 bg-white">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="prose prose-lg max-w-none bg-white rounded-lg shadow-sm p-8 md:p-12">
+        <div class="prose prose-lg max-w-none">
           
           <!-- Introduction -->
           <p>Today, we're diving deep into the winning strategies of Combat Waffle Studios, exploring exactly how their game 'Ghost of Tabor' achieved acclaim at the XR Awards.</p>
@@ -223,6 +223,7 @@ import Footer from '../components/Footer.astro';
   .prose {
     color: #374151;
     font-family: 'Lora', Georgia, serif;
+    font-size: 1.125rem;
   }
   
   .prose h2 {
@@ -256,6 +257,7 @@ import Footer from '../components/Footer.astro';
     margin-bottom: 1rem;
     line-height: 1.75;
     font-family: 'Lora', Georgia, serif;
+    font-size: 1.125rem;
   }
   
   .prose ul,
@@ -270,6 +272,7 @@ import Footer from '../components/Footer.astro';
     margin-bottom: 0.75rem;
     line-height: 1.75;
     font-family: 'Lora', Georgia, serif;
+    font-size: 1.125rem;
   }
   
   .prose ul {
@@ -298,19 +301,17 @@ import Footer from '../components/Footer.astro';
   
   .quote-icon {
     position: absolute;
-    top: 1rem;
-    left: -0.5rem;
-    font-size: 6rem;
+    top: 0.5rem;
+    left: -0.75rem;
+    font-size: 8rem;
     line-height: 1;
     color: #00D4D8;
     font-family: 'Lora', Georgia, serif;
     font-weight: normal;
-    background: white;
-    padding: 0.25rem 0;
   }
   
   .quote-text {
-    font-size: 1.25rem;
+    font-size: 1.375rem;
     font-style: normal;
     color: #1F2937;
     margin-bottom: 1.5rem;
@@ -332,26 +333,33 @@ import Footer from '../components/Footer.astro';
   
   /* Studio Advice/Takeaway Box Design */
   .studio-advice-box {
-    background: #FFF9E6;
-    border: 2px solid #FFD54F;
-    border-radius: 8px;
+    background: #FFFFFF;
+    border: 1px solid #5B21B6;
+    border-radius: 0;
     padding: 2rem;
     margin: 2.5rem 0;
+    position: relative;
+    padding-top: 2.5rem;
   }
   
   .studio-advice-box h3 {
-    color: #F57C00;
-    font-size: 1.375rem;
+    color: #5B21B6;
+    font-size: 1.125rem;
     font-weight: 700;
     margin-top: 0;
     margin-bottom: 1.25rem;
-    border-bottom: 2px solid #FFD54F;
-    padding-bottom: 0.75rem;
+    border-bottom: none;
+    padding-bottom: 0;
     font-family: 'Lora', Georgia, serif;
+    position: absolute;
+    top: -0.75rem;
+    left: 1rem;
+    background: white;
+    padding: 0 0.5rem;
   }
   
   .studio-advice-box p {
-    color: #5D4037;
+    color: #374151;
     line-height: 1.75;
     margin-bottom: 1rem;
     font-family: 'Lora', Georgia, serif;
@@ -375,17 +383,16 @@ import Footer from '../components/Footer.astro';
   
   .number-badge {
     flex-shrink: 0;
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+    width: 36px;
+    height: 36px;
+    background: #1F2937;
     color: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
-    font-weight: 700;
-    box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+    font-size: 1.125rem;
+    font-weight: 600;
   }
   
   .numbered-content {
@@ -420,9 +427,9 @@ import Footer from '../components/Footer.astro';
   }
   
   .numbered-item-simple .number-badge {
-    width: 32px;
-    height: 32px;
-    font-size: 1rem;
+    width: 28px;
+    height: 28px;
+    font-size: 0.875rem;
   }
   
   .numbered-content-simple {
@@ -439,9 +446,9 @@ import Footer from '../components/Footer.astro';
     }
     
     .number-badge {
-      width: 40px;
-      height: 40px;
-      font-size: 1.25rem;
+      width: 32px;
+      height: 32px;
+      font-size: 1rem;
     }
     
     .quote-callout {
@@ -449,9 +456,9 @@ import Footer from '../components/Footer.astro';
     }
     
     .quote-icon {
-      font-size: 4.5rem;
-      left: -0.4rem;
-      top: 0.75rem;
+      font-size: 6rem;
+      left: -0.6rem;
+      top: 0.5rem;
     }
     
     .studio-advice-box {
