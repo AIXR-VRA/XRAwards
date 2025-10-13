@@ -1,0 +1,851 @@
+---
+/**
+ * Nominate Page
+ * URL: /nominate
+ * SEO-optimized landing page for XR Awards nominations
+ * Encourages industry professionals to submit their work for recognition
+ */
+export const prerender = true;
+
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CTAFooter from '../components/CTAFooter.astro';
+import FutureFeatures from '../components/sections/FutureFeatures.astro';
+import KeyDates from '../components/sections/KeyDates.astro';
+import { Image } from 'astro:assets';
+import { getR2ImageUrl } from '../utils/r2';
+import { supabase } from '../utils/supabase';
+
+// Fetch active event details
+const { data: eventDetails } = await supabase
+  .from('event_details')
+  .select('*')
+  .eq('is_active', true)
+  .single();
+
+// Get images for sections
+const heroImage = getR2ImageUrl('/images/2025/10/xr-awards-hero_1760202291581.png');
+const winnerImage = getR2ImageUrl('/images/2025/10/apple-holding-2024-trophy_1760204737832.jpg');
+const ceremonyImage = getR2ImageUrl('/images/2025/10/obsidian-award-winner-2024_1760204866862.png');
+const categoriesImage = getR2ImageUrl('/images/2025/10/xr-head-mounted-display-of-the-year-winner-2024_1760207686185.jpg');
+const entrykitImage = getR2ImageUrl('/images/2025/10/outstanding-xr-company-of-the-year-winner-2024_1760207732668.jpg');
+const faqImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-winner-2024_1760207777680.jpg');
+const inspirationImage = getR2ImageUrl('/images/2025/10/xr-awards-dinner-cheers-rotterdam-2023_1760216494171.png');
+
+// Testimonial logos
+const logoGoogle = getR2ImageUrl('/images/2025/10/logo-google-white_1760206709222.png');
+const logoVRScout = getR2ImageUrl('/images/2025/10/logo-vrscout-white_1760206759956.png');
+const logoMeta = getR2ImageUrl('/images/2025/10/logo-meta-white_1760205884886.png');
+const logoCloudhead = getR2ImageUrl('/images/2025/10/logo-cloudhead-games-white_1760206625735.png');
+const logoMagnopus = getR2ImageUrl('/images/2025/10/logo-magnopus-white_1760206671197.png');
+const logoVirtualware = getR2ImageUrl('/images/2025/10/logo-virtualware-white_1760206577461.png');
+
+// Company logos for past nominees
+const logoApple = getR2ImageUrl('/images/2025/10/logo-apple-white_1760205864042.png');
+const logoQualcomm = getR2ImageUrl('/images/2025/10/logo-qualcomm-white_1760205901474.png');
+
+// Nomination URL
+const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.org/e/20a6e09d-7e86-488d-8436-1cd162d0f5df';
+---
+
+<Layout
+  title="Nominate Your XR Work - Get Recognized at the XR Awards Gala 2025"
+  description="Submit your groundbreaking VR, AR, or MR project for recognition at the world's leading XR Awards. Join industry leaders, gain global exposure, and celebrate innovation. Nominations open now for 2025."
+>
+  <script type="application/ld+json" slot="head">
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": "XR Awards Gala {eventDetails?.event_year || 2025}",
+  "description": "The world's leading awards ceremony for virtual reality, augmented reality, and mixed reality innovation",
+  "startDate": "{eventDetails?.awards_ceremony || '2025-12-09'}",
+  "endDate": "{eventDetails?.awards_ceremony || '2025-12-09'}",
+  "location": {
+    "@type": "Place",
+    "name": "{eventDetails?.location || 'Brussels, Belgium'}",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "{eventDetails?.location?.split(',')[0] || 'Brussels'}",
+      "addressCountry": "BE"
+    }
+  },
+  "organizer": {
+    "@type": "Organization",
+    "name": "AIXR - The Academy of International Extended Reality",
+    "url": "https://xrawards.aixr.org"
+  },
+  "offers": {
+    "@type": "Offer",
+    "name": "XR Awards Nomination",
+    "url": "{nominationUrl}",
+    "availability": "https://schema.org/InStock"
+  }
+}
+  </script>
+
+  <Header />
+
+  <main class="min-h-screen bg-white">
+    <!-- Hero Section -->
+    <section class="relative bg-[#0E1022] pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+
+      <!-- Content -->
+      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="page-title text-white mb-6">
+          Nominate for the XR Awards Gala
+        </h1>
+
+        <!-- Decorative Dots -->
+        <div class="flex justify-center gap-2 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        </div>
+
+        <p class="page-subtitle text-white">
+          Nominations are open for the world's leading celebration of VR, AR, and MR innovation
+        </p>
+      </div>
+    </section>
+
+    <!-- Why Enter Section -->
+    <section class="py-16 md:py-24 bg-white">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <!-- Left Column - Content -->
+          <div>
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Why Enter the XR Awards Gala?</h2>
+            
+            <div class="space-y-6 text-gray-700">
+              <p class="text-lg leading-relaxed">
+                For over a decade, the XR Awards Gala has celebrated the very best of what XR has to offer internationally. <strong>Being a finalist puts you among the best in your field of work.</strong>
+              </p>
+              
+              <p class="text-lg leading-relaxed">
+                It means you've created game-changing work and that your projects have delivered results and moved the industry's needle. Join the legacy of innovation that has been recognized for more than ten years.
+              </p>
+              
+              <div class="bg-gray-50 border-l-4 border-orange-500 p-6 rounded-r-lg">
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Benefits of Winning:</h3>
+                <ul class="space-y-3 text-gray-700">
+                  <li class="flex items-start">
+                    <svg class="w-6 h-6 text-orange-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span><strong>Worldwide exposure</strong> and industry recognition</span>
+                  </li>
+                  <li class="flex items-start">
+                    <svg class="w-6 h-6 text-orange-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span><strong>Attract new business</strong> and partnership opportunities</span>
+                  </li>
+                  <li class="flex items-start">
+                    <svg class="w-6 h-6 text-orange-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span><strong>Recruit and retain top talent</strong> more easily</span>
+                  </li>
+                  <li class="flex items-start">
+                    <svg class="w-6 h-6 text-orange-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span><strong>Propel innovation</strong> and set the stage for sustained growth</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <a 
+              href={nominationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center px-8 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors mt-8"
+            >
+              Start Your Nomination
+            </a>
+          </div>
+
+          <!-- Right Column - Image -->
+          <div class="relative rounded-2xl overflow-hidden shadow-2xl">
+            <Image
+              src={winnerImage}
+              alt="XR Awards Winner 2024 - Apple"
+              class="w-full h-full object-cover"
+              width={800}
+              height={900}
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <p class="text-sm font-mono mb-2">2024 Winner - Apple</p>
+              <p class="text-lg font-semibold">Join the industry's elite at the XR Awards Gala</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Past Nominees Section -->
+    <section class="py-16 md:py-24 bg-gray-50">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Nominees Include Industry Leaders</h2>
+          <p class="text-lg text-gray-600">Join companies shaping the future of XR</p>
+        </div>
+        
+        <!-- Company Logos Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center">
+          {[logoApple, logoMeta, logoGoogle, logoQualcomm, logoMagnopus, logoCloudhead].map((logo, index) => (
+            <div class="flex items-center justify-center h-16">
+              <Image
+                src={logo}
+                alt={`Company logo ${index + 1}`}
+                class="max-h-12 w-auto object-contain logo-dark"
+                width={120}
+                height={48}
+                loading="lazy"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Links Section -->
+    <section class="py-16 md:py-24 bg-white">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-left mb-12">
+          <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Essential Information</h2>
+          <p class="text-lg text-gray-600">Everything you need to prepare your nomination</p>
+        </div>
+
+        <!-- Feature Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- View Categories Card -->
+          <a href="/categories" class="group relative">
+            <div class="aspect-video overflow-hidden rounded-lg">
+              <Image 
+                src={categoriesImage} 
+                alt="View Categories"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="feature-banner absolute bottom-4 left-4 right-4 rounded-md p-4">
+              <div class="flex items-start justify-between">
+                <p class="text-white text-lg font-medium pr-3 font-['Jura']">View Categories</p>
+                <svg class="w-6 h-6 text-white flex-shrink-0 feature-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19L19 5M19 5H7M19 5V17" />
+                </svg>
+              </div>
+            </div>
+          </a>
+
+          <!-- Entry Kit Card -->
+          <a href="/entry-kit" class="group relative">
+            <div class="aspect-video overflow-hidden rounded-lg">
+              <Image 
+                src={entrykitImage} 
+                alt="Entry Kit & Guidelines"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="feature-banner absolute bottom-4 left-4 right-4 rounded-md p-4">
+              <div class="flex items-start justify-between">
+                <p class="text-white text-lg font-medium pr-3 font-['Jura']">Entry Kit & Guidelines</p>
+                <svg class="w-6 h-6 text-white flex-shrink-0 feature-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19L19 5M19 5H7M19 5V17" />
+                </svg>
+              </div>
+            </div>
+          </a>
+
+          <!-- FAQ Card -->
+          <a href="/legal/faq" class="group relative">
+            <div class="aspect-video overflow-hidden rounded-lg">
+              <Image 
+                src={faqImage} 
+                alt="Frequently Asked Questions"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="feature-banner absolute bottom-4 left-4 right-4 rounded-md p-4">
+              <div class="flex items-start justify-between">
+                <p class="text-white text-lg font-medium pr-3 font-['Jura']">Nomination FAQ</p>
+                <svg class="w-6 h-6 text-white flex-shrink-0 feature-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19L19 5M19 5H7M19 5V17" />
+                </svg>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- How to Enter Section -->
+    <section class="py-16 md:py-24 bg-gray-50">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <!-- Left Column - Steps -->
+          <div>
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8">How to Enter the XR Awards Gala</h2>
+            
+            <div class="space-y-6">
+              <div class="flex gap-4">
+                <div class="flex-shrink-0">
+                  <div class="w-12 h-12 rounded-full bg-[#4923EB] flex items-center justify-center text-white font-bold text-lg">1</div>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold text-gray-900 mb-2">Review Categories & Criteria</h3>
+                  <p class="text-gray-700">
+                    Before submitting, check the relevant award criteria to ensure your project qualifies. Review our comprehensive category descriptions and eligibility requirements.
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex gap-4">
+                <div class="flex-shrink-0">
+                  <div class="w-12 h-12 rounded-full bg-[#4923EB] flex items-center justify-center text-white font-bold text-lg">2</div>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold text-gray-900 mb-2">Explore Questions & Register</h3>
+                  <p class="text-gray-700">
+                    Confirm your chosen categories and register your details. You can explore questions first before committing. Entry fees are payable upon submission. <em>All nominations are non-refundable.</em>
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex gap-4">
+                <div class="flex-shrink-0">
+                  <div class="w-12 h-12 rounded-full bg-[#4923EB] flex items-center justify-center text-white font-bold text-lg">3</div>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold text-gray-900 mb-2">Complete Your Submission</h3>
+                  <p class="text-gray-700">
+                    You can save your nomination and return later. Once satisfied, submit it for approval along with payment.
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex gap-4">
+                <div class="flex-shrink-0">
+                  <div class="w-12 h-12 rounded-full bg-[#00D4D8] flex items-center justify-center text-white font-bold text-lg">✓</div>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold text-gray-900 mb-2">Expert Judging Panel Review</h3>
+                  <p class="text-gray-700">
+                    Your submission will be reviewed by our expert panel of over 70 industry-leading judges. Finalists will be announced in {eventDetails?.finalists_announced ? new Date(eventDetails.finalists_announced).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : 'September'}. Winners will be revealed at the Awards Gala in {eventDetails?.awards_ceremony ? new Date(eventDetails.awards_ceremony).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : 'December'}.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <a 
+              href={nominationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors mt-8"
+            >
+              Start Nomination Process
+            </a>
+          </div>
+
+          <!-- Right Column - Image -->
+          <div class="relative rounded-2xl overflow-hidden shadow-2xl">
+            <Image
+              src={ceremonyImage}
+              alt="XR Awards Ceremony"
+              class="w-full h-full object-cover"
+              width={800}
+              height={1000}
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-8">
+              <p class="text-white text-xl font-semibold mb-2">Join us at the Awards Gala</p>
+              <p class="text-white/90 text-sm">
+                {eventDetails?.location || 'Brussels, Belgium'} • {eventDetails?.awards_ceremony ? new Date(eventDetails.awards_ceremony).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '09 December 2025'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Dates Section -->
+    {eventDetails && (
+      <section class="section" style="background-color: #0E1022;">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="mb-16">
+            <h2 class="text-4xl font-bold mb-4 text-white">{eventDetails.event_year} Key Dates</h2>
+            <p class="text-lg text-gray-400">Mark your calendar for these important nomination milestones</p>
+          </div>
+
+          <KeyDates
+            year={eventDetails.event_year}
+            nominationsOpen={eventDetails.nominations_open}
+            nominationsClose={eventDetails.nominations_close}
+            finalistsAnnounced={eventDetails.finalists_announced}
+            judgingPeriodStart={eventDetails.judging_period_start}
+            judgingPeriodEnd={eventDetails.judging_period_end}
+            awardsCeremony={eventDetails.awards_ceremony}
+          />
+        </div>
+      </section>
+    )}
+
+    <!-- Future Features Section -->
+    <FutureFeatures />
+
+    <!-- Testimonials Section -->
+    <section class="relative bg-[#0E1022] py-20 md:py-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+
+      <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-left mb-8">
+          <h2 class="text-4xl font-bold mb-4 text-white">What Industry Leaders Say</h2>
+          <p class="text-base text-white/80 max-w-3xl">
+            Hear from previous nominees, finalists, and winners about their experience with the XR Awards Gala.
+          </p>
+
+          <!-- Decorative Dots -->
+          <div class="flex gap-2 mt-6">
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 mt-16">
+          <!-- Google Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <Image 
+                src={logoGoogle} 
+                alt="Google" 
+                class="h-10 w-auto"
+                width={120}
+                height={32}
+                loading="lazy"
+              />
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              The XR Awards is a very important event for us and we're so excited to see all the great companies participating.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— Google</span>
+            </div>
+          </div>
+
+          <!-- VR Scout Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <Image 
+                src={logoVRScout} 
+                alt="VR Scout" 
+                class="h-6 w-auto"
+                width={160}
+                height={32}
+                loading="lazy"
+              />
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              Some of XR's biggest luminaries in attendance all there to celebrate some of the outstanding milestones in the industry.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— VR Scout</span>
+            </div>
+          </div>
+
+          <!-- Meta Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <Image 
+                src={logoMeta} 
+                alt="Meta" 
+                class="h-6 w-auto"
+                width={120}
+                height={32}
+                loading="lazy"
+              />
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              A great event that brings the XR community together to celebrate each other's success.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— Meta</span>
+            </div>
+          </div>
+
+          <!-- Cloudhead Games Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <Image 
+                src={logoCloudhead} 
+                alt="Cloudhead Games" 
+                class="h-10 w-auto"
+                width={180}
+                height={32}
+                loading="lazy"
+              />
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              The XR Awards is a fun and sophisticated event that truly connected all facets of this burgeoning industry.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— Cloudhead Games</span>
+            </div>
+          </div>
+
+          <!-- Magnopus Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <Image 
+                src={logoMagnopus} 
+                alt="Magnopus" 
+                class="h-6 w-auto"
+                width={160}
+                height={32}
+                loading="lazy"
+              />
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              Can't thank the judges, the organisers and the community enough for the passion that has gone into this event.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— Magnopus</span>
+            </div>
+          </div>
+
+          <!-- Virtualware Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <Image 
+                src={logoVirtualware} 
+                alt="Virtualware" 
+                class="h-10 w-auto"
+                width={180}
+                height={32}
+                loading="lazy"
+              />
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              The celebration of the Oscars in Virtual & Augmented reality. Unforgettable red carpet night.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— Virtualware</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="py-16 md:py-24 bg-white">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+          <p class="text-lg text-gray-600">Everything you need to know about nominating your XR work</p>
+        </div>
+        
+        <div class="space-y-4">
+          <!-- FAQ 1: What is the XR Awards and who organizes it? -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">What is the XR Awards Gala and who organizes it?</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>The XR Awards Gala is the world's leading awards ceremony for virtual reality (VR), augmented reality (AR), and mixed reality (MR) innovation. It is organized by <strong>AIXR (The Academy of International Extended Reality)</strong>, in partnership with <strong>United XR</strong>, <strong>Stereopsia</strong>, and <strong>AWE (Augmented World Expo)</strong>.</p>
+              <p><strong>Important:</strong> This is NOT the XR Today XR Awards. We are the XR Awards Gala, celebrating excellence across the global XR industry through our collaboration with the world's leading XR organizations.</p>
+              <p>The awards recognize groundbreaking projects in categories including XR games, education, healthcare, art, film, technical achievement, and hardware innovation.</p>
+            </div>
+          </details>
+
+          <!-- FAQ 2: Who can nominate? -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">Who can nominate VR, AR, or MR work for the XR Awards?</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>Anyone can submit a nomination for the XR Awards, including:</p>
+              <ul class="list-disc list-inside space-y-2 ml-4">
+                <li>XR developers and studios</li>
+                <li>Content creators and designers</li>
+                <li>Technology companies and hardware manufacturers</li>
+                <li>Educational institutions and training providers</li>
+                <li>Healthcare and enterprise organizations</li>
+                <li>Artists and filmmakers working in immersive media</li>
+              </ul>
+              <p>You can nominate your own work or submit nominations on behalf of others with their permission.</p>
+            </div>
+          </details>
+
+          <!-- FAQ 3: What categories can I enter? -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">What categories are available for XR project nominations?</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>The XR Awards features both Global and European categories covering the full spectrum of XR innovation:</p>
+              <p><strong>Global Categories include:</strong></p>
+              <ul class="list-disc list-inside space-y-1 ml-4">
+                <li>XR Game of the Year</li>
+                <li>XR Education & Training</li>
+                <li>XR Healthcare Solution</li>
+                <li>XR Film Experience</li>
+                <li>Outstanding XR Company</li>
+                <li>Rising XR Company</li>
+                <li>XR Head-Mounted Display</li>
+                <li>Obsidian Award (Lifetime Achievement)</li>
+              </ul>
+              <p><strong>European Categories include:</strong></p>
+              <ul class="list-disc list-inside space-y-1 ml-4">
+                <li>360° Experience</li>
+                <li>Animation</li>
+                <li>Art Direction</li>
+                <li>Art Experience</li>
+                <li>Technical Achievement</li>
+                <li>User Experience</li>
+                <li>Visual Experience</li>
+              </ul>
+              <p><a href="/categories" class="text-[#4923EB] hover:underline font-medium">View all categories and eligibility criteria →</a></p>
+            </div>
+          </details>
+
+          <!-- FAQ 4: When are nominations open? -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">When are XR Awards nominations open?</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>For the {eventDetails?.event_year} XR Awards Gala:</p>
+              <ul class="list-disc list-inside space-y-2 ml-4">
+                <li><strong>Nominations Open:</strong> {eventDetails?.nominations_open ? new Date(eventDetails.nominations_open).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : 'May 2025'}</li>
+                <li><strong>Nominations Close:</strong> {eventDetails?.nominations_close ? new Date(eventDetails.nominations_close).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : 'September 2025'}</li>
+                <li><strong>Finalists Announced:</strong> {eventDetails?.finalists_announced ? new Date(eventDetails.finalists_announced).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : 'September 2025'}</li>
+                <li><strong>Awards Ceremony:</strong> {eventDetails?.awards_ceremony ? new Date(eventDetails.awards_ceremony).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : 'December 2025'} in {eventDetails?.location || 'Brussels, Belgium'}</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- FAQ 5: How much does it cost? -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">How much does it cost to nominate for the XR Awards?</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>Entry fees vary by category and submission timing. You can explore the nomination questions and see pricing directly on the <a href={nominationUrl} target="_blank" rel="noopener noreferrer" class="text-[#4923EB] hover:underline font-medium">nomination portal</a> before payment is required.</p>
+              <p>Fees are only payable upon final submission of your nomination.</p>
+              <p><strong>Important:</strong> All nomination fees are non-refundable once submitted.</p>
+            </div>
+          </details>
+
+          <!-- FAQ 6: What are the benefits? -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">What are the benefits of winning an XR Award?</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>Being a finalist or winner at the XR Awards provides significant benefits:</p>
+              <ul class="list-disc list-inside space-y-2 ml-4">
+                <li><strong>Global Recognition:</strong> Worldwide media coverage and industry exposure</li>
+                <li><strong>Business Growth:</strong> Attract new clients, partners, and investment opportunities</li>
+                <li><strong>Talent Acquisition:</strong> Easier recruitment and retention of top XR professionals</li>
+                <li><strong>Networking:</strong> Connect with industry leaders at the exclusive Awards Gala</li>
+                <li><strong>Marketing Assets:</strong> Winner/Finalist badges and trophies for promotion</li>
+                <li><strong>Industry Authority:</strong> Establish your company as a leader in XR innovation</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- FAQ 7: How does judging work? -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">How are XR Awards entries judged?</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>All nominations are reviewed by our expert panel of over 70 industry-leading judges, including:</p>
+              <ul class="list-disc list-inside space-y-2 ml-4">
+                <li>XR developers and creative directors</li>
+                <li>Technology company executives (C-Suite)</li>
+                <li>Academic researchers and professors</li>
+                <li>Industry journalists and analysts</li>
+                <li>Investment and venture capital professionals</li>
+              </ul>
+              <p>Judges evaluate entries based on innovation, execution, impact, user experience, and technical achievement. The judging period runs from {eventDetails?.judging_period_start ? new Date(eventDetails.judging_period_start).toLocaleDateString('en-GB', { day: '2-digit', month: 'long' }) : 'late September'} to {eventDetails?.judging_period_end ? new Date(eventDetails.judging_period_end).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : 'early October'}.</p>
+              <p><a href="/judges" class="text-[#4923EB] hover:underline font-medium">Meet our judging panel →</a></p>
+            </div>
+          </details>
+
+          <!-- FAQ 8: Need more help? -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">Where can I get help with my nomination?</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>We're here to help you succeed with your nomination:</p>
+              <ul class="list-disc list-inside space-y-2 ml-4">
+                <li><strong>Nomination Portal:</strong> <a href={nominationUrl} target="_blank" rel="noopener noreferrer" class="text-[#4923EB] hover:underline">Start your nomination and view all details</a></li>
+                <li><strong>Entry Kit:</strong> <a href="/entry-kit" class="text-[#4923EB] hover:underline">View comprehensive submission guidelines</a></li>
+                <li><strong>FAQ Page:</strong> <a href="/legal/faq" class="text-[#4923EB] hover:underline">Visit our detailed FAQ section</a></li>
+                <li><strong>Email Support:</strong> <a href="mailto:awards@aixr.org" class="text-[#4923EB] hover:underline">awards@aixr.org</a></li>
+              </ul>
+              <p>Nomination briefing webinars are also available - check our key dates for scheduling.</p>
+            </div>
+          </details>
+        </div>
+
+        <!-- CTA after FAQ -->
+        <div class="mt-12 text-center p-8 bg-gray-50 rounded-2xl">
+          <h3 class="text-2xl font-bold text-gray-900 mb-4">Ready to Submit Your XR Innovation?</h3>
+          <p class="text-gray-700 mb-6">Join the world's leading XR innovators and get your work recognized at the {eventDetails?.event_year} XR Awards Gala.</p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a 
+              href={nominationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center justify-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors"
+            >
+              Start Your Nomination
+            </a>
+            <a 
+              href="/categories"
+              class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
+            >
+              View All Categories
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Footer -->
+    <CTAFooter />
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .page-title {
+    font-size: 35px;
+    font-weight: 600;
+  }
+
+  .page-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  .section {
+    padding: 4rem 0;
+  }
+
+  @media (min-width: 768px) {
+    .section {
+      padding: 6rem 0;
+    }
+  }
+
+  .feature-banner {
+    background: linear-gradient(135deg, #4A1B5C 0%, #3A1447 100%);
+    position: relative;
+    z-index: 1;
+  }
+
+  .feature-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #5A2B6C 0%, #4A1857 100%);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+
+  .group:hover .feature-banner::before {
+    opacity: 1;
+  }
+
+  .feature-arrow {
+    transition: transform 0.3s ease;
+  }
+
+  .group:hover .feature-arrow {
+    transform: rotate(45deg);
+  }
+
+  /* Accordion styling */
+  details summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details[open] {
+    border-color: #4923EB;
+  }
+
+  /* Logo dark filter - convert white logos to dark */
+  .logo-dark {
+    filter: brightness(0) saturate(100%);
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+  }
+
+  .logo-dark:hover {
+    opacity: 1;
+  }
+</style>
+
