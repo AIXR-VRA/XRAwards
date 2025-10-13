@@ -49,6 +49,19 @@ if (!event) {
   return Astro.redirect('/404');
 }
 
+// Check if ceremony has happened yet - redirect to programme if not
+if (event.awards_ceremony) {
+  const ceremonyDate = new Date(event.awards_ceremony);
+  const oneDayAfter = new Date(ceremonyDate);
+  oneDayAfter.setDate(oneDayAfter.getDate() + 1);
+  const now = new Date();
+  
+  // If ceremony hasn't happened yet (or is within 1 day), redirect to programme
+  if (now < oneDayAfter) {
+    return Astro.redirect('/programme');
+  }
+}
+
 // Get sponsors for this event
 const { data: sponsorEvents } = await supabase
   .from('sponsor_events')

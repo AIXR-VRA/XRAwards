@@ -1,23 +1,75 @@
 ---
 // Header component with navigation - transparent until scroll
-import { getActiveEventYear } from '../utils/supabase';
+import { getActiveEventYear, getRecentEventYears, isAfterCeremonyDate } from '../utils/supabase';
+import { createClient } from '@supabase/supabase-js';
 
-// Get active event year for winners link
+// Get active event year and recent years for dynamic navigation
 const eventYear = await getActiveEventYear();
-const winnersUrl = `/winners-and-finalists-${eventYear}`;
+const recentYears = await getRecentEventYears();
+const [currentYear, previousYear, thirdYear] = recentYears;
 
+// Get event slugs for ceremony links
+const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY
+);
+
+const { data: events } = await supabase
+  .from('event_details')
+  .select('event_year, slug')
+  .in('event_year', recentYears)
+  .order('event_year', { ascending: false });
+
+// Create mapping of year to slug
+const yearToSlug = events?.reduce((acc: any, event: any) => {
+  acc[event.event_year] = event.slug;
+  return acc;
+}, {}) || {};
+
+// Check if years are after ceremony date
+const isCurrentAfterCeremony = await isAfterCeremonyDate(currentYear);
+const isPreviousAfterCeremony = await isAfterCeremonyDate(previousYear);
+const isThirdAfterCeremony = await isAfterCeremonyDate(thirdYear);
+
+// Build dynamic navigation
 const navigation = [
-  { name: 'Events', href: '/events' },
-  { name: 'Categories', href: '/categories' },
-  { name: 'Winners', href: winnersUrl },
   { name: 'Judges', href: '/judges' },
+  { 
+    name: 'Ceremonies', 
+    href: '#', 
+    isDropdown: true,
+    items: [
+      { name: `${currentYear} Ceremony`, href: `/${yearToSlug[currentYear] || `xr-awards-${currentYear}`}` },
+      ...(previousYear ? [{ name: `${previousYear} Ceremony`, href: `/${yearToSlug[previousYear] || `xr-awards-${previousYear}`}` }] : []),
+      ...(thirdYear ? [{ name: `${thirdYear} Ceremony`, href: `/${yearToSlug[thirdYear] || `xr-awards-${thirdYear}`}` }] : []),
+      { name: 'Ceremony Archive', href: '/archive' }
+    ]
+  },
+  { 
+    name: 'Finalists', 
+    href: '#', 
+    isDropdown: true,
+    items: [
+      { name: `${currentYear} Finalists`, href: `/winners-and-finalists-${currentYear}` },
+      ...(previousYear ? [{ 
+        name: `${previousYear} ${isPreviousAfterCeremony ? 'Winners & ' : ''}Finalists`, 
+        href: `/winners-and-finalists-${previousYear}` 
+      }] : []),
+      ...(thirdYear ? [{ 
+        name: `${thirdYear} ${isThirdAfterCeremony ? 'Winners & ' : ''}Finalists`, 
+        href: `/winners-and-finalists-${thirdYear}` 
+      }] : []),
+      { name: 'Finalist Archive', href: '/archive' }
+    ]
+  },
+  { name: 'Categories', href: '/categories' },
 ];
 
 const moreItems = [
-  { name: 'Archive', href: '/archive' },
-  { name: 'About', href: '/about' },
-  { name: 'Sponsors', href: '/sponsors' },
-  { name: 'Contact', href: '/contact' },
+  { name: 'Travel & Accommodation', href: '/travel-accommodation' },
+  { name: 'Frequently Asked Questions', href: '/legal/faq' },
+  { name: 'About & History', href: '/about-xr-awards' },
+  { name: 'Sponsors & Partners', href: '/sponsors-and-partners' },
 ];
 ---
 
@@ -39,17 +91,44 @@ const moreItems = [
       <!-- Desktop Navigation -->
       <div class="hidden md:flex items-center space-x-8">
         {navigation.map((item) => (
-          <a
-            href={item.href}
-            class="nav-link text-white hover:text-primary transition-colors text-sm font-medium py-2"
-          >
-            {item.name}
-          </a>
+          item.isDropdown ? (
+            <div class="relative group">
+              <button class="nav-link flex items-center text-white hover:text-primary transition-colors text-sm font-medium py-2" style="font-family: var(--font-heading);">
+                {item.name}
+                <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              <!-- Dropdown Menu -->
+              <div class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div class="py-2">
+                  {item.items.map((subItem) => (
+                    <a
+                      href={subItem.href}
+                      class="dropdown-link block px-4 py-2 text-sm text-dark hover:bg-gray-50 transition-colors"
+                      style="font-family: var(--font-heading);"
+                    >
+                      {subItem.name}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <a
+              href={item.href}
+              class="nav-link text-white hover:text-primary transition-colors text-sm font-medium py-2"
+              style="font-family: var(--font-heading);"
+            >
+              {item.name}
+            </a>
+          )
         ))}
         
         <!-- More Dropdown -->
         <div class="relative group">
-          <button class="nav-link flex items-center text-white hover:text-primary transition-colors text-sm font-medium py-2">
+          <button class="nav-link flex items-center text-white hover:text-primary transition-colors text-sm font-medium py-2" style="font-family: var(--font-heading);">
             More
             <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -63,6 +142,7 @@ const moreItems = [
                 <a
                   href={item.href}
                   class="dropdown-link block px-4 py-2 text-sm text-dark hover:bg-gray-50 transition-colors"
+                  style="font-family: var(--font-heading);"
                 >
                   {item.name}
                 </a>
@@ -102,17 +182,37 @@ const moreItems = [
     <div id="mobile-menu" class="hidden md:hidden mt-2 rounded-3xl border border-gray-200 bg-white overflow-hidden">
       <div class="space-y-1 p-4">
         {navigation.map((item) => (
-          <a
-            href={item.href}
-            class="dropdown-link block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-50 transition-colors"
-          >
-            {item.name}
-          </a>
+          item.isDropdown ? (
+            <div class="space-y-1">
+              <div class="px-3 py-2 text-base font-medium text-dark" style="font-family: var(--font-heading);">
+                {item.name}
+              </div>
+              {item.items.map((subItem) => (
+                <a
+                  href={subItem.href}
+                  class="dropdown-link block px-6 py-2 rounded-md text-sm font-medium text-dark hover:bg-gray-50 transition-colors"
+                  style="font-family: var(--font-heading);"
+                >
+                  {subItem.name}
+                </a>
+              ))}
+            </div>
+          ) : (
+            <a
+              href={item.href}
+              class="dropdown-link block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-50 transition-colors"
+              style="font-family: var(--font-heading);"
+            >
+              {item.name}
+            </a>
+          )
         ))}
+        <div class="border-t border-gray-200 my-2"></div>
         {moreItems.map((item) => (
           <a
             href={item.href}
             class="dropdown-link block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-50 transition-colors"
+            style="font-family: var(--font-heading);"
           >
             {item.name}
           </a>
@@ -120,6 +220,7 @@ const moreItems = [
         <a
           href="https://app.aixr.org/e/20a6e09d-7e86-488d-8436-1cd162d0f5df"
           class="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary hover:bg-primary-dark transition-colors text-center mt-4"
+          style="font-family: var(--font-heading);"
         >
           Nominate Now
         </a>

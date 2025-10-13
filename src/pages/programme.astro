@@ -21,8 +21,8 @@ const { data: eventDetails } = await supabase
   .eq('is_active', true)
   .single();
 
-// Get hero image from R2 - using a generic awards/event image
-const heroImage = getR2ImageUrl('/images/2025/10/xr-awards-2022-combat-waffle-studios_1760356010976.jpg');
+// Get hero image from R2 - using XR Awards on stage image
+const heroImage = getR2ImageUrl('/images/2025/10/xr-awards-on-stage-2024_1760218905033.jpg');
 
 // Calculate reading time - 3 minutes as per live site
 const readingTime = 3;
@@ -44,7 +44,7 @@ const readingTime = 3;
           alt="XR Awards 2025 Programme"
           width={1920}
           height={800}
-          class="w-full h-full object-cover object-top"
+          class="w-full h-full object-cover object-bottom"
           format="webp"
         />
         <div class="absolute inset-0 z-10" style="background-color: rgba(0, 0, 0, 0.6);"></div>

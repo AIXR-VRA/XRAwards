@@ -92,3 +92,45 @@ export async function getActiveEventYear(): Promise<number> {
   return activeEvent?.event_year || 2024;
 }
 
+/**
+ * Get all event years for navigation
+ * @returns Promise with array of event years sorted by year (descending)
+ */
+export async function getEventYears(): Promise<number[]> {
+  const { data: events } = await supabase
+    .from('event_details')
+    .select('event_year')
+    .order('event_year', { ascending: false });
+
+  return events?.map(e => e.event_year) || [];
+}
+
+/**
+ * Get the most recent three event years for navigation
+ * @returns Promise with array of the three most recent event years
+ */
+export async function getRecentEventYears(): Promise<number[]> {
+  const years = await getEventYears();
+  return years.slice(0, 3);
+}
+
+/**
+ * Check if an event year is after ceremony date
+ * @param year - The event year to check
+ * @returns Promise with boolean indicating if year is after ceremony
+ */
+export async function isAfterCeremonyDate(year: number): Promise<boolean> {
+  const { data: event } = await supabase
+    .from('event_details')
+    .select('ceremony_date')
+    .eq('event_year', year)
+    .single();
+
+  if (!event?.ceremony_date) return false;
+  
+  const ceremonyDate = new Date(event.ceremony_date);
+  const now = new Date();
+  
+  return now > ceremonyDate;
+}
+

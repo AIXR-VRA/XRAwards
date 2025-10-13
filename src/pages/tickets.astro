@@ -1,0 +1,634 @@
+---
+/**
+ * Tickets Page
+ * URL: /tickets
+ * SEO-optimized landing page for XR Awards Gala tickets and United XR Conference attendance
+ * Encourages visitors to purchase tickets for the combined conference and awards ceremony
+ */
+export const prerender = true;
+
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CTAFooter from '../components/CTAFooter.astro';
+import { Image } from 'astro:assets';
+import { getR2ImageUrl } from '../utils/r2';
+import { supabase } from '../utils/supabase';
+
+// Fetch active event details
+const { data: eventDetails } = await supabase
+  .from('event_details')
+  .select('*')
+  .eq('is_active', true)
+  .single();
+
+// Fallback URL if tickets_portal_url is not set
+const ticketsUrl = eventDetails?.tickets_portal_url || 'https://events.unitedxr.eu/2025?utm_source=AIXR&utm_medium=XR+Awards+Website&utm_campaign=link';
+
+// Create Google Maps embed URL from venue address (no API key required)
+const venueAddress = eventDetails?.venue_address || 'Maison de la Poste, Rue Picard 5-7, 1000 Brussels, Belgium';
+const encodedAddress = encodeURIComponent(venueAddress);
+const mapEmbedUrl = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+
+// Get images for sections
+const heroImage = getR2ImageUrl('/images/2025/10/xr-awards-dinner-cheers-rotterdam-2023_1760216494171.png');
+const conferenceImage = getR2ImageUrl('/images/2025/10/brussles-xra_1760216262140.jpg');
+const galaImage = getR2ImageUrl('/images/2025/10/xr-awards-dinner-rotterdam-2023_1760216550174.png');
+const networkingImage = getR2ImageUrl('/images/2025/10/vr-awards-htc-team-2019_1760216397468.png');
+const venueImage = getR2ImageUrl('/images/2025/10/gala-stereopsia-brussles_1760216291947.png');
+const packageImage = getR2ImageUrl('/images/2025/10/hotel-xra_1760216332619.jpg');
+
+// Testimonial logos
+const logoGoogle = getR2ImageUrl('/images/2025/10/logo-google-white_1760206709222.png');
+const logoVRScout = getR2ImageUrl('/images/2025/10/logo-vrscout-white_1760206759956.png');
+const logoMeta = getR2ImageUrl('/images/2025/10/logo-meta-white_1760205884886.png');
+const logoCloudhead = getR2ImageUrl('/images/2025/10/logo-cloudhead-games-white_1760206625735.png');
+const logoMagnopus = getR2ImageUrl('/images/2025/10/logo-magnopus-white_1760206671197.png');
+const logoVirtualware = getR2ImageUrl('/images/2025/10/logo-virtualware-white_1760206577461.png');
+---
+
+<Layout
+  title="Get Your Tickets - XR Awards Gala & United XR Conference 2025"
+  description="Join the world's leading XR Awards Gala and United XR Conference in Brussels. Get your tickets for the biggest celebration of VR, AR, and MR innovation. Package deals available."
+>
+  <script type="application/ld+json" slot="head">
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": "XR Awards Gala & United XR Conference {eventDetails?.event_year || 2025}",
+  "description": "The world's leading awards ceremony and conference for virtual reality, augmented reality, and mixed reality innovation",
+  "startDate": "{eventDetails?.awards_ceremony || '2025-12-09'}",
+  "endDate": "{eventDetails?.awards_ceremony || '2025-12-09'}",
+  "location": {
+    "@type": "Place",
+    "name": "{eventDetails?.location || 'Brussels, Belgium'}",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "{eventDetails?.location?.split(',')[0] || 'Brussels'}",
+      "addressCountry": "BE"
+    }
+  },
+  "organizer": {
+    "@type": "Organization",
+    "name": "AIXR - The Academy of International Extended Reality",
+    "url": "https://xrawards.aixr.org"
+  },
+  "offers": {
+    "@type": "Offer",
+    "name": "XR Awards Gala & Conference Tickets",
+    "url": "{ticketsUrl}",
+    "availability": "https://schema.org/InStock"
+  }
+}
+  </script>
+
+  <Header />
+
+  <main class="min-h-screen bg-white">
+    <!-- Hero Section -->
+    <section class="relative bg-[#0E1022] pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+
+      <!-- Content -->
+      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="page-title text-white mb-6">
+          Get Your Tickets
+        </h1>
+
+        <!-- Decorative Dots -->
+        <div class="flex justify-center gap-2 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        </div>
+
+        <p class="page-subtitle text-white">
+          Join the world's biggest celebration of XR innovation at the XR Awards Gala & United XR Conference
+        </p>
+      </div>
+    </section>
+
+    <!-- Why Attend Section -->
+    <section class="py-16 md:py-24 bg-white">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <!-- Left Column - Content -->
+          <div>
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Why Attend the XR Awards Gala & Conference?</h2>
+            
+            <div class="space-y-6 text-gray-700">
+              <p class="text-lg leading-relaxed">
+                Experience the <strong>world's leading celebration of XR innovation</strong> as AIXR, Stereopsia, and AWE unite for the first time in history. This unprecedented collaboration brings together the entire XR ecosystem for three days of groundbreaking content, networking, and recognition.
+              </p>
+              
+              <p class="text-lg leading-relaxed">
+                From industry-leading workshops and keynotes to the prestigious XR Awards Gala ceremony, this is where the future of immersive technology is shaped and celebrated.
+              </p>
+              
+              <div class="bg-gray-50 border-l-4 border-orange-500 p-6 rounded-r-lg">
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Benefits of Attending:</h3>
+                <ul class="space-y-3 text-gray-700">
+                  <li class="flex items-start">
+                    <svg class="w-6 h-6 text-orange-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span><strong>Industry recognition</strong> and global exposure</span>
+                  </li>
+                  <li class="flex items-start">
+                    <svg class="w-6 h-6 text-orange-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span><strong>Networking opportunities</strong> with industry leaders</span>
+                  </li>
+                  <li class="flex items-start">
+                    <svg class="w-6 h-6 text-orange-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span><strong>Business partnerships</strong> and collaboration opportunities</span>
+                  </li>
+                  <li class="flex items-start">
+                    <svg class="w-6 h-6 text-orange-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span><strong>Latest innovations</strong> and industry insights</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <a 
+              href={ticketsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center px-8 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors mt-8"
+            >
+              Get Your Tickets Now
+            </a>
+          </div>
+
+          <!-- Right Column - Image -->
+          <div class="relative rounded-2xl overflow-hidden shadow-2xl">
+            <Image
+              src={heroImage}
+              alt="XR Awards Gala Celebration"
+              class="w-full h-full object-cover"
+              width={800}
+              height={900}
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <p class="text-sm font-mono mb-2">XR Awards Gala 2024</p>
+              <p class="text-lg font-semibold">Join the celebration of XR excellence</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Essential Information Section -->
+    <section class="py-16 md:py-24 bg-gray-50">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-left mb-12">
+          <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Essential Information</h2>
+          <p class="text-lg text-gray-600">Key details and support for the XR awards</p>
+        </div>
+
+        <!-- Feature Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Tickets Card -->
+          <a href={ticketsUrl} target="_blank" rel="noopener noreferrer" class="group relative">
+            <div class="aspect-video overflow-hidden rounded-lg">
+              <Image 
+                src={conferenceImage} 
+                alt="Get Tickets"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="feature-banner absolute bottom-4 left-4 right-4 rounded-md p-4">
+              <div class="flex items-start justify-between">
+                <p class="text-white text-lg font-medium pr-3 font-['Jura']">Get Tickets</p>
+                <svg class="w-6 h-6 text-white flex-shrink-0 feature-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19L19 5M19 5H7M19 5V17" />
+                </svg>
+              </div>
+            </div>
+          </a>
+
+          <!-- Travel & Accommodation Card -->
+          <a href="/travel-accommodation" class="group relative">
+            <div class="aspect-video overflow-hidden rounded-lg">
+              <Image 
+                src={venueImage} 
+                alt="Travel & Accommodation"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="feature-banner absolute bottom-4 left-4 right-4 rounded-md p-4">
+              <div class="flex items-start justify-between">
+                <p class="text-white text-lg font-medium pr-3 font-['Jura']">Travel & Accommodation</p>
+                <svg class="w-6 h-6 text-white flex-shrink-0 feature-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19L19 5M19 5H7M19 5V17" />
+                </svg>
+              </div>
+            </div>
+          </a>
+
+          <!-- FAQ Card -->
+          <a href="/legal/faq" class="group relative">
+            <div class="aspect-video overflow-hidden rounded-lg">
+              <Image 
+                src={galaImage} 
+                alt="Frequently Asked Questions"
+                class="w-full h-full object-cover"
+                width={600}
+                height={340}
+              />
+            </div>
+            <div class="feature-banner absolute bottom-4 left-4 right-4 rounded-md p-4">
+              <div class="flex items-start justify-between">
+                <p class="text-white text-lg font-medium pr-3 font-['Jura']">FAQ</p>
+                <svg class="w-6 h-6 text-white flex-shrink-0 feature-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19L19 5M19 5H7M19 5V17" />
+                </svg>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Event Details Section -->
+    <section class="py-16 md:py-24 bg-white">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <!-- Left Column - Event Details -->
+          <div>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Event Details</h2>
+            
+            <div class="space-y-6 mb-8">
+              <div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4">XR Awards Gala Schedule</h3>
+                <p class="text-lg text-gray-700 mb-4">
+                  Join us for the prestigious XR Awards Gala on <strong>{eventDetails?.awards_ceremony ? new Date(eventDetails.awards_ceremony).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) : 'Thu 09 Dec 2025'}</strong> in {eventDetails?.location || 'Brussels, Belgium'}.
+                </p>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h4 class="font-semibold text-gray-900 mb-2">Gala Schedule:</h4>
+                  <ul class="space-y-2 text-gray-700">
+                    <li><strong>Drinks Reception</strong> – 6:00pm CET</li>
+                    <li><strong>Sit Down Dinner</strong> – 7:00pm CET</li>
+                    <li><strong>Awards Ceremony</strong> – 8:30pm CET</li>
+                    <li><strong>After Party</strong> – 10:30pm CET</li>
+                  </ul>
+                </div>
+                
+                <p class="text-sm text-gray-600 mt-4">
+                  <strong>Dress Code:</strong> <a href="https://help.aixr.org/en/articles/7001836-is-there-a-dress-code" class="text-[#4923EB] hover:underline" target="_blank" rel="noopener noreferrer">Black tie required</a>
+                </p>
+              </div>
+              
+              <div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4">United XR Conference</h3>
+                <p class="text-gray-700 mb-4">
+                  The United XR Conference runs for three days, featuring industry-leading workshops, keynotes from XR pioneers, and extensive networking opportunities.
+                </p>
+                <p class="text-gray-700">
+                  <strong>Venue:</strong> {eventDetails?.venue_address || eventDetails?.location || 'Brussels, Belgium'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column - Map -->
+          <div class="rounded-2xl overflow-hidden shadow-lg h-[500px]">
+            <iframe 
+              src={mapEmbedUrl}
+              width="100%"
+              height="100%"
+              style="border:0;"
+              allowfullscreen=""
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title={`${eventDetails?.location?.split(',')[0] || 'Venue'} Location`}
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="relative bg-[#0E1022] py-20 md:py-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+
+      <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-left mb-8">
+          <h2 class="text-4xl font-bold mb-4 text-white">What Industry Leaders Say</h2>
+          <p class="text-base text-white/80 max-w-3xl">
+            Hear from previous attendees about their experience at the XR Awards Gala and conferences.
+          </p>
+
+          <!-- Decorative Dots -->
+          <div class="flex gap-2 mt-6">
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 mt-16">
+          <!-- Google Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <Image 
+                src={logoGoogle} 
+                alt="Google" 
+                class="h-10 w-auto"
+                width={120}
+                height={32}
+                loading="lazy"
+              />
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              The XR Awards is a very important event for us and we're so excited to see all the great companies participating.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— Google</span>
+            </div>
+          </div>
+
+          <!-- VR Scout Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <Image 
+                src={logoVRScout} 
+                alt="VR Scout" 
+                class="h-6 w-auto"
+                width={160}
+                height={32}
+                loading="lazy"
+              />
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              Some of XR's biggest luminaries in attendance all there to celebrate some of the outstanding milestones in the industry.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— VR Scout</span>
+            </div>
+          </div>
+
+          <!-- Meta Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <Image 
+                src={logoMeta} 
+                alt="Meta" 
+                class="h-6 w-auto"
+                width={120}
+                height={32}
+                loading="lazy"
+              />
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              A great event that brings the XR community together to celebrate each other's success.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— Meta</span>
+            </div>
+          </div>
+
+          <!-- Cloudhead Games Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <Image 
+                src={logoCloudhead} 
+                alt="Cloudhead Games" 
+                class="h-10 w-auto"
+                width={180}
+                height={32}
+                loading="lazy"
+              />
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              The XR Awards is a fun and sophisticated event that truly connected all facets of this burgeoning industry.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— Cloudhead Games</span>
+            </div>
+          </div>
+
+          <!-- Magnopus Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <Image 
+                src={logoMagnopus} 
+                alt="Magnopus" 
+                class="h-6 w-auto"
+                width={160}
+                height={32}
+                loading="lazy"
+              />
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              Can't thank the judges, the organisers and the community enough for the passion that has gone into this event.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— Magnopus</span>
+            </div>
+          </div>
+
+          <!-- Virtualware Testimonial -->
+          <div class="text-left">
+            <div class="mb-6">
+              <Image 
+                src={logoVirtualware} 
+                alt="Virtualware" 
+                class="h-10 w-auto"
+                width={180}
+                height={32}
+                loading="lazy"
+              />
+            </div>
+            <blockquote class="text-base text-white mb-6 leading-relaxed">
+              The celebration of the Oscars in Virtual & Augmented reality. Unforgettable red carpet night.
+            </blockquote>
+            <div class="text-sm text-white/70">
+              <span class="font-medium">— Virtualware</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="py-16 md:py-24 bg-white">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+          <p class="text-lg text-gray-600">Everything you need to know about attending the XR Awards Gala & Conference</p>
+        </div>
+        
+        <div class="space-y-4">
+          <!-- FAQ 1: How do I get tickets? -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">How do I get tickets for the XR Awards Gala and Conference?</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>Tickets for the XR Awards Gala and United XR Conference are available through the official United XR ticketing portal. You can purchase tickets for the conference, gala, or both as a package deal.</p>
+              <p>Visit the <a href={ticketsUrl} target="_blank" rel="noopener noreferrer" class="text-[#4923EB] hover:underline">United XR ticketing website</a> to view all available options and pricing.</p>
+            </div>
+          </details>
+
+          <!-- FAQ 2: When and where is the event? -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">When and where is the XR Awards Gala & Conference?</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>The XR Awards Gala takes place on <strong>{eventDetails?.awards_ceremony ? new Date(eventDetails.awards_ceremony).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '09 December 2025'}</strong> in {eventDetails?.location || 'Brussels, Belgium'}.</p>
+              <p>The United XR Conference runs for three days leading up to the gala, featuring workshops, keynotes, and networking opportunities.</p>
+              <p><strong>Venue:</strong> {eventDetails?.venue_address || eventDetails?.location || 'Brussels, Belgium'}</p>
+            </div>
+          </details>
+
+          <!-- FAQ 3: What is the dress code? -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">What is the dress code for the XR Awards Gala?</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>The XR Awards Gala has a <strong>strict black tie dress code</strong>. This means formal evening wear is required for the ceremony.</p>
+              <p>For the conference portion, business casual attire is appropriate. You can find more details about the dress code in our <a href="https://help.aixr.org/en/articles/7001836-is-there-a-dress-code" class="text-[#4923EB] hover:underline" target="_blank" rel="noopener noreferrer">help center</a>.</p>
+            </div>
+          </details>
+
+          <!-- FAQ 4: Where can I get more information? -->
+          <details class="group rounded-lg border border-gray-200 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none">
+              <span class="text-lg font-semibold text-gray-900">Where can I get more information about the event?</span>
+              <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-gray-700 space-y-4">
+              <p>For detailed information about travel, accommodation, and event logistics, visit our <a href="/travel-accommodation" class="text-[#4923EB] hover:underline">travel and accommodation page</a>.</p>
+              <p>For general questions about the XR Awards, check our <a href="/legal/faq" class="text-[#4923EB] hover:underline">FAQ page</a> or contact us at <a href="mailto:awards@aixr.org" class="text-[#4923EB] hover:underline">awards@aixr.org</a>.</p>
+            </div>
+          </details>
+        </div>
+
+        <!-- CTA after FAQ -->
+        <div class="mt-12 text-center p-8 bg-gray-50 rounded-2xl">
+          <h3 class="text-2xl font-bold text-gray-900 mb-4">Ready to Join the XR Community?</h3>
+          <p class="text-gray-700 mb-6">Secure your spot at the world's leading XR Awards Gala and United XR Conference.</p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a 
+              href={ticketsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center justify-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors"
+            >
+              Get Your Tickets
+            </a>
+            <a 
+              href="/travel-accommodation"
+              class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
+            >
+              Travel & Accommodation
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Footer -->
+    <CTAFooter />
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .page-title {
+    font-size: 35px;
+    font-weight: 600;
+  }
+
+  .page-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  .feature-banner {
+    background: linear-gradient(135deg, #4A1B5C 0%, #3A1447 100%);
+    position: relative;
+    z-index: 1;
+  }
+
+  .feature-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #5A2B6C 0%, #4A1857 100%);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+
+  .group:hover .feature-banner::before {
+    opacity: 1;
+  }
+
+  .feature-arrow {
+    transition: transform 0.3s ease;
+  }
+
+  .group:hover .feature-arrow {
+    transform: rotate(45deg);
+  }
+
+  /* Accordion styling */
+  details summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details[open] {
+    border-color: #4923EB;
+  }
+</style>
