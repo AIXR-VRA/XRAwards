@@ -77,7 +77,7 @@ const moreItems = [
 
 <header class="fixed top-0 left-0 right-0 z-50">
   <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-    <div id="nav-container" class="flex items-center justify-between h-16 px-6 rounded-2xl border border-white/20 transition-all duration-300" style="background-color: transparent;">
+    <div id="nav-container" class="flex items-center justify-between h-16 px-6 rounded-2xl border border-white/20 transition-all duration-300">
       <!-- Logo -->
       <div class="shrink-0">
         <a href="/" class="flex items-center">
@@ -264,7 +264,6 @@ const moreItems = [
         if (isMenuOpen) {
           navContainer?.classList.add('bg-white', 'shadow-sm', 'border-gray-200');
           navContainer?.classList.remove('border-white/20');
-          navContainer?.style.setProperty('background-color', '#ffffff', 'important');
           if (logo) logo.src = '/XRA-dark-Logo.svg';
           navLinks.forEach(link => {
             link.classList.remove('text-white');
@@ -276,7 +275,6 @@ const moreItems = [
         if (window.scrollY > 20) {
           navContainer?.classList.add('bg-white', 'shadow-sm', 'border-gray-200');
           navContainer?.classList.remove('border-white/20');
-          navContainer?.style.setProperty('background-color', '#ffffff', 'important');
           if (logo) logo.src = '/XRA-dark-Logo.svg';
           navLinks.forEach(link => {
             link.classList.remove('text-white');
@@ -285,7 +283,6 @@ const moreItems = [
         } else {
           navContainer?.classList.remove('bg-white', 'shadow-sm', 'border-gray-200');
           navContainer?.classList.add('border-white/20');
-          navContainer?.style.removeProperty('background-color');
           if (logo) logo.src = '/XRA-Logo.svg';
           navLinks.forEach(link => {
             link.classList.remove('text-dark');
