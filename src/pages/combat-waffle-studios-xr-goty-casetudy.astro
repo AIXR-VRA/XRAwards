@@ -5,6 +5,11 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import CTAFooter from '../components/CTAFooter.astro';
+import { Image } from 'astro:assets';
+import { getR2ImageUrl } from '../utils/r2';
+
+// Get hero image from R2
+const heroImage = getR2ImageUrl('/images/2025/10/xr-awards-2022-combat-waffle-studios_1760356010976.jpg');
 
 // Calculate reading time based on word count
 // Average reading speed: 250 words per minute
@@ -70,20 +75,21 @@ const readingTime = Math.ceil(wordCount / 250);
   <main class="min-h-screen bg-white">
     <!-- Case Study Header -->
     <section class="relative bg-[#0E1022] pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
-      <!-- Decorative Background Rings -->
-      <!-- Left Ring -->
-      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
-        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
-        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
-      </div>
-      <!-- Right Ring -->
-      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
-        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
-        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      <!-- Background Image -->
+      <div class="absolute inset-0 z-0">
+        <Image
+          src={heroImage}
+          alt="Combat Waffle Studios at XR Awards 2022"
+          width={1920}
+          height={800}
+          class="w-full h-full object-cover object-top"
+          format="webp"
+        />
+        <div class="absolute inset-0 z-10" style="background-color: rgba(0, 0, 0, 0.6);"></div>
       </div>
       
       <!-- Content -->
-      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="relative z-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h1 class="page-title text-white mb-6">
           Unlocking Success: How Combat Waffle Studios Mastered the XR Awards
         </h1>
