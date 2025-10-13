@@ -40,6 +40,26 @@ const finalistsAnnouncedDate = eventDetails?.finalists_announced ? new Date(even
 const judgingStartDate = eventDetails?.judging_period_start ? new Date(eventDetails.judging_period_start) : null;
 const judgingEndDate = eventDetails?.judging_period_end ? new Date(eventDetails.judging_period_end) : null;
 const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.awards_ceremony) : null;
+
+// Helper function to calculate time difference
+function getTimeDifference(targetDate: Date | null): string {
+  if (!targetDate) return 'N/A';
+  const diffTime = targetDate.getTime() - now.getTime();
+  const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffTime <= 0) {
+    // Past events - show how many days ago
+    const pastDays = Math.abs(diffDays);
+    return `${pastDays} day${pastDays !== 1 ? 's' : ''} ago`;
+  }
+  
+  if (diffHours < 24) {
+    return `${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
+  }
+  
+  return `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
+}
 ---
 
 <Layout
@@ -103,14 +123,7 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
                 <strong>UTC String:</strong> {nominationsOpenDate ? nominationsOpenDate.toUTCString() : 'N/A'}<br>
                 <strong>ISO String:</strong> {nominationsOpenDate ? nominationsOpenDate.toISOString() : 'N/A'}<br>
                 <strong>Comparison:</strong> {nominationsOpenDate ? (today < nominationsOpenDate ? 'Future' : today > nominationsOpenDate ? 'Past' : 'Today') : 'N/A'}<br>
-                <strong>Time from now:</strong> {nominationsOpenDate ? (() => {
-                  const diffTime = nominationsOpenDate.getTime() - now.getTime();
-                  const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
-                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                  if (diffTime <= 0) return 'Past';
-                  if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
-                  return `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
-                })() : 'N/A'}
+                <strong>Time from now:</strong> {getTimeDifference(nominationsOpenDate)}
               </p>
             </div>
             
@@ -123,7 +136,7 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
                 <strong>UTC String:</strong> {nominationsCloseDate ? nominationsCloseDate.toUTCString() : 'N/A'}<br>
                 <strong>ISO String:</strong> {nominationsCloseDate ? nominationsCloseDate.toISOString() : 'N/A'}<br>
                 <strong>Comparison:</strong> {nominationsCloseDate ? (today < nominationsCloseDate ? 'Future' : today > nominationsCloseDate ? 'Past' : 'Today') : 'N/A'}<br>
-                <strong>Days from today:</strong> {nominationsCloseDate ? Math.ceil((nominationsCloseDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 'N/A'}
+                <strong>Time from now:</strong> {getTimeDifference(nominationsCloseDate)}
               </p>
             </div>
             
@@ -136,7 +149,7 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
                 <strong>UTC String:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toUTCString() : 'N/A'}<br>
                 <strong>ISO String:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toISOString() : 'N/A'}<br>
                 <strong>Comparison:</strong> {finalistsAnnouncedDate ? (today < finalistsAnnouncedDate ? 'Future' : today > finalistsAnnouncedDate ? 'Past' : 'Today') : 'N/A'}<br>
-                <strong>Days from today:</strong> {finalistsAnnouncedDate ? Math.ceil((finalistsAnnouncedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 'N/A'}
+                <strong>Time from now:</strong> {getTimeDifference(finalistsAnnouncedDate)}
               </p>
             </div>
             
@@ -149,7 +162,7 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
                 <strong>UTC String:</strong> {judgingStartDate ? judgingStartDate.toUTCString() : 'N/A'}<br>
                 <strong>ISO String:</strong> {judgingStartDate ? judgingStartDate.toISOString() : 'N/A'}<br>
                 <strong>Comparison:</strong> {judgingStartDate ? (today < judgingStartDate ? 'Future' : today > judgingStartDate ? 'Past' : 'Today') : 'N/A'}<br>
-                <strong>Days from today:</strong> {judgingStartDate ? Math.ceil((judgingStartDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 'N/A'}
+                <strong>Time from now:</strong> {getTimeDifference(judgingStartDate)}
               </p>
             </div>
             
@@ -162,7 +175,7 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
                 <strong>UTC String:</strong> {judgingEndDate ? judgingEndDate.toUTCString() : 'N/A'}<br>
                 <strong>ISO String:</strong> {judgingEndDate ? judgingEndDate.toISOString() : 'N/A'}<br>
                 <strong>Comparison:</strong> {judgingEndDate ? (today < judgingEndDate ? 'Future' : today > judgingEndDate ? 'Past' : 'Today') : 'N/A'}<br>
-                <strong>Days from today:</strong> {judgingEndDate ? Math.ceil((judgingEndDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 'N/A'}
+                <strong>Time from now:</strong> {getTimeDifference(judgingEndDate)}
               </p>
             </div>
             
@@ -175,7 +188,7 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
                 <strong>UTC String:</strong> {ceremonyDate ? ceremonyDate.toUTCString() : 'N/A'}<br>
                 <strong>ISO String:</strong> {ceremonyDate ? ceremonyDate.toISOString() : 'N/A'}<br>
                 <strong>Comparison:</strong> {ceremonyDate ? (today < ceremonyDate ? 'Future' : today > ceremonyDate ? 'Past' : 'Today') : 'N/A'}<br>
-                <strong>Days from today:</strong> {ceremonyDate ? Math.ceil((ceremonyDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 'N/A'}
+                <strong>Time from now:</strong> {getTimeDifference(ceremonyDate)}
               </p>
             </div>
           </div>
@@ -295,10 +308,10 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
           <pre class="bg-white p-3 rounded border overflow-x-auto">{JSON.stringify(eventPhase, null, 2)}</pre>
           
           {eventPhase.debugInfo && (
-            <>
+            <Fragment>
               <p class="mt-4"><strong>Date Checker Debug Info:</strong></p>
               <pre class="bg-white p-3 rounded border overflow-x-auto">{JSON.stringify(eventPhase.debugInfo, null, 2)}</pre>
-            </>
+            </Fragment>
           )}
         </div>
       </div>
