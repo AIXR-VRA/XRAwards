@@ -32,9 +32,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     );
 
     // Check authentication
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    if (authError || !session) {
+    if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized. Please log in.' }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }

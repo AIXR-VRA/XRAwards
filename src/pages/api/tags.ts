@@ -7,52 +7,13 @@
  */
 
 import type { APIRoute } from 'astro';
-import { createServerClient } from '@supabase/ssr';
-
-// Helper to initialize Supabase client
-function getSupabaseClient(cookies: any) {
-  return createServerClient(
-    import.meta.env.SUPABASE_URL,
-    import.meta.env.SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        get(key: string) {
-          return cookies.get(key)?.value;
-        },
-        set(key: string, value: string, options: any) {
-          cookies.set(key, value, options);
-        },
-        remove(key: string, options: any) {
-          cookies.delete(key, options);
-        },
-      },
-    }
-  );
-}
-
-// Helper to check authentication
-async function checkAuth(cookies: any) {
-  const supabase = getSupabaseClient(cookies);
-  const { data: { session }, error } = await supabase.auth.getSession();
-  
-  if (error || !session) {
-    return { authenticated: false, supabase, session: null };
-  }
-  
-  return { authenticated: true, supabase, session };
-}
+import { requireApiAuth, createSecureSupabaseClient } from '../../utils/supabase';
 
 // GET - List all tags
 export const GET: APIRoute = async ({ cookies }) => {
   try {
-    const { authenticated, supabase } = await checkAuth(cookies);
-    
-    if (!authenticated) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
+    // GET doesn't require authentication for public data
+    const supabase = createSecureSupabaseClient(cookies);
 
     const { data, error } = await supabase
       .from('tags')
@@ -77,14 +38,17 @@ export const GET: APIRoute = async ({ cookies }) => {
 // POST - Create a tag
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    const { authenticated, supabase } = await checkAuth(cookies);
-    
-    if (!authenticated) {
+    // Secure authentication check
+    const authResult = await requireApiAuth(cookies);
+
+    if (!authResult.authenticated) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: authResult.error }),
+        { status: authResult.status, headers: { 'Content-Type': 'application/json' } }
       );
     }
+
+    const supabase = authResult.supabase;
 
     const body = await request.json();
     const { name, description } = body;
@@ -121,14 +85,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 // PUT - Update a tag
 export const PUT: APIRoute = async ({ request, cookies }) => {
   try {
-    const { authenticated, supabase } = await checkAuth(cookies);
-    
-    if (!authenticated) {
+    // Secure authentication check
+    const authResult = await requireApiAuth(cookies);
+
+    if (!authResult.authenticated) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: authResult.error }),
+        { status: authResult.status, headers: { 'Content-Type': 'application/json' } }
       );
     }
+
+    const supabase = authResult.supabase;
 
     const body = await request.json();
     const { id, name, description } = body;
@@ -165,14 +132,17 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
 // DELETE - Delete a tag
 export const DELETE: APIRoute = async ({ request, cookies }) => {
   try {
-    const { authenticated, supabase } = await checkAuth(cookies);
-    
-    if (!authenticated) {
+    // Secure authentication check
+    const authResult = await requireApiAuth(cookies);
+
+    if (!authResult.authenticated) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: authResult.error }),
+        { status: authResult.status, headers: { 'Content-Type': 'application/json' } }
       );
     }
+
+    const supabase = authResult.supabase;
 
     const body = await request.json();
     const { id } = body;

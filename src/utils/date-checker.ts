@@ -38,6 +38,7 @@ export interface EventPhase {
   };
   statusMessage: string;
   isUrgent: boolean;
+  debugInfo?: any;
 }
 
 /**
@@ -107,7 +108,8 @@ export async function getEventPhase(): Promise<EventPhase> {
         variant: 'secondary'
       },
       statusMessage: 'Event details are being finalized',
-      isUrgent: false
+      isUrgent: false,
+      debugInfo: { noEventDetails: true }
     };
   }
 
@@ -167,7 +169,8 @@ export async function getEventPhase(): Promise<EventPhase> {
         variant: 'secondary'
       },
       statusMessage: `Nominations open in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`,
-      isUrgent: daysUntil <= 7
+      isUrgent: daysUntil <= 7,
+      debugInfo: debugInfo
     };
   } else if (nominationsOpen && nominationsClose && currentTime >= nominationsOpen && currentTime <= nominationsClose) {
     // Nominations open phase
@@ -182,7 +185,8 @@ export async function getEventPhase(): Promise<EventPhase> {
         variant: 'primary'
       },
       statusMessage: `Nominations close in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`,
-      isUrgent: daysUntil <= 7
+      isUrgent: daysUntil <= 7,
+      debugInfo: debugInfo
     };
   } else if (nominationsClose && finalistsAnnounced && currentTime > nominationsClose && currentTime < finalistsAnnounced) {
     // Nominations closed, waiting for finalists
@@ -197,7 +201,8 @@ export async function getEventPhase(): Promise<EventPhase> {
         variant: 'primary'
       },
       statusMessage: `Finalists announced ${timeInfo.message}`,
-      isUrgent: timeInfo.days <= 1 || timeInfo.message.includes('hour')
+      isUrgent: timeInfo.days <= 1 || timeInfo.message.includes('hour'),
+      debugInfo: debugInfo
     };
   } else if (finalistsAnnounced && judgingStart && currentTime >= finalistsAnnounced && currentTime < judgingStart) {
     // Finalists announced, waiting for judging
@@ -212,7 +217,8 @@ export async function getEventPhase(): Promise<EventPhase> {
         variant: 'primary'
       },
       statusMessage: `Judging begins in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`,
-      isUrgent: false
+      isUrgent: false,
+      debugInfo: debugInfo
     };
   } else if (judgingStart && judgingEnd && currentTime >= judgingStart && currentTime <= judgingEnd) {
     // Judging period
@@ -227,7 +233,8 @@ export async function getEventPhase(): Promise<EventPhase> {
         variant: 'primary'
       },
       statusMessage: `Judging in progress - ${daysUntil} day${daysUntil !== 1 ? 's' : ''} remaining`,
-      isUrgent: false
+      isUrgent: false,
+      debugInfo: debugInfo
     };
   } else if (ceremony && currentTime > ceremony) {
     // Post-ceremony
@@ -241,7 +248,8 @@ export async function getEventPhase(): Promise<EventPhase> {
         variant: 'primary'
       },
       statusMessage: 'Event completed - view the winners',
-      isUrgent: false
+      isUrgent: false,
+      debugInfo: debugInfo
     };
   } else {
     // Default fallback

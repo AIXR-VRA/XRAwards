@@ -3,33 +3,6 @@
  * Admin Login Page
  */
 import Layout from '../../layouts/Layout.astro';
-import { createServerClient } from '@supabase/ssr';
-
-// Check if already logged in
-const supabase = createServerClient(
-  import.meta.env.SUPABASE_URL,
-  import.meta.env.SUPABASE_ANON_KEY,
-  {
-    cookies: {
-      get(key: string) {
-        return Astro.cookies.get(key)?.value;
-      },
-      set(key: string, value: string, options: any) {
-        Astro.cookies.set(key, value, options);
-      },
-      remove(key: string, options: any) {
-        Astro.cookies.delete(key, options);
-      },
-    },
-  }
-);
-
-const { data: { session } } = await supabase.auth.getSession();
-
-// Redirect if already logged in
-if (session) {
-  return Astro.redirect('/admin');
-}
 ---
 
 <Layout title="Admin Login" description="Admin login page">

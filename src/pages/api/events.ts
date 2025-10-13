@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerClient } from '@supabase/ssr';
+import { requireApiAuth } from '../../utils/supabase';
 
 /**
  * API endpoint for managing event details
@@ -10,23 +10,9 @@ import { createServerClient } from '@supabase/ssr';
  */
 
 export const GET: APIRoute = async ({ cookies }) => {
-  const supabase = createServerClient(
-    import.meta.env.SUPABASE_URL,
-    import.meta.env.SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        get(key: string) {
-          return cookies.get(key)?.value;
-        },
-        set(key: string, value: string, options: any) {
-          cookies.set(key, value, options);
-        },
-        remove(key: string, options: any) {
-          cookies.delete(key, options);
-        },
-      },
-    }
-  );
+  // GET doesn't require authentication for public data
+  const { createSecureSupabaseClient } = await import('../../utils/supabase');
+  const supabase = createSecureSupabaseClient(cookies);
 
   try {
     const { data: events, error } = await supabase
@@ -52,32 +38,17 @@ export const GET: APIRoute = async ({ cookies }) => {
 };
 
 export const POST: APIRoute = async ({ request, cookies }) => {
-  const supabase = createServerClient(
-    import.meta.env.SUPABASE_URL,
-    import.meta.env.SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        get(key: string) {
-          return cookies.get(key)?.value;
-        },
-        set(key: string, value: string, options: any) {
-          cookies.set(key, value, options);
-        },
-        remove(key: string, options: any) {
-          cookies.delete(key, options);
-        },
-      },
-    }
-  );
-
-  // Check authentication
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
+  // Secure authentication check
+  const authResult = await requireApiAuth(cookies);
+  
+  if (!authResult.authenticated) {
+    return new Response(JSON.stringify({ error: authResult.error }), {
+      status: authResult.status,
       headers: { 'Content-Type': 'application/json' },
     });
   }
+  
+  const supabase = authResult.supabase;
 
   try {
     const body = await request.json();
@@ -154,32 +125,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 };
 
 export const PUT: APIRoute = async ({ request, cookies }) => {
-  const supabase = createServerClient(
-    import.meta.env.SUPABASE_URL,
-    import.meta.env.SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        get(key: string) {
-          return cookies.get(key)?.value;
-        },
-        set(key: string, value: string, options: any) {
-          cookies.set(key, value, options);
-        },
-        remove(key: string, options: any) {
-          cookies.delete(key, options);
-        },
-      },
-    }
-  );
-
-  // Check authentication
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
+  // Secure authentication check
+  const authResult = await requireApiAuth(cookies);
+  
+  if (!authResult.authenticated) {
+    return new Response(JSON.stringify({ error: authResult.error }), {
+      status: authResult.status,
       headers: { 'Content-Type': 'application/json' },
     });
   }
+  
+  const supabase = authResult.supabase;
 
   try {
     const body = await request.json();
@@ -265,32 +221,17 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
 };
 
 export const DELETE: APIRoute = async ({ request, cookies }) => {
-  const supabase = createServerClient(
-    import.meta.env.SUPABASE_URL,
-    import.meta.env.SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        get(key: string) {
-          return cookies.get(key)?.value;
-        },
-        set(key: string, value: string, options: any) {
-          cookies.set(key, value, options);
-        },
-        remove(key: string, options: any) {
-          cookies.delete(key, options);
-        },
-      },
-    }
-  );
-
-  // Check authentication
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
+  // Secure authentication check
+  const authResult = await requireApiAuth(cookies);
+  
+  if (!authResult.authenticated) {
+    return new Response(JSON.stringify({ error: authResult.error }), {
+      status: authResult.status,
       headers: { 'Content-Type': 'application/json' },
     });
   }
+  
+  const supabase = authResult.supabase;
 
   try {
     const { id } = await request.json();

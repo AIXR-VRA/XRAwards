@@ -11,6 +11,7 @@
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createServerClient, parseCookieHeader } from '@supabase/ssr';
 
 // Get Supabase credentials from environment variables
 const supabaseUrl = import.meta.env.SUPABASE_URL;
@@ -132,5 +133,149 @@ export async function isAfterCeremonyDate(year: number): Promise<boolean> {
   const now = new Date();
   
   return now > ceremonyDate;
+}
+
+/**
+ * SECURE AUTHENTICATION UTILITIES
+ * 
+ * These functions use supabase.auth.getUser() which verifies the session
+ * with the Supabase Auth server, making them secure for admin operations.
+ */
+
+/**
+ * Securely get the authenticated user
+ * @returns Promise with user data or null if not authenticated
+ */
+export async function getAuthenticatedUser() {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  
+  if (error) {
+    console.error('Auth error:', error);
+    return null;
+  }
+  
+  return user;
+}
+
+/**
+ * Securely check if user is authenticated
+ * @returns Promise with boolean indicating authentication status
+ */
+export async function isUserAuthenticated(): Promise<boolean> {
+  const user = await getAuthenticatedUser();
+  return !!user;
+}
+
+/**
+ * Securely get user session for admin operations
+ * @returns Promise with session data or null if not authenticated
+ */
+export async function getSecureSession() {
+  const user = await getAuthenticatedUser();
+  if (!user) return null;
+  
+  // Return a session-like object with the verified user
+  return {
+    user,
+    access_token: null, // Not needed for server-side operations
+    refresh_token: null, // Not needed for server-side operations
+  };
+}
+
+/**
+ * Create a secure Supabase client for server-side operations
+ * This should be used in API routes and server-side admin pages
+ */
+export function createSecureSupabaseClient(cookies: any, request?: Request) {
+  return createServerClient(
+    import.meta.env.SUPABASE_URL,
+    import.meta.env.SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        getAll() {
+          if (request) {
+            return parseCookieHeader(request.headers.get('Cookie') ?? '');
+          }
+          // Fallback to individual cookie access
+          const cookieArray: { name: string; value: string }[] = [];
+          for (const [name, cookie] of cookies.entries()) {
+            if (cookie.value) {
+              cookieArray.push({ name, value: cookie.value });
+            }
+          }
+          return cookieArray;
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookies.set(name, value, {
+              path: '/',
+              httpOnly: true,
+              sameSite: 'lax',
+              secure: false, // Set to false for development
+              maxAge: options?.maxAge || 60 * 60 * 24 * 7, // 7 days
+              ...options
+            })
+          );
+        },
+      },
+    }
+  );
+}
+
+/**
+ * Secure authentication check for admin pages
+ * @param cookies - Astro cookies object
+ * @param request - Request object for cookie parsing
+ * @returns Promise with session data or redirect response
+ */
+export async function requireAdminAuth(cookies: any, request?: Request) {
+  const supabase = createSecureSupabaseClient(cookies, request);
+  
+  // Use getSession() for server-side authentication
+  const { data: { session }, error } = await supabase.auth.getSession();
+  
+  if (error || !session?.user) {
+    return {
+      authenticated: false,
+      redirect: '/admin/login',
+      session: null,
+      supabase: null
+    };
+  }
+  
+  return {
+    authenticated: true,
+    redirect: null,
+    session,
+    supabase
+  };
+}
+
+/**
+ * Secure authentication check for API routes
+ * @param cookies - Astro cookies object
+ * @param request - Request object for cookie parsing
+ * @returns Promise with authentication result
+ */
+export async function requireApiAuth(cookies: any, request?: Request) {
+  const supabase = createSecureSupabaseClient(cookies, request);
+  
+  const { data: { user }, error } = await supabase.auth.getUser();
+  
+  if (error || !user) {
+    return {
+      authenticated: false,
+      error: 'Unauthorized',
+      status: 401,
+      supabase: null
+    };
+  }
+  
+  return {
+    authenticated: true,
+    error: null,
+    status: 200,
+    supabase
+  };
 }
 

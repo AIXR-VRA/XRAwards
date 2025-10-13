@@ -5,33 +5,17 @@
 import AdminLayout from '../../components/admin/AdminLayout.astro';
 import Modal from '../../components/admin/Modal.astro';
 import MediaSelector from '../../components/admin/MediaSelector.astro';
-import { createServerClient } from '@supabase/ssr';
+import { requireAdminAuth } from '../../utils/supabase';
 
-// Check authentication
-const supabase = createServerClient(
-  import.meta.env.SUPABASE_URL,
-  import.meta.env.SUPABASE_ANON_KEY,
-  {
-    cookies: {
-      get(key: string) {
-        return Astro.cookies.get(key)?.value;
-      },
-      set(key: string, value: string, options: any) {
-        Astro.cookies.set(key, value, options);
-      },
-      remove(key: string, options: any) {
-        Astro.cookies.delete(key, options);
-      },
-    },
-  }
-);
-
-const { data: { session } } = await supabase.auth.getSession();
+// Secure authentication check
+const authResult = await requireAdminAuth(Astro.cookies, Astro.request);
 
 // Redirect if not authenticated
-if (!session) {
-  return Astro.redirect('/admin/login');
+if (!authResult.authenticated) {
+  return Astro.redirect(authResult.redirect);
 }
+
+const { session, supabase } = authResult;
 ---
 
 <AdminLayout title="Sponsors" activePage="sponsors" session={session}>

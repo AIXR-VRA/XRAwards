@@ -98,16 +98,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     );
 
     // Get session
-    const { data: { session }, error: sessionError } = await supabaseServer.auth.getSession();
+    const { data: { user }, error: sessionError } = await supabaseServer.auth.getUser();
     
-    console.log('🔑 Session check:', {
-      hasSession: !!session,
-      hasAccessToken: !!session?.access_token,
-      sessionError: sessionError?.message,
+    console.log('🔑 User check:', {
+      hasUser: !!user,
+      userError: sessionError?.message,
     });
 
-    if (!session || !session.access_token) {
-      console.error('❌ No valid session found');
+    if (!user) {
+      console.error('❌ No valid user found');
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' }
@@ -134,7 +133,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         tagIds,
       },
       headers: {
-        Authorization: `Bearer ${session.access_token}`,
+        Authorization: `Bearer ${user.access_token}`,
       },
     });
 
@@ -350,16 +349,15 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
     );
 
     // Get session
-    const { data: { session }, error: sessionError } = await supabaseServer.auth.getSession();
+    const { data: { user }, error: sessionError } = await supabaseServer.auth.getUser();
     
-    console.log('🔑 Session check:', {
-      hasSession: !!session,
-      hasAccessToken: !!session?.access_token,
-      sessionError: sessionError?.message,
+    console.log('🔑 User check:', {
+      hasUser: !!user,
+      userError: sessionError?.message,
     });
 
-    if (!session || !session.access_token) {
-      console.error('❌ No valid session found');
+    if (!user) {
+      console.error('❌ No valid user found');
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' }
@@ -374,7 +372,7 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
         mediaId: id,
       },
       headers: {
-        Authorization: `Bearer ${session.access_token}`,
+        Authorization: `Bearer ${user.access_token}`,
       },
     });
 

@@ -2,6 +2,7 @@
 /**
  * Admin Layout Component
  * Provides consistent navigation and structure for admin pages
+ * Note: Authentication should be handled at the page level, not in components
  */
 
 interface Props {
@@ -11,7 +12,7 @@ interface Props {
     user: {
       email?: string;
     };
-  };
+  } | null;
 }
 
 const { title, activePage, session } = Astro.props;
@@ -66,7 +67,7 @@ const navItems = [
         <div class="p-4 border-t border-gray-200">
           <div class="flex items-center justify-between mb-3">
             <div class="text-sm">
-              <p class="text-gray-900 font-medium truncate">{session.user.email}</p>
+              <p class="text-gray-900 font-medium truncate">{session?.user?.email || 'Admin'}</p>
               <p class="text-gray-500 text-xs">Administrator</p>
             </div>
           </div>

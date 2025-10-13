@@ -5,7 +5,7 @@
  */
 
 import type { APIRoute } from 'astro';
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, parseCookieHeader } from '@supabase/ssr';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
@@ -43,28 +43,26 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase client with proper SSR cookie handling
     const supabase = createServerClient(
       import.meta.env.SUPABASE_URL,
       import.meta.env.SUPABASE_ANON_KEY,
       {
         cookies: {
-          get(key: string) {
-            return cookies.get(key)?.value;
+          getAll() {
+            return parseCookieHeader(request.headers.get('Cookie') ?? '');
           },
-          set(key: string, value: string, options: any) {
-            cookies.set(key, value, {
-              path: '/',
-              httpOnly: false, // Changed to false so client can access
-              sameSite: 'lax',
-              secure: false, // Set to false for development
-              maxAge: options?.maxAge,
-            });
-          },
-          remove(key: string, options: any) {
-            cookies.delete(key, {
-              path: '/',
-            });
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookies.set(name, value, {
+                path: '/',
+                httpOnly: true,
+                sameSite: 'lax',
+                secure: false, // Set to false for development
+                maxAge: options?.maxAge || 60 * 60 * 24 * 7, // 7 days
+                ...options
+              })
+            );
           },
         },
       }
@@ -77,6 +75,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     });
 
     if (error) {
+      console.error('Supabase auth error:', error);
       return new Response(
         JSON.stringify({ error: error.message }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
@@ -84,11 +83,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     if (!data.session) {
+      console.error('No session created after successful login');
       return new Response(
         JSON.stringify({ error: 'No session created' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('Login successful, session created for:', data.user.email);
 
     return new Response(
       JSON.stringify({ 

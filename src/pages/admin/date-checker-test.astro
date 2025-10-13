@@ -4,12 +4,21 @@
  * URL: /admin/date-checker-test
  * Test page to verify date checker utility functionality
  */
-export const prerender = true;
+import AdminLayout from '../../components/admin/AdminLayout.astro';
+import { requireAdminAuth } from '../../utils/supabase';
 
-import Layout from '../../layouts/Layout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import { 
+// Secure authentication check
+const authResult = await requireAdminAuth(Astro.cookies, Astro.request);
+
+// Redirect if not authenticated
+if (!authResult.authenticated) {
+  return Astro.redirect(authResult.redirect);
+}
+
+const { session, supabase } = authResult;
+
+// Get all the date checker information
+const { 
   getEventPhase, 
   getCTAButton, 
   getStatusMessage, 
@@ -17,9 +26,8 @@ import {
   areNominationsOpen,
   isAfterCeremony,
   getActiveEventDetails
-} from '../../utils/date-checker';
+} = await import('../../utils/date-checker');
 
-// Get all the date checker information
 const eventPhase = await getEventPhase();
 const headerCTA = await getCTAButton('header');
 const statusMessage = await getStatusMessage();
@@ -62,261 +70,258 @@ function getTimeDifference(targetDate: Date | null): string {
 }
 ---
 
-<Layout
-  title="Date Checker Test - AIXR XR Awards"
-  description="Test page for the date checker utility functionality"
->
-  <Header />
-
-  <main class="min-h-screen bg-white pt-20">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 class="text-3xl font-bold text-gray-900 mb-8">Date Checker Utility Test</h1>
+<AdminLayout title="Date Checker Test" activePage="events" session={session}>
+  <div class="space-y-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Date Checker Utility Test</h1>
+        <p class="mt-2 text-gray-600">Test page to verify date checker utility functionality</p>
+      </div>
+    </div>
       
-      <!-- Current Date Info -->
-      <div class="bg-blue-50 rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Current Date Information</h2>
-        <div class="space-y-2 text-sm">
-          <p><strong>Current Date:</strong> {today.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</p>
-          <p><strong>Current Time:</strong> {now.toLocaleTimeString('en-GB')}</p>
-          <p><strong>Date Object:</strong> {today.toString()}</p>
-          <p><strong>UTC String:</strong> {now.toUTCString()}</p>
-          <p><strong>ISO String:</strong> {now.toISOString()}</p>
-          <p><strong>Timezone Offset:</strong> {now.getTimezoneOffset()} minutes</p>
-          <p><strong>Today UTC Midnight:</strong> {today.toISOString()}</p>
-        </div>
+    <!-- Current Date Info -->
+    <div class="bg-blue-50 rounded-lg p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Current Date Information</h2>
+      <div class="space-y-2 text-sm">
+        <p><strong>Current Date:</strong> {today.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</p>
+        <p><strong>Current Time:</strong> {now.toLocaleTimeString('en-GB')}</p>
+        <p><strong>Date Object:</strong> {today.toString()}</p>
+        <p><strong>UTC String:</strong> {now.toUTCString()}</p>
+        <p><strong>ISO String:</strong> {now.toISOString()}</p>
+        <p><strong>Timezone Offset:</strong> {now.getTimezoneOffset()} minutes</p>
+        <p><strong>Today UTC Midnight:</strong> {today.toISOString()}</p>
       </div>
+    </div>
 
-      <!-- Event Details -->
-      <div class="bg-gray-50 rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Event Details from Database</h2>
-        {eventDetails ? (
-          <div class="space-y-3 text-sm">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p><strong>Event:</strong> {eventDetails.event_name}</p>
-                <p><strong>Year:</strong> {eventDetails.event_year}</p>
-                <p><strong>Location:</strong> {eventDetails.location}</p>
-              </div>
-              <div>
-                <p><strong>Active:</strong> {eventDetails.is_active ? 'Yes' : 'No'}</p>
-                <p><strong>Created:</strong> {new Date(eventDetails.created_at).toLocaleDateString('en-GB')}</p>
-                <p><strong>Updated:</strong> {new Date(eventDetails.updated_at).toLocaleDateString('en-GB')}</p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <p class="text-gray-600">No active event found</p>
-        )}
-      </div>
-
-      <!-- Event Dates -->
-      <div class="bg-green-50 rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Event Dates & Comparisons</h2>
-        <div class="space-y-4">
+    <!-- Event Details -->
+    <div class="bg-gray-50 rounded-lg p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Event Details from Database</h2>
+      {eventDetails ? (
+        <div class="space-y-3 text-sm">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <h3 class="font-medium text-gray-900">Nominations Open</h3>
-              <p class="text-sm">
-                <strong>Date:</strong> {nominationsOpenDate ? nominationsOpenDate.toLocaleString('en-GB') : 'Not set'}<br>
-                <strong>Raw Value:</strong> {eventDetails?.nominations_open || 'Not set'}<br>
-                <strong>Date Object:</strong> {nominationsOpenDate ? nominationsOpenDate.toString() : 'N/A'}<br>
-                <strong>UTC String:</strong> {nominationsOpenDate ? nominationsOpenDate.toUTCString() : 'N/A'}<br>
-                <strong>ISO String:</strong> {nominationsOpenDate ? nominationsOpenDate.toISOString() : 'N/A'}<br>
-                <strong>Comparison:</strong> {nominationsOpenDate ? (today < nominationsOpenDate ? 'Future' : today > nominationsOpenDate ? 'Past' : 'Today') : 'N/A'}<br>
-                <strong>Time from now:</strong> {getTimeDifference(nominationsOpenDate)}
-              </p>
+            <div>
+              <p><strong>Event:</strong> {eventDetails.event_name}</p>
+              <p><strong>Year:</strong> {eventDetails.event_year}</p>
+              <p><strong>Location:</strong> {eventDetails.location}</p>
             </div>
-            
-            <div class="space-y-2">
-              <h3 class="font-medium text-gray-900">Nominations Close</h3>
-              <p class="text-sm">
-                <strong>Date:</strong> {nominationsCloseDate ? nominationsCloseDate.toLocaleString('en-GB') : 'Not set'}<br>
-                <strong>Raw Value:</strong> {eventDetails?.nominations_close || 'Not set'}<br>
-                <strong>Date Object:</strong> {nominationsCloseDate ? nominationsCloseDate.toString() : 'N/A'}<br>
-                <strong>UTC String:</strong> {nominationsCloseDate ? nominationsCloseDate.toUTCString() : 'N/A'}<br>
-                <strong>ISO String:</strong> {nominationsCloseDate ? nominationsCloseDate.toISOString() : 'N/A'}<br>
-                <strong>Comparison:</strong> {nominationsCloseDate ? (today < nominationsCloseDate ? 'Future' : today > nominationsCloseDate ? 'Past' : 'Today') : 'N/A'}<br>
-                <strong>Time from now:</strong> {getTimeDifference(nominationsCloseDate)}
-              </p>
-            </div>
-            
-            <div class="space-y-2">
-              <h3 class="font-medium text-gray-900">Finalists Announced</h3>
-              <p class="text-sm">
-                <strong>Date:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toLocaleString('en-GB') : 'Not set'}<br>
-                <strong>Raw Value:</strong> {eventDetails?.finalists_announced || 'Not set'}<br>
-                <strong>Date Object:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toString() : 'N/A'}<br>
-                <strong>UTC String:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toUTCString() : 'N/A'}<br>
-                <strong>ISO String:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toISOString() : 'N/A'}<br>
-                <strong>Comparison:</strong> {finalistsAnnouncedDate ? (today < finalistsAnnouncedDate ? 'Future' : today > finalistsAnnouncedDate ? 'Past' : 'Today') : 'N/A'}<br>
-                <strong>Time from now:</strong> {getTimeDifference(finalistsAnnouncedDate)}
-              </p>
-            </div>
-            
-            <div class="space-y-2">
-              <h3 class="font-medium text-gray-900">Judging Start</h3>
-              <p class="text-sm">
-                <strong>Date:</strong> {judgingStartDate ? judgingStartDate.toLocaleString('en-GB') : 'Not set'}<br>
-                <strong>Raw Value:</strong> {eventDetails?.judging_period_start || 'Not set'}<br>
-                <strong>Date Object:</strong> {judgingStartDate ? judgingStartDate.toString() : 'N/A'}<br>
-                <strong>UTC String:</strong> {judgingStartDate ? judgingStartDate.toUTCString() : 'N/A'}<br>
-                <strong>ISO String:</strong> {judgingStartDate ? judgingStartDate.toISOString() : 'N/A'}<br>
-                <strong>Comparison:</strong> {judgingStartDate ? (today < judgingStartDate ? 'Future' : today > judgingStartDate ? 'Past' : 'Today') : 'N/A'}<br>
-                <strong>Time from now:</strong> {getTimeDifference(judgingStartDate)}
-              </p>
-            </div>
-            
-            <div class="space-y-2">
-              <h3 class="font-medium text-gray-900">Judging End</h3>
-              <p class="text-sm">
-                <strong>Date:</strong> {judgingEndDate ? judgingEndDate.toLocaleString('en-GB') : 'Not set'}<br>
-                <strong>Raw Value:</strong> {eventDetails?.judging_period_end || 'Not set'}<br>
-                <strong>Date Object:</strong> {judgingEndDate ? judgingEndDate.toString() : 'N/A'}<br>
-                <strong>UTC String:</strong> {judgingEndDate ? judgingEndDate.toUTCString() : 'N/A'}<br>
-                <strong>ISO String:</strong> {judgingEndDate ? judgingEndDate.toISOString() : 'N/A'}<br>
-                <strong>Comparison:</strong> {judgingEndDate ? (today < judgingEndDate ? 'Future' : today > judgingEndDate ? 'Past' : 'Today') : 'N/A'}<br>
-                <strong>Time from now:</strong> {getTimeDifference(judgingEndDate)}
-              </p>
-            </div>
-            
-            <div class="space-y-2">
-              <h3 class="font-medium text-gray-900">Ceremony</h3>
-              <p class="text-sm">
-                <strong>Date:</strong> {ceremonyDate ? ceremonyDate.toLocaleString('en-GB') : 'Not set'}<br>
-                <strong>Raw Value:</strong> {eventDetails?.awards_ceremony || 'Not set'}<br>
-                <strong>Date Object:</strong> {ceremonyDate ? ceremonyDate.toString() : 'N/A'}<br>
-                <strong>UTC String:</strong> {ceremonyDate ? ceremonyDate.toUTCString() : 'N/A'}<br>
-                <strong>ISO String:</strong> {ceremonyDate ? ceremonyDate.toISOString() : 'N/A'}<br>
-                <strong>Comparison:</strong> {ceremonyDate ? (today < ceremonyDate ? 'Future' : today > ceremonyDate ? 'Past' : 'Today') : 'N/A'}<br>
-                <strong>Time from now:</strong> {getTimeDifference(ceremonyDate)}
-              </p>
+            <div>
+              <p><strong>Active:</strong> {eventDetails.is_active ? 'Yes' : 'No'}</p>
+              <p><strong>Created:</strong> {new Date(eventDetails.created_at).toLocaleDateString('en-GB')}</p>
+              <p><strong>Updated:</strong> {new Date(eventDetails.updated_at).toLocaleDateString('en-GB')}</p>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <p class="text-gray-600">No active event found</p>
+      )}
+    </div>
 
-      <!-- Phase Detection Results -->
-      <div class="bg-yellow-50 rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Phase Detection Results</h2>
-        <div class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 class="font-medium text-gray-900 mb-2">Current Phase</h3>
-              <p class="text-lg">
-                <span class="px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full text-sm font-medium">
-                  {eventPhase.phase}
-                </span>
-              </p>
-            </div>
-            
-            <div>
-              <h3 class="font-medium text-gray-900 mb-2">Time Until Next</h3>
-              <p class="text-lg font-semibold">
-                {eventPhase.daysUntilNext === 0 ? 
-                  (eventPhase.statusMessage.includes('hour') ? 
-                    eventPhase.statusMessage.split(' ').slice(-2).join(' ') : 
-                    'Today'
-                  ) : 
-                  `${eventPhase.daysUntilNext} day${eventPhase.daysUntilNext !== 1 ? 's' : ''}`
-                }
-              </p>
-            </div>
-            
-            <div>
-              <h3 class="font-medium text-gray-900 mb-2">Next Milestone</h3>
-              <p class="text-sm">{eventPhase.nextMilestone}</p>
-            </div>
-            
-            <div>
-              <h3 class="font-medium text-gray-900 mb-2">Is Urgent</h3>
-              <p class="text-sm">{eventPhase.isUrgent ? 'Yes' : 'No'}</p>
+    <!-- Event Dates -->
+    <div class="bg-green-50 rounded-lg p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Event Dates & Comparisons</h2>
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <h3 class="font-medium text-gray-900">Nominations Open</h3>
+            <p class="text-sm">
+              <strong>Date:</strong> {nominationsOpenDate ? nominationsOpenDate.toLocaleString('en-GB') : 'Not set'}<br>
+              <strong>Raw Value:</strong> {eventDetails?.nominations_open || 'Not set'}<br>
+              <strong>Date Object:</strong> {nominationsOpenDate ? nominationsOpenDate.toString() : 'N/A'}<br>
+              <strong>UTC String:</strong> {nominationsOpenDate ? nominationsOpenDate.toUTCString() : 'N/A'}<br>
+              <strong>ISO String:</strong> {nominationsOpenDate ? nominationsOpenDate.toISOString() : 'N/A'}<br>
+              <strong>Comparison:</strong> {nominationsOpenDate ? (today < nominationsOpenDate ? 'Future' : today > nominationsOpenDate ? 'Past' : 'Today') : 'N/A'}<br>
+              <strong>Time from now:</strong> {getTimeDifference(nominationsOpenDate)}
+            </p>
+          </div>
+          
+          <div class="space-y-2">
+            <h3 class="font-medium text-gray-900">Nominations Close</h3>
+            <p class="text-sm">
+              <strong>Date:</strong> {nominationsCloseDate ? nominationsCloseDate.toLocaleString('en-GB') : 'Not set'}<br>
+              <strong>Raw Value:</strong> {eventDetails?.nominations_close || 'Not set'}<br>
+              <strong>Date Object:</strong> {nominationsCloseDate ? nominationsCloseDate.toString() : 'N/A'}<br>
+              <strong>UTC String:</strong> {nominationsCloseDate ? nominationsCloseDate.toUTCString() : 'N/A'}<br>
+              <strong>ISO String:</strong> {nominationsCloseDate ? nominationsCloseDate.toISOString() : 'N/A'}<br>
+              <strong>Comparison:</strong> {nominationsCloseDate ? (today < nominationsCloseDate ? 'Future' : today > nominationsCloseDate ? 'Past' : 'Today') : 'N/A'}<br>
+              <strong>Time from now:</strong> {getTimeDifference(nominationsCloseDate)}
+            </p>
+          </div>
+          
+          <div class="space-y-2">
+            <h3 class="font-medium text-gray-900">Finalists Announced</h3>
+            <p class="text-sm">
+              <strong>Date:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toLocaleString('en-GB') : 'Not set'}<br>
+              <strong>Raw Value:</strong> {eventDetails?.finalists_announced || 'Not set'}<br>
+              <strong>Date Object:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toString() : 'N/A'}<br>
+              <strong>UTC String:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toUTCString() : 'N/A'}<br>
+              <strong>ISO String:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toISOString() : 'N/A'}<br>
+              <strong>Comparison:</strong> {finalistsAnnouncedDate ? (today < finalistsAnnouncedDate ? 'Future' : today > finalistsAnnouncedDate ? 'Past' : 'Today') : 'N/A'}<br>
+              <strong>Time from now:</strong> {getTimeDifference(finalistsAnnouncedDate)}
+            </p>
+          </div>
+          
+          <div class="space-y-2">
+            <h3 class="font-medium text-gray-900">Judging Start</h3>
+            <p class="text-sm">
+              <strong>Date:</strong> {judgingStartDate ? judgingStartDate.toLocaleString('en-GB') : 'Not set'}<br>
+              <strong>Raw Value:</strong> {eventDetails?.judging_period_start || 'Not set'}<br>
+              <strong>Date Object:</strong> {judgingStartDate ? judgingStartDate.toString() : 'N/A'}<br>
+              <strong>UTC String:</strong> {judgingStartDate ? judgingStartDate.toUTCString() : 'N/A'}<br>
+              <strong>ISO String:</strong> {judgingStartDate ? judgingStartDate.toISOString() : 'N/A'}<br>
+              <strong>Comparison:</strong> {judgingStartDate ? (today < judgingStartDate ? 'Future' : today > judgingStartDate ? 'Past' : 'Today') : 'N/A'}<br>
+              <strong>Time from now:</strong> {getTimeDifference(judgingStartDate)}
+            </p>
+          </div>
+          
+          <div class="space-y-2">
+            <h3 class="font-medium text-gray-900">Judging End</h3>
+            <p class="text-sm">
+              <strong>Date:</strong> {judgingEndDate ? judgingEndDate.toLocaleString('en-GB') : 'Not set'}<br>
+              <strong>Raw Value:</strong> {eventDetails?.judging_period_end || 'Not set'}<br>
+              <strong>Date Object:</strong> {judgingEndDate ? judgingEndDate.toString() : 'N/A'}<br>
+              <strong>UTC String:</strong> {judgingEndDate ? judgingEndDate.toUTCString() : 'N/A'}<br>
+              <strong>ISO String:</strong> {judgingEndDate ? judgingEndDate.toISOString() : 'N/A'}<br>
+              <strong>Comparison:</strong> {judgingEndDate ? (today < judgingEndDate ? 'Future' : today > judgingEndDate ? 'Past' : 'Today') : 'N/A'}<br>
+              <strong>Time from now:</strong> {getTimeDifference(judgingEndDate)}
+            </p>
+          </div>
+          
+          <div class="space-y-2">
+            <h3 class="font-medium text-gray-900">Ceremony</h3>
+            <p class="text-sm">
+              <strong>Date:</strong> {ceremonyDate ? ceremonyDate.toLocaleString('en-GB') : 'Not set'}<br>
+              <strong>Raw Value:</strong> {eventDetails?.awards_ceremony || 'Not set'}<br>
+              <strong>Date Object:</strong> {ceremonyDate ? ceremonyDate.toString() : 'N/A'}<br>
+              <strong>UTC String:</strong> {ceremonyDate ? ceremonyDate.toUTCString() : 'N/A'}<br>
+              <strong>ISO String:</strong> {ceremonyDate ? ceremonyDate.toISOString() : 'N/A'}<br>
+              <strong>Comparison:</strong> {ceremonyDate ? (today < ceremonyDate ? 'Future' : today > ceremonyDate ? 'Past' : 'Today') : 'N/A'}<br>
+              <strong>Time from now:</strong> {getTimeDifference(ceremonyDate)}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase Detection Results -->
+    <div class="bg-yellow-50 rounded-lg p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Phase Detection Results</h2>
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h3 class="font-medium text-gray-900 mb-2">Current Phase</h3>
+            <p class="text-lg">
+              <span class="px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full text-sm font-medium">
+                {eventPhase.phase}
+              </span>
+            </p>
+          </div>
+          
+          <div>
+            <h3 class="font-medium text-gray-900 mb-2">Time Until Next</h3>
+            <p class="text-lg font-semibold">
+              {eventPhase.daysUntilNext === 0 ? 
+                (eventPhase.statusMessage.includes('hour') ? 
+                  eventPhase.statusMessage.split(' ').slice(-2).join(' ') : 
+                  'Today'
+                ) : 
+                `${eventPhase.daysUntilNext} day${eventPhase.daysUntilNext !== 1 ? 's' : ''}`
+              }
+            </p>
+          </div>
+          
+          <div>
+            <h3 class="font-medium text-gray-900 mb-2">Next Milestone</h3>
+            <p class="text-sm">{eventPhase.nextMilestone}</p>
+          </div>
+          
+          <div>
+            <h3 class="font-medium text-gray-900 mb-2">Is Urgent</h3>
+            <p class="text-sm">{eventPhase.isUrgent ? 'Yes' : 'No'}</p>
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="font-medium text-gray-900 mb-2">Status Message</h3>
+          <p class="text-sm bg-white p-3 rounded border">{eventPhase.statusMessage}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA Button Results -->
+    <div class="bg-purple-50 rounded-lg p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">CTA Button Results</h2>
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h3 class="font-medium text-gray-900 mb-2">Header CTA</h3>
+            <div class="space-y-2">
+              <p class="text-sm"><strong>Text:</strong> {headerCTA.text}</p>
+              <p class="text-sm"><strong>URL:</strong> {headerCTA.href}</p>
+              <p class="text-sm"><strong>Variant:</strong> {headerCTA.variant}</p>
+              <a 
+                href={headerCTA.href}
+                class={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  headerCTA.variant === 'primary' 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : headerCTA.variant === 'secondary'
+                    ? 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                    : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {headerCTA.text}
+              </a>
             </div>
           </div>
           
           <div>
-            <h3 class="font-medium text-gray-900 mb-2">Status Message</h3>
-            <p class="text-sm bg-white p-3 rounded border">{eventPhase.statusMessage}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- CTA Button Results -->
-      <div class="bg-purple-50 rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">CTA Button Results</h2>
-        <div class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 class="font-medium text-gray-900 mb-2">Header CTA</h3>
-              <div class="space-y-2">
-                <p class="text-sm"><strong>Text:</strong> {headerCTA.text}</p>
-                <p class="text-sm"><strong>URL:</strong> {headerCTA.href}</p>
-                <p class="text-sm"><strong>Variant:</strong> {headerCTA.variant}</p>
-                <a 
-                  href={headerCTA.href}
-                  class={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    headerCTA.variant === 'primary' 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : headerCTA.variant === 'secondary'
-                      ? 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                      : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {headerCTA.text}
-                </a>
-              </div>
-            </div>
-            
-            <div>
-              <h3 class="font-medium text-gray-900 mb-2">Boolean Checks</h3>
-              <div class="space-y-2 text-sm">
-                <p><strong>Nominations Open:</strong> {nominationsOpen ? 'Yes' : 'No'}</p>
-                <p><strong>After Ceremony:</strong> {afterCeremony ? 'Yes' : 'No'}</p>
-              </div>
+            <h3 class="font-medium text-gray-900 mb-2">Boolean Checks</h3>
+            <div class="space-y-2 text-sm">
+              <p><strong>Nominations Open:</strong> {nominationsOpen ? 'Yes' : 'No'}</p>
+              <p><strong>After Ceremony:</strong> {afterCeremony ? 'Yes' : 'No'}</p>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Countdown Information -->
-      {countdownInfo && (
-        <div class="bg-red-50 rounded-lg p-6 mb-8">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">Countdown Information</h2>
-          <div class="space-y-2 text-sm">
-            <p><strong>Time Remaining:</strong> 
-              {countdownInfo.days === 0 ? 
-                (countdownInfo.message.includes('hour') ? 
-                  countdownInfo.message.split(' ').slice(-2).join(' ') : 
-                  'Today'
-                ) : 
-                `${countdownInfo.days} day${countdownInfo.days !== 1 ? 's' : ''}`
-              }
-            </p>
-            <p><strong>Message:</strong> {countdownInfo.message}</p>
-            <p><strong>Is Urgent:</strong> {countdownInfo.isUrgent ? 'Yes' : 'No'}</p>
-          </div>
-        </div>
-      )}
-
-      <!-- Debug Information -->
-      <div class="bg-gray-100 rounded-lg p-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Debug Information</h2>
-        <div class="space-y-2 text-xs font-mono">
-          <p><strong>Raw Event Details:</strong></p>
-          <pre class="bg-white p-3 rounded border overflow-x-auto">{JSON.stringify(eventDetails, null, 2)}</pre>
-          
-          <p class="mt-4"><strong>Raw Event Phase:</strong></p>
-          <pre class="bg-white p-3 rounded border overflow-x-auto">{JSON.stringify(eventPhase, null, 2)}</pre>
-          
-          {eventPhase.debugInfo && (
-            <Fragment>
-              <p class="mt-4"><strong>Date Checker Debug Info:</strong></p>
-              <pre class="bg-white p-3 rounded border overflow-x-auto">{JSON.stringify(eventPhase.debugInfo, null, 2)}</pre>
-            </Fragment>
-          )}
         </div>
       </div>
     </div>
-  </main>
 
-  <Footer />
-</Layout>
+    <!-- Countdown Information -->
+    {countdownInfo && (
+      <div class="bg-red-50 rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Countdown Information</h2>
+        <div class="space-y-2 text-sm">
+          <p><strong>Time Remaining:</strong> 
+            {countdownInfo.days === 0 ? 
+              (countdownInfo.message.includes('hour') ? 
+                countdownInfo.message.split(' ').slice(-2).join(' ') : 
+                'Today'
+              ) : 
+              `${countdownInfo.days} day${countdownInfo.days !== 1 ? 's' : ''}`
+            }
+          </p>
+          <p><strong>Message:</strong> {countdownInfo.message}</p>
+          <p><strong>Is Urgent:</strong> {countdownInfo.isUrgent ? 'Yes' : 'No'}</p>
+        </div>
+      </div>
+    )}
+
+    <!-- Debug Information -->
+    <div class="bg-gray-100 rounded-lg p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Debug Information</h2>
+      <div class="space-y-2 text-xs font-mono">
+        <p><strong>Raw Event Details:</strong></p>
+        <pre class="bg-white p-3 rounded border overflow-x-auto">{JSON.stringify(eventDetails, null, 2)}</pre>
+        
+        <p class="mt-4"><strong>Raw Event Phase:</strong></p>
+        <pre class="bg-white p-3 rounded border overflow-x-auto">{JSON.stringify(eventPhase, null, 2)}</pre>
+        
+        {eventPhase.debugInfo && (
+          <Fragment>
+            <p class="mt-4"><strong>Date Checker Debug Info:</strong></p>
+            <pre class="bg-white p-3 rounded border overflow-x-auto">{JSON.stringify(eventPhase.debugInfo, null, 2)}</pre>
+          </Fragment>
+        )}
+      </div>
+    </div>
+  </div>
+</AdminLayout>
