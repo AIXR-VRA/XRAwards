@@ -13,11 +13,11 @@ export default defineConfig({
     mode: 'standalone',
   }),
   image: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-      },
-    ],
+    // Disable remote image optimization entirely to avoid build failures
+    // with broken Supabase storage URLs during build
+    service: {
+      entrypoint: 'astro/assets/services/noop',
+    },
   },
   prefetch: {
     prefetchAll: true,
