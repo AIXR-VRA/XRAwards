@@ -39,9 +39,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
-          path: |
-            dist/
-            wrangler.toml
+          path: dist/
           retention-days: 1
 
   # This job ONLY runs on the original repository, NOT on forks
@@ -52,29 +50,16 @@ jobs:
     # Security: Only deploy from the original repository on push to main/master
     if: github.event_name == 'push' && github.repository == 'AIXR-VRA/XRAwards'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'yarn'
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-          path: ./
+          path: ./dist # Download directly into a dist folder
 
-      - name: Deploy to Cloudflare Workers
-        run: npx wrangler@latest deploy
+      - name: Deploy to Cloudflare Pages
+        run: npx wrangler@latest pages deploy dist
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
-          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
-          PUBLIC_R2_PUBLIC_URL: ${{ secrets.PUBLIC_R2_PUBLIC_URL }}
+          # Environment variables are automatically passed as bindings,
+          # so you don't need to list them here unless needed for the build itself.
