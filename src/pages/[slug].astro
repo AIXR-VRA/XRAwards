@@ -15,10 +15,7 @@ export const prerender = true;
 
 // Get all event slugs for static generation
 export async function getStaticPaths() {
-  const supabase = createClient(
-    import.meta.env.SUPABASE_URL,
-    import.meta.env.SUPABASE_ANON_KEY
-  );
+  const { supabase } = await import('../utils/supabase');
 
   const { data: events } = await supabase
     .from('event_details')
@@ -34,8 +31,8 @@ export async function getStaticPaths() {
 const { slug } = Astro.params;
 
 const supabase = createClient(
-  import.meta.env.SUPABASE_URL,
-  import.meta.env.SUPABASE_ANON_KEY
+  import.meta.env.PUBLIC_SUPABASE_URL,
+  import.meta.env.PUBLIC_SUPABASE_ANON_KEY
 );
 
 // Get the event for this slug

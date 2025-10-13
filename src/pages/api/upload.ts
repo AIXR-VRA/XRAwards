@@ -7,29 +7,13 @@
  */
 
 import type { APIRoute } from 'astro';
-import { createServerClient } from '@supabase/ssr';
+import { createSecureSupabaseClient } from '../../utils/supabase';
 import { uploadToR2, generateSafeFilename } from '../../utils/r2-upload';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     // Initialize Supabase client
-    const supabase = createServerClient(
-      import.meta.env.SUPABASE_URL,
-      import.meta.env.SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          get(key: string) {
-            return cookies.get(key)?.value;
-          },
-          set(key: string, value: string, options: any) {
-            cookies.set(key, value, options);
-          },
-          remove(key: string, options: any) {
-            cookies.delete(key, options);
-          },
-        },
-      }
-    );
+    const supabase = createSecureSupabaseClient(cookies, request);
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();

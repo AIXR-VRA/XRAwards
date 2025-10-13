@@ -14,8 +14,8 @@ import { createClient } from '@supabase/supabase-js';
 
 // Fetch visible categories at build time
 const supabase = createClient(
-  import.meta.env.SUPABASE_URL,
-  import.meta.env.SUPABASE_ANON_KEY
+  import.meta.env.PUBLIC_SUPABASE_URL,
+  import.meta.env.PUBLIC_SUPABASE_ANON_KEY
 );
 
 // Fetch categories with their tags and events, filtered for active events only

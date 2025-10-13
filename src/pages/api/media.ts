@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro';
-// import { supabase } from '../../utils/supabase'; // Unused import
-import { createServerClient } from '@supabase/ssr';
+import { createSecureSupabaseClient } from '../../utils/supabase';
 import { getMedia } from '../../utils/media-library';
 
 // GET /api/media - Get all media with optional filtering
@@ -79,23 +78,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     // Create server-side Supabase client to get session
     console.log('🔧 Creating server-side Supabase client');
-    const supabaseServer = createServerClient(
-      import.meta.env.SUPABASE_URL,
-      import.meta.env.SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          get(key: string) {
-            return cookies.get(key)?.value;
-          },
-          set(key: string, value: string, options: any) {
-            cookies.set(key, value, options);
-          },
-          remove(key: string, options: any) {
-            cookies.delete(key, options);
-          },
-        },
-      }
-    );
+    const supabaseServer = createSecureSupabaseClient(cookies, request);
 
     // Get session
     const { data: { session }, error: sessionError } = await supabaseServer.auth.getSession();
@@ -192,23 +175,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     // Create server-side Supabase client with authentication
-    const supabaseServer = createServerClient(
-      import.meta.env.SUPABASE_URL,
-      import.meta.env.SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          get(key: string) {
-            return cookies.get(key)?.value;
-          },
-          set(key: string, value: string, options: any) {
-            cookies.set(key, value, options);
-          },
-          remove(key: string, options: any) {
-            cookies.delete(key, options);
-          },
-        },
-      }
-    );
+    const supabaseServer = createSecureSupabaseClient(cookies, request);
 
     // Update media metadata using authenticated client
     const dbUpdates: any = {};
@@ -330,23 +297,7 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
 
     // Create server-side Supabase client to get session
     console.log('🔧 Creating server-side Supabase client');
-    const supabaseServer = createServerClient(
-      import.meta.env.SUPABASE_URL,
-      import.meta.env.SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          get(key: string) {
-            return cookies.get(key)?.value;
-          },
-          set(key: string, value: string, options: any) {
-            cookies.set(key, value, options);
-          },
-          remove(key: string, options: any) {
-            cookies.delete(key, options);
-          },
-        },
-      }
-    );
+    const supabaseServer = createSecureSupabaseClient(cookies, request);
 
     // Get session
     const { data: { session }, error: sessionError } = await supabaseServer.auth.getSession();

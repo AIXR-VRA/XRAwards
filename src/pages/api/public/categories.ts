@@ -5,15 +5,11 @@
  */
 
 import type { APIRoute } from 'astro';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../../../utils/supabase';
 
 export const GET: APIRoute = async () => {
   try {
     // Use public client (no auth required)
-    const supabase = createClient(
-      import.meta.env.SUPABASE_URL,
-      import.meta.env.SUPABASE_ANON_KEY
-    );
 
     // Fetch only visible categories, ordered by sort_order
     const { data, error } = await supabase

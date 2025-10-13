@@ -5,12 +5,12 @@
  */
 
 import type { APIRoute } from 'astro';
-import { createServerClient } from '@supabase/ssr';
+import { createSecureSupabaseClient } from '../../../utils/supabase';
 
-export const POST: APIRoute = async ({ cookies }) => {
+export const POST: APIRoute = async ({ cookies, request }) => {
   try {
     // Check environment variables first
-    if (!import.meta.env.SUPABASE_URL || !import.meta.env.SUPABASE_ANON_KEY) {
+    if (!import.meta.env.PUBLIC_SUPABASE_URL || !import.meta.env.PUBLIC_SUPABASE_ANON_KEY) {
       console.error('Missing Supabase environment variables!');
       return new Response(
         JSON.stringify({ error: 'Server configuration error - Supabase credentials not found' }),
@@ -19,30 +19,7 @@ export const POST: APIRoute = async ({ cookies }) => {
     }
 
     // Initialize Supabase client with proper SSR cookie handling
-    const supabase = createServerClient(
-      import.meta.env.SUPABASE_URL,
-      import.meta.env.SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          get(name: string) {
-            return cookies.get(name)?.value;
-          },
-          set(name: string, value: string, options: any) {
-            cookies.set(name, value, {
-              path: '/',
-              httpOnly: true,
-              sameSite: 'lax',
-              secure: false, // Set to false for development
-              maxAge: options?.maxAge || 0, // 0 for immediate expiration
-              ...options
-            });
-          },
-          remove(name: string, options: any) {
-            cookies.delete(name, options);
-          },
-        },
-      }
-    );
+    const supabase = createSecureSupabaseClient(cookies, request);
 
     // Sign out
     const { error } = await supabase.auth.signOut();

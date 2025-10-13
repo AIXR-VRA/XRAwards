@@ -5,15 +5,15 @@
  */
 
 import type { APIRoute } from 'astro';
-import { createServerClient } from '@supabase/ssr';
+import { createSecureSupabaseClient } from '../../../utils/supabase';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     // Check environment variables first
-    if (!import.meta.env.SUPABASE_URL || !import.meta.env.SUPABASE_ANON_KEY) {
+    if (!import.meta.env.PUBLIC_SUPABASE_URL || !import.meta.env.PUBLIC_SUPABASE_ANON_KEY) {
       console.error('Missing Supabase environment variables!');
-      console.error('SUPABASE_URL:', import.meta.env.SUPABASE_URL ? 'set' : 'missing');
-      console.error('SUPABASE_ANON_KEY:', import.meta.env.SUPABASE_ANON_KEY ? 'set' : 'missing');
+      console.error('PUBLIC_SUPABASE_URL:', import.meta.env.PUBLIC_SUPABASE_URL ? 'set' : 'missing');
+      console.error('PUBLIC_SUPABASE_ANON_KEY:', import.meta.env.PUBLIC_SUPABASE_ANON_KEY ? 'set' : 'missing');
       return new Response(
         JSON.stringify({ error: 'Server configuration error - Supabase credentials not found' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -24,7 +24,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     let body;
     try {
       const text = await request.text();
-      console.log('Request body text:', text);
       body = text ? JSON.parse(text) : {};
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
@@ -44,30 +43,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     // Initialize Supabase client with proper SSR cookie handling
-    const supabase = createServerClient(
-      import.meta.env.SUPABASE_URL,
-      import.meta.env.SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          get(name: string) {
-            return cookies.get(name)?.value;
-          },
-          set(name: string, value: string, options: any) {
-            cookies.set(name, value, {
-              path: '/',
-              httpOnly: true,
-              sameSite: 'lax',
-              secure: false, // Set to false for development
-              maxAge: options?.maxAge || 60 * 60 * 24 * 7, // 7 days
-              ...options
-            });
-          },
-          remove(name: string, options: any) {
-            cookies.delete(name, options);
-          },
-        },
-      }
-    );
+    const supabase = createSecureSupabaseClient(cookies, request);
 
     // Sign in
     const { data, error } = await supabase.auth.signInWithPassword({

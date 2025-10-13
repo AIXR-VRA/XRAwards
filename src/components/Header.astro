@@ -12,10 +12,7 @@ const [currentYear, previousYear, thirdYear] = recentYears;
 const ctaButton = await getCTAButton('header');
 
 // Get event slugs for ceremony links
-const supabase = createClient(
-  import.meta.env.SUPABASE_URL,
-  import.meta.env.SUPABASE_ANON_KEY
-);
+import { supabase } from '../utils/supabase';
 
 const { data: events } = await supabase
   .from('event_details')
