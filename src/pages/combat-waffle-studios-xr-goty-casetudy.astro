@@ -51,9 +51,9 @@ import Footer from '../components/Footer.astro';
     <!-- Case Study Content -->
     <section class="py-16 bg-white">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="prose prose-lg max-w-none">
-          
-          <!-- Introduction -->
+        <!-- Introduction with Case Study Info Box -->
+        <div class="intro-with-sidebar">
+          <div class="intro-content">
           <p>Today, we're diving deep into the winning strategies of Combat Waffle Studios, exploring exactly how their game 'Ghost of Tabor' achieved acclaim at the XR Awards.</p>
           
           <p><strong>This isn't just a general overview…</strong></p>
@@ -67,9 +67,36 @@ import Footer from '../components/Footer.astro';
           <p>If you're seeking <strong>actionable insights</strong> AND <strong>real-world examples</strong>, you'll find this case study invaluable.</p>
           
           <p>Let's go.</p>
+          </div>
+          
+          <!-- Case Study Info Box -->
+          <div class="case-study-info-box">
+            <p class="info-title">Case Study</p>
+            <div class="info-grid">
+              <p><strong>Company:</strong> Combat Waffle Studios</p>
+              <p><strong>Project:</strong> Ghosts of Tabor</p>
+              <p><strong>Category:</strong> XR Game of the Year</p>
+              <p><strong>Edition:</strong> 2023</p>
+            </div>
+            
+            <p class="contents-title">Contents</p>
+            <div class="contents-list">
+              <p><a href="#section-01"><strong>01.</strong> The Strategy Behind the Nomination</a></p>
+              <p><a href="#section-02"><strong>02:</strong> Cost vs. Benefit: Was Nominating Worth It?</a></p>
+              <p><a href="#section-03"><strong>03.</strong> The Winning Edge: What Set Them Apart</a></p>
+              <p><a href="#section-04"><strong>04:</strong> Networking Goldmine: Beyond the Award</a></p>
+              <p><a href="#section-05"><strong>05:</strong> The Ripple Effect of Winning</a></p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="prose prose-lg max-w-none">
           
           <!-- Section 1 -->
+          <div id="section-01" class="section-marker">
+            <p class="section-number">01 The Strategy Behind the Nomination</p>
           <h2>Discovering the Winning Formula: Combat Waffle Studios' Nomination Strategy</h2>
+          </div>
           
           <p>Combat Waffle Studios' path to the XR Awards with 'Ghost of Tabor' was marked by a thoughtful, community-driven strategy.</p>
           
@@ -105,7 +132,8 @@ import Footer from '../components/Footer.astro';
               <div class="numbered-content">
                 <h4>Emphasising Unique Features</h4>
                 <p>'Ghost of Tabor' was distinguished by its innovative gameplay and narrative depth.</p>
-                <p>The studio focused on showcasing these elements, understanding that a standout game needs more than just technical prowess—it needs a story and character.</p>
+                <p>The studio focused on showcasing these elements, understanding that a standout game needs more than just technical prowess</p>
+                <p>It needs a story and character.</p>
               </div>
             </div>
             
@@ -117,9 +145,21 @@ import Footer from '../components/Footer.astro';
                 <p>Albright's approach was about creating a narrative that connected with the judges and the wider XR community.</p>
               </div>
             </div>
+            
+            <div class="numbered-item">
+              <div class="number-badge">4</div>
+              <div class="numbered-content">
+                <h4>Professional and Cohesive Submission</h4>
+                <p>Combat Waffle Studios ensured their entry was not only comprehensive but also presented professionally.</p>
+                <p>"We're in such a young, malleable state and you (AIXR) were already setting standards of what an award show should be."</p>
+                <p>Knowing that the bar of quality is set high, their application had attention to detail that matched. This attention to detail reflected their dedication and the quality of their work.</p>
+              </div>
+            </div>
           </div>
           
-          <p>As Combat Waffle Studios demonstrated, a strategic approach, rooted in community support and a compelling narrative, can pave the way for success at the XR Awards.</p>
+          <p>As Combat Waffle Studios demonstrated…</p>
+          
+          <p>…a strategic approach, rooted in community support and a compelling narrative, can pave the way for success at the XR Awards.</p>
           
           <!-- Takeaway Box -->
           <div class="studio-advice-box">
@@ -130,7 +170,10 @@ import Footer from '../components/Footer.astro';
           </div>
           
           <!-- Section 2 -->
-          <h2>Evaluating the Return on Investment</h2>
+          <div id="section-02" class="section-marker">
+            <p class="section-number">02 Cost vs. Benefit: Was Nominating Worth It</p>
+            <h2>Evaluating the Return on Investment: Insights from Combat Waffle Studios</h2>
+          </div>
           
           <p>Combat Waffle Studios' experience with 'Ghost of Tabor' at the XR Awards is a perfect case study to understand the cost-benefit dynamics of participating in such a prestigious event.</p>
           
@@ -139,17 +182,99 @@ import Footer from '../components/Footer.astro';
           <h3>Breaking Down the Costs:</h3>
           
           <ul>
-            <li><strong>Nomination Fee:</strong> There is an inherent monetary cost in nominating a game.</li>
-            <li><strong>Resource Allocation:</strong> The preparation for a compelling nomination demands both time and resources.</li>
+            <li><strong>Nomination Fee:</strong> There is an inherent monetary cost in nominating a game. As Albright mentioned, this wasn't initially on their radar due to their focus on development.</li>
+            <li><strong>Resource Allocation:</strong> The preparation for a compelling nomination demands both time and resources, which could otherwise be directed towards game development or marketing efforts.</li>
           </ul>
           
           <h3>Weighing Against the Benefits:</h3>
           
           <ul>
-            <li><strong>Increased Visibility and Industry Recognition:</strong> Albright notes, "Being a finalist is one thing… but when you're a winner, everyone flocks to you."</li>
-            <li><strong>Networking and Industry Connections:</strong> "Executives at Sony and other places… have now reached out and connected."</li>
-            <li><strong>Boost in Team Morale:</strong> Winning had a profound effect on the team's morale.</li>
+            <li><strong>Increased Visibility and Industry Recognition:</strong> Albright notes the significant impact of being a finalist and winner, stating, "Being a finalist is one thing… but when you're a winner, everyone flocks to you." This recognition elevates the studio's profile immensely.</li>
+            <li><strong>Networking and Industry Connections:</strong> The award facilitated a flood of connections and outreach. "Executives at Sony and other places… have now reached out and connected," shared Albright, highlighting the networking goldmine that the awards opened up.</li>
+            <li><strong>Boost in Team Morale and Standards:</strong> Winning the award had a profound effect on the team's morale. Albright recounts the emotional response from his team, underlining the motivational power of such recognition.</li>
+            <li><strong>Marketing Leverage:</strong> Being associated with the XR Awards and AIXR serves as a powerful marketing tool, enhancing the game's and studio's brand image.</li>
+            <li><strong>Long-term Strategic Benefits:</strong> The win has led to new opportunities and discussions about future projects, amplifying the studio's growth and development plans.</li>
           </ul>
+          
+          <h3>Cost-Benefit Analysis by Combat Waffle Studios:</h3>
+          
+          <p>Combat Waffle Studios weighed the initial investment against the potential benefits.</p>
+          
+          <p><strong>Albright's experience revealed…</strong></p>
+          
+          <p>The returns – in terms of recognition, networking, team morale, and future opportunities – far outweighed the initial costs.</p>
+          
+          <p>The nomination and subsequent win represented a strategic investment in the studio's future, yielding dividends beyond the immediate accolades.</p>
+          
+          <!-- Advice Box -->
+          <div class="studio-advice-box">
+            <h3>Advice for Studios:</h3>
+            <p>Consider the broader implications of nominating for the XR Awards. Beyond the direct costs, the potential for increased visibility, enhanced reputation, industry connections, and internal team growth can be substantial.</p>
+            <p>As Albright's experience shows, these awards can open doors to opportunities that redefine a studio's trajectory.</p>
+          </div>
+          
+          <!-- Section 3 -->
+          <div id="section-03" class="section-marker">
+            <p class="section-number">03: The Winning Edge: What Set Them Apart</p>
+            <h2>Crafting a Champion: The Unconventional Success of 'Ghost of Tabor'</h2>
+          </div>
+          
+          <p>Combat Waffle Studios' journey with 'Ghost of Tabor' to the XR Awards is a story of relentless dedication, community engagement, and innovative strategies.</p>
+          
+          <p>Despite being an indie studio…</p>
+          
+          <p>With limited support…</p>
+          
+          <p>…their approach and the game's unique qualities set them apart in the highly competitive XR landscape.</p>
+          
+          <h3>Key Differentiators of 'Ghost of Tabor':</h3>
+          
+          <p><strong>Continuous commitment to Improvement</strong></p>
+          
+          <p>The game's development was marked by constant updates, almost weekly, showcasing the studio's commitment to improvement. Scott Albright reflects on the early days, acknowledging:</p>
+          
+          <!-- Quote Callout -->
+          <div class="quote-callout">
+            <div class="quote-icon">"</div>
+            <p class="quote-text">When it was first released to market it was in a state of bugs and had lots of issues, but the studio kept at it.</p>
+            <p class="quote-attribution">— Scott Albright, CEO Combat Waffle Studios</p>
+          </div>
+          
+          <p><strong>But one theme was always constant:</strong></p>
+          
+          <p>The studio's approach was deeply rooted in community engagement. They actively involved players in the development process, using real feedback to shape the game.</p>
+          
+          <p>This involvement went beyond just tweaks; it was about celebrating the journey of 'Ghost of Tabor' with the community.</p>
+          
+          <p>But how?</p>
+          
+          <p>The studio's use of social media platforms like Discord and Twitter to connect with their audience was game changing. They didn't just make game updates; they created an ongoing narrative about the game's development.</p>
+          
+          <p>Using developer update posts, real world videos, in game videos, player postcards, Discord polls and more.</p>
+          
+          <p>Further strengthening the bond with their community, beyond anything the XR Awards has seen before.</p>
+          
+          <h3>However, it didn't stop there.</h3>
+          
+          <p>The studio hosted VR Awards watch parties along the way, from their server</p>
+          
+          <p>And post-win?</p>
+          
+          <p>They integrated a real-world duplicate of their award into the game. This act exemplified their philosophy of shared success with their community.</p>
+          
+          <p><strong>But here is the real twist.</strong></p>
+          
+          <p>Resourcefulness and Resilience made things go even further…</p>
+          
+          <p>Despite the initial challenges, the studio's resourceful approach turned potential setbacks into opportunities for growth and community building.</p>
+          
+          <p>For example,</p>
+          
+          <p>Even though the game was only available on Meta Quest Lab and Steam VR, its sales numbers were impressive, highlighting its popularity among players.</p>
+          
+          <p>This achievement is particularly noteworthy considering their indie status and limited mainstream store presence.</p>
+          
+          <p>Both indie and AAA studios stand an equal chance of winning.</p>
           
           <!-- Advice Box -->
           <div class="studio-advice-box">
@@ -175,23 +300,113 @@ import Footer from '../components/Footer.astro';
             <p>As Combat Waffle Studios demonstrated, a committed, player-centric approach can lead to extraordinary success, even for indie studios with limited mainstream support.</p>
           </div>
           
-          <!-- Final Quote -->
+          <!-- Section 4 -->
+          <div id="section-04" class="section-marker">
+            <p class="section-number">04 Networking Goldmine: Beyond the Award</p>
+            <h2>Leveraging Recognition for Unprecedented Connections: Combat Waffle Studios' Experience</h2>
+          </div>
+          
+          <p>Combat Waffle Studios' journey with 'Ghost of Tabor' in the XR Awards unlocked more than just accolades; it opened a treasure trove of networking opportunities that were instrumental in their growth.</p>
+          
+          <p>Scott Albright's recount of their experience post-win offers valuable insights into the networking impact of such recognition and unlocked AAA platform conversations.</p>
+          
+          <p>Let's dive in.</p>
+          
+          <h3>Post-victory: Combat Waffle Studios witnessed an influx of outreach and interest from across the industry.</h3>
+          
+          <!-- Quote Callout -->
           <div class="quote-callout">
             <div class="quote-icon">"</div>
             <p class="quote-text">Everyone flocks to you at that point because now you're an award-winning studio.</p>
             <p class="quote-attribution">— Scott Albright, CEO Combat Waffle Studios</p>
           </div>
           
-          <!-- Conclusion -->
-          <h2>Your Next Steps</h2>
+          <p>This newfound attention came from not just the community but also industry executives, including those from major companies like Sony.</p>
           
+          <p>Their active presence on platforms like LinkedIn and Discord amplified their networking reach. Albright emphasised the heightened visibility and connection with a broader audience from the continuous stream of congratulations and interactions,</p>
+          
+          <p>Their customer support person, who knew everyone in VR, even experienced a flood of outreach, illustrating the far-reaching impact of their win.</p>
+          
+          <h3>What about their team's networking?</h3>
+          
+          <p>The award not only benefited the studio at a corporate level but also empowered individual team members.</p>
+          
+          <p>Albright recounts how his lead developer made extremely valuable connections with executives and other developers, enhancing their technical capabilities and knowledge sharing.</p>
+          
+          <p>The XR Awards served as a powerful catalyst for Combat Waffle Studios, transforming them from an indie studio into a recognized name in the VR industry.</p>
+          
+          <p>This recognition opened doors to collaborations, discussions, and potential partnerships that would have been challenging to secure otherwise.</p>
+          
+          <!-- Advice Box -->
+          <div class="studio-advice-box">
+            <h3>For studios contemplating participation?</h3>
+            <p>The experience of Combat Waffle Studios underscores the immense networking potential that comes with recognition in prestigious awards like AIXR's XR Awards. It's crucial to understand that the benefits extend beyond the award itself; it's an opportunity to significantly expand your industry connections, enhance your team's capabilities, and elevate your studio's profile in the global VR community.</p>
+          </div>
+          
+          <!-- Section 5 -->
+          <div id="section-05" class="section-marker">
+            <p class="section-number">05 The Ripple Effect of Winning</p>
+            <h2>Elevating Excellence: Combat Waffle Studios' Transformation Post-Victory</h2>
+          </div>
+          
+          <p>Combat Waffle Studios' triumph at the XR Awards with 'Ghost of Tabor' had a profound impact not just externally, but internally as well, significantly boosting team morale and elevating their standards.</p>
+          
+          <p>Scott Albright's reflections on the aftermath of their win offer a vivid picture of this transformative experience.</p>
+          
+          <p><strong>Let's see how.</strong></p>
+          
+          <p>The moment of victory was more than just an achievement; it was an emotional high point for the entire team. Albright recalls, "We were all live, we were all on the Discord chat watching it live, together."</p>
+          
+          <h3>The collective experience of winning strengthened their sense of unity and pride in their work.</h3>
+          
+          <p>The team, having grown from the original six to thirty-three, experienced a shared joy, especially among the original members who broke down in tears during the live announcement.</p>
+          
+          <p><strong>But team dynamics started to shift…</strong></p>
+          
+          <p>…positively.</p>
+          
+          <p>It wasn't just about celebrating the success; it became a motivating factor in their daily work. The recognition as 'Game of The Year' became a frequent point of discussion and a source of motivation, driving the team to uphold the standards associated with such a title.</p>
+          
+          <p>And, with the accolade of being an award-winning studio came a new set of expectations.</p>
+          
+          <p>Albright describes the motivational shift:</p>
+          
+          <!-- Quote Callout -->
+          <div class="quote-callout">
+            <div class="quote-icon">"</div>
+            <p class="quote-text">We are now an award-winning studio, we've set a standard and we must continue that standard and grow even greater. Surpass ourselves now.</p>
+            <p class="quote-attribution">— Scott Albright, CEO Combat Waffle Studios</p>
+          </div>
+          
+          <p>This sentiment reflects the heightened standards and pursuit of excellence that the team embraced post-win.</p>
+          
+          <p>Albright's military background and his demand for perfection were amplified following the win. The recognition served as a catalyst to push for even higher levels of performance and dedication within the team.</p>
+          
+          <p>This drive for excellence became a core part of their studio culture, influencing their approach to future projects and day-to-day operations.</p>
+          
+          <!-- Final Section - Your Next Steps -->
+          <div class="studio-advice-box">
+            <h3>Your Next Steps</h3>
           <p>Combat Waffle Studios' story is not just a tale of victory; it's a blueprint for achieving recognition in the XR Awards.</p>
+            <p>From their community-driven approach to their strategic nomination process, their experience offers valuable lessons for every aspiring studio.</p>
+            <p>Which strategy from today's insights are you going to implement first? Will it be harnessing the power of community feedback, focusing on a unique game feature, or maybe leveraging the award for broader industry connections?</p>
+            <p><strong>Finally, this is your call to action: don't just contemplate; act.</strong></p>
+          </div>
           
-          <p>Which strategy from today's insights are you going to implement first? Will it be harnessing the power of community feedback, focusing on a unique game feature, or maybe leveraging the award for broader industry connections?</p>
+          <h3>If you believe your studio has what it takes, step forward and nominate your project for the XR Awards.</h3>
           
-          <p><strong>Finally, this is your call to action: don't just contemplate; act.</strong></p>
+          <p>Or, if this article has sparked new ideas and strategies, share it with your team and peers.</p>
           
-          <p>If you believe your studio has what it takes, step forward and nominate your project for the XR Awards.</p>
+          <p><strong>Remember:</strong></p>
+          
+          <p>The journey to XR Awards success starts with a single, bold step. Are you ready to take it?</p>
+          
+          <!-- CTA Section -->
+          <div class="cta-section">
+            <h2>Begin Your XR Awards Journey</h2>
+            <p>Download the Kit – It's time to get your XR work noticed.</p>
+            <a href="https://xrawards.aixr.org/nominate/entry-kit/" class="cta-button">Download Entry Kit</a>
+          </div>
           
         </div>
       </div>
@@ -287,6 +502,176 @@ import Footer from '../components/Footer.astro';
     font-weight: 600;
     color: #111827;
     font-family: 'Lora', Georgia, serif;
+  }
+  
+  .prose a {
+    color: #00D4D8;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  
+  .prose a:hover {
+    color: #0A4B52;
+    text-decoration: underline;
+  }
+  
+  /* Introduction with Sidebar Layout */
+  .intro-with-sidebar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+  
+  @media (min-width: 768px) {
+    .intro-with-sidebar {
+      grid-template-columns: 1fr 380px;
+      gap: 2.5rem;
+    }
+  }
+  
+  .intro-content p {
+    color: #374151;
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    line-height: 1.75;
+  }
+  
+  .intro-content strong {
+    font-weight: 600;
+    color: #111827;
+  }
+  
+  /* Case Study Info Box */
+  .case-study-info-box {
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    padding: 2rem;
+    border-radius: 0;
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+  }
+  
+  @media (max-width: 767px) {
+    .case-study-info-box {
+      position: static;
+      margin-top: 2rem;
+    }
+  }
+  
+  .info-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6B7280;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  @media (min-width: 640px) {
+    .info-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  .info-grid p {
+    margin: 0;
+    font-size: 0.9375rem;
+  }
+  
+  .contents-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6B7280;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .contents-list p {
+    margin-bottom: 0.5rem;
+    font-size: 0.9375rem;
+  }
+  
+  .contents-list a {
+    color: #111827;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  
+  .contents-list a:hover {
+    color: #00D4D8;
+  }
+  
+  /* Section Markers */
+  .section-marker {
+    background: #0E1022;
+    margin-left: -2rem;
+    margin-right: -2rem;
+    padding: 4rem 0;
+    margin-top: 5rem;
+    margin-bottom: 4rem;
+    text-align: center;
+  }
+  
+  @media (min-width: 640px) {
+    .section-marker {
+      margin-left: -3rem;
+      margin-right: -3rem;
+      padding: 5rem 0;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .section-marker {
+      margin-left: calc(-50vw + 50%);
+      margin-right: calc(-50vw + 50%);
+      padding: 6rem 0;
+    }
+  }
+  
+  .section-number {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.5rem;
+    font-family: "IBM Plex Mono", monospace;
+    max-width: 42rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+  
+  .section-marker h2 {
+    color: white;
+    margin-top: 0;
+    font-size: 1.875rem;
+    line-height: 1.2;
+    margin-bottom: 0;
+    max-width: 42rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+  
+  @media (min-width: 768px) {
+    .section-marker h2 {
+      font-size: 2.25rem;
+    }
   }
   
   /* Quote Callout Design */
@@ -439,6 +824,44 @@ import Footer from '../components/Footer.astro';
     font-family: 'Lora', Georgia, serif;
   }
   
+  /* CTA Section */
+  .cta-section {
+    background: #0E1022;
+    color: white;
+    padding: 3rem 2rem;
+    margin: 3rem 0;
+    text-align: center;
+    border-radius: 0;
+  }
+  
+  .cta-section h2 {
+    color: white;
+    margin-bottom: 1rem;
+  }
+  
+  .cta-section p {
+    color: white;
+    margin-bottom: 2rem;
+  }
+  
+  .cta-button {
+    display: inline-block;
+    background: #00D4D8;
+    color: #0E1022;
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0;
+    transition: background 0.2s;
+  }
+  
+  .cta-button:hover {
+    background: #0A4B52;
+    color: white;
+    text-decoration: none;
+  }
+  
   /* Responsive adjustments */
   @media (max-width: 640px) {
     .numbered-item {
@@ -464,6 +887,13 @@ import Footer from '../components/Footer.astro';
     .studio-advice-box {
       padding: 1.5rem;
     }
+    
+    .case-study-info-box {
+      padding: 1.5rem;
+    }
+    
+    .cta-section {
+      padding: 2rem 1.5rem;
+    }
   }
 </style>
-
