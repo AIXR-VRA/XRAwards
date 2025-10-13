@@ -47,7 +47,7 @@ jobs:
     name: Deploy to Production
     needs: test
     # Security: Only deploy from the original repository on push to main/master
-    if: github.event_name == 'push' && github.repository == 'AIXR-VRA/XRAWebsite'
+    if: github.event_name == 'push' && github.repository == 'AIXR-VRA/XRAwards'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
