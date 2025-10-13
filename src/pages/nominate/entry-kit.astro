@@ -1,0 +1,216 @@
+---
+/**
+ * Entry Kit Page
+ * URL: /nominate/entry-kit
+ * Information about the entry kit and form for downloading
+ */
+export const prerender = true;
+
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import CTAFooter from '../../components/CTAFooter.astro';
+import Button from '../../components/Button.astro';
+---
+
+<Layout
+  title="Your Guide to Entering the XR Awards Gala 2025 - AIXR XR Awards"
+  description="Download your essential entry kit for the XR Awards Gala 2025. Get category details, submission checklist, rules and guidelines to make your entry process smooth and successful."
+>
+  <Header />
+  
+  <main class="min-h-screen bg-white">
+    <!-- Entry Kit Header -->
+    <section class="relative bg-[#0E1022] pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <!-- Left Ring - Offset Up with Gradient -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <!-- Right Ring - Offset Down with Gradient -->
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      
+      <!-- Content -->
+      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="entry-kit-title text-white mb-6">
+          Your Guide to Entering the XR Awards Gala 2025
+        </h1>
+        
+        <!-- Decorative Dots -->
+        <div class="flex justify-center gap-2 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        </div>
+        
+        <p class="entry-kit-subtitle text-white">
+          Download your essential entry kit for the XR Awards Gala 2025
+        </p>
+      </div>
+    </section>
+
+    <!-- Entry Kit Information Section -->
+    <section class="py-16" style="background-color: #F2F2F2;">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Two Column Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          
+          <!-- Left Column - Main Content -->
+          <div>
+            <!-- What's in the Kit -->
+            <div class="mb-12">
+              <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+                What You'll Find in the Kit:
+              </h2>
+              <div class="space-y-4 text-gray-700">
+                <p class="text-lg">
+                  This kit is your essential tool for entering this years international celebrations. Simple and direct, it's designed to make your entry process smooth and successful.
+                </p>
+                <ul class="space-y-4">
+                  <li class="flex gap-3">
+                    <span class="text-gray-400 mt-1">•</span>
+                    <div>
+                      <strong class="font-semibold text-gray-900">Category Details:</strong> A clear outline of each award category. Know what fits your work best.
+                    </div>
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="text-gray-400 mt-1">•</span>
+                    <div>
+                      <strong class="font-semibold text-gray-900">Submission Checklist:</strong> A list of exactly what you need to include with your entry. No more, no less.
+                    </div>
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="text-gray-400 mt-1">•</span>
+                    <div>
+                      <strong class="font-semibold text-gray-900">Rules and Guidelines:</strong> Important information to ensure your entry is eligible and on point.
+                    </div>
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="text-gray-400 mt-1">•</span>
+                    <div>
+                      <strong class="font-semibold text-gray-900">Work on Your Entry Anytime:</strong> After logging in, download specific questions for each category. Plan and prepare your entry at your convenience.
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="mt-8">
+              <p class="text-lg text-gray-700 mb-6">
+                Entering the XR Awards Gala is your chance to be recognized among the best in the XR field. This kit is your first step towards showcasing your innovation and creativity.
+              </p>
+              <p class="text-lg font-bold text-gray-900">
+                Download the Kit. Ready Your Entry. Make Your Mark in XR.
+              </p>
+            </div>
+          </div>
+
+          <!-- Right Column - Entry Kit Form -->
+          <div>
+            <div class="bg-gray-100 rounded-lg p-6 lg:p-8 sticky top-24">
+              <div class="flex items-center gap-3 mb-6">
+                <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-semibold text-sm">1</div>
+                <h3 class="text-xl font-bold text-gray-900">
+                  Email
+                </h3>
+              </div>
+              
+              <form class="space-y-6">
+                <!-- Name Fields -->
+                <div>
+                  <label class="block text-sm font-bold text-gray-900 mb-2">
+                    Name (Required)
+                  </label>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs text-gray-600 mb-1">First</label>
+                      <input 
+                        type="text" 
+                        name="firstName"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4923EB] focus:border-transparent"
+                        placeholder=""
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-xs text-gray-600 mb-1">Last</label>
+                      <input 
+                        type="text" 
+                        name="lastName"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4923EB] focus:border-transparent"
+                        placeholder=""
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Email Field -->
+                <div>
+                  <label class="block text-sm font-bold text-gray-900 mb-2">
+                    Email (Required)
+                  </label>
+                  <input 
+                    type="email" 
+                    name="email"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4923EB] focus:border-transparent"
+                    placeholder=""
+                    required
+                  />
+                </div>
+
+                <!-- Phone Field -->
+                <div>
+                  <label class="block text-sm font-bold text-gray-900 mb-2">
+                    Phone
+                  </label>
+                  <input 
+                    type="tel" 
+                    name="phone"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4923EB] focus:border-transparent"
+                    placeholder=""
+                  />
+                </div>
+
+                <!-- Submit Button -->
+                <button 
+                  type="submit"
+                  class="w-full bg-[#4923EB] text-white font-medium py-3 px-6 rounded-lg hover:bg-[#3a1bb8] transition-colors focus:outline-none focus:ring-2 focus:ring-[#4923EB] focus:ring-offset-2"
+                >
+                  Next
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <CTAFooter />
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .entry-kit-title {
+    font-size: 35px;
+    font-weight: 600;
+  }
+
+  .entry-kit-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    font-family: "IBM Plex Mono", monospace;
+  }
+</style>
