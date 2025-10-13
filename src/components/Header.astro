@@ -246,8 +246,13 @@ const moreItems = [
 <script is:inline>
   (() => {
     let cleanup = null;
+    let isInitialized = false;
 
     const initHeader = () => {
+      // Prevent multiple initializations
+      if (isInitialized) return;
+      isInitialized = true;
+
       // Clean up previous listeners
       if (cleanup) cleanup();
 
@@ -311,10 +316,18 @@ const moreItems = [
       cleanup = () => {
         window.removeEventListener('scroll', handleScroll);
         button?.removeEventListener('click', handleMenuClick);
+        isInitialized = false;
       };
     };
 
-    // Initialize on page load (both initial and after view transitions)
+    // Initialize immediately and also on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initHeader);
+    } else {
+      initHeader();
+    }
+    
+    // Also listen for Astro page transitions
     document.addEventListener('astro:page-load', initHeader);
   })();
 </script>
