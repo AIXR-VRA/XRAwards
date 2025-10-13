@@ -1,12 +1,16 @@
 ---
 // Header component with navigation - transparent until scroll
 import { getActiveEventYear, getRecentEventYears, isAfterCeremonyDate } from '../utils/supabase';
+import { getCTAButton } from '../utils/date-checker';
 import { createClient } from '@supabase/supabase-js';
 
 // Get active event year and recent years for dynamic navigation
 const eventYear = await getActiveEventYear();
 const recentYears = await getRecentEventYears();
 const [currentYear, previousYear, thirdYear] = recentYears;
+
+// Get dynamic CTA button based on event phase
+const ctaButton = await getCTAButton('header');
 
 // Get event slugs for ceremony links
 const supabase = createClient(
@@ -155,10 +159,16 @@ const moreItems = [
       <!-- CTA Button -->
       <div class="hidden md:block">
         <a
-          href="https://app.aixr.org/e/20a6e09d-7e86-488d-8436-1cd162d0f5df"
-          class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors"
+          href={ctaButton.href}
+          class={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            ctaButton.variant === 'primary' 
+              ? 'bg-primary text-white hover:bg-primary-dark' 
+              : ctaButton.variant === 'secondary'
+              ? 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+              : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+          }`}
         >
-          Nominate Now
+          {ctaButton.text}
         </a>
       </div>
 
@@ -218,11 +228,17 @@ const moreItems = [
           </a>
         ))}
         <a
-          href="https://app.aixr.org/e/20a6e09d-7e86-488d-8436-1cd162d0f5df"
-          class="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary hover:bg-primary-dark transition-colors text-center mt-4"
+          href={ctaButton.href}
+          class={`block px-3 py-2 rounded-md text-base font-medium transition-colors text-center mt-4 ${
+            ctaButton.variant === 'primary' 
+              ? 'text-white bg-primary hover:bg-primary-dark' 
+              : ctaButton.variant === 'secondary'
+              ? 'text-gray-900 bg-gray-100 hover:bg-gray-200'
+              : 'text-gray-700 border border-gray-300 hover:bg-gray-50'
+          }`}
           style="font-family: var(--font-heading);"
         >
-          Nominate Now
+          {ctaButton.text}
         </a>
       </div>
     </div>
