@@ -9,9 +9,7 @@ import react from '@astrojs/react';
 export default defineConfig({
   site: 'https://xr-awards.daniel-12f.workers.dev/',
   output: 'server', // Changed from 'static' to support API routes and admin pages
-  adapter: cloudflare({
-    mode: 'advanced',
-  }),
+  adapter: cloudflare(),
   image: {
     // Disable remote image optimization entirely to avoid build failures
     // with broken Supabase storage URLs during build
