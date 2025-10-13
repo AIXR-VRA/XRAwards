@@ -35,8 +35,8 @@ export default defineConfig({
       rollupOptions: {
         output: {
           // Generate stable chunk names for better caching
-          chunkFileNames: '_astro/[name]-[hash].js',
-          entryFileNames: '_astro/[name]-[hash].js',
+          chunkFileNames: '_astro/[name]-[hash].mjs',
+          entryFileNames: '_astro/[name]-[hash].mjs',
           assetFileNames: '_astro/[name]-[hash][extname]'
         }
       }
