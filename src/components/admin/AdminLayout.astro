@@ -2,20 +2,27 @@
 /**
  * Admin Layout Component
  * Provides consistent navigation and structure for admin pages
- * Note: Authentication should be handled at the page level, not in components
+ * Handles authentication centrally - no need for individual pages to handle auth
  */
+
+import { requireAdminAuth } from '../../utils/supabase';
 
 interface Props {
   title: string;
   activePage?: 'dashboard' | 'media-library' | 'categories' | 'finalists' | 'tags' | 'events' | 'sponsors' | 'judges';
-  session: {
-    user: {
-      email?: string;
-    };
-  } | null;
 }
 
-const { title, activePage, session } = Astro.props;
+const { title, activePage } = Astro.props;
+
+// Handle authentication centrally in the layout
+const authResult = await requireAdminAuth(Astro.cookies, Astro.request);
+
+// Redirect if not authenticated
+if (!authResult.authenticated) {
+  return Astro.redirect(authResult.redirect);
+}
+
+const { user } = authResult;
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', href: '/admin' },
@@ -67,7 +74,7 @@ const navItems = [
         <div class="p-4 border-t border-gray-200">
           <div class="flex items-center justify-between mb-3">
             <div class="text-sm">
-              <p class="text-gray-900 font-medium truncate">{session?.user?.email || 'Admin'}</p>
+              <p class="text-gray-900 font-medium truncate">{user?.email || 'Admin'}</p>
               <p class="text-gray-500 text-xs">Administrator</p>
             </div>
           </div>

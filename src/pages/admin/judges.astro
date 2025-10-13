@@ -5,20 +5,11 @@
 import AdminLayout from '../../components/admin/AdminLayout.astro';
 import Modal from '../../components/admin/Modal.astro';
 import MediaSelector from '../../components/admin/MediaSelector.astro';
-import { requireAdminAuth } from '../../utils/supabase';
 
-// Secure authentication check
-const authResult = await requireAdminAuth(Astro.cookies, Astro.request);
 
-// Redirect if not authenticated
-if (!authResult.authenticated) {
-  return Astro.redirect(authResult.redirect);
-}
-
-const { session } = authResult;
 ---
 
-<AdminLayout title="Judges" activePage="judges" session={session}>
+<AdminLayout title="Judges" activePage="judges">
   <div class="space-y-8">
     <!-- Header -->
     <div class="flex items-center justify-between">
@@ -29,7 +20,7 @@ const { session } = authResult;
       <button
         id="addJudgeBtn"
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-      >
+     >
         + Add Judge
       </button>
     </div>
@@ -147,7 +138,7 @@ const { session } = authResult;
                 rows="4"
                 class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="Judge bio and background..."
-              ></textarea>
+             ></textarea>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -210,7 +201,7 @@ const { session } = authResult;
               <select
                 id="eventSelector"
                 class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              >
+             >
                 <option value="">+ Add an event</option>
               </select>
             </div>
@@ -230,7 +221,7 @@ const { session } = authResult;
               <select
                 id="tagSelector"
                 class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              >
+             >
                 <option value="">+ Add a tag</option>
               </select>
             </div>
@@ -365,7 +356,7 @@ const { session } = authResult;
           type="button"
           onclick="removeEvent('${event.id}')"
           class="hover:bg-green-200 rounded-full p-0.5 transition-colors"
-        >
+       >
           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -390,7 +381,7 @@ const { session } = authResult;
           type="button"
           onclick="removeTag('${tag.id}')"
           class="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
-        >
+       >
           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -516,7 +507,7 @@ const { session } = authResult;
     const paragraphs = text.split(/\n\n+/);
     return paragraphs
       .map(para => para.trim())
-      .filter(para => para.length > 0)
+      .filter(para => para.length> 0)
       .map(para => `<p class="mb-3 last:mb-0">${escapeHtml(para).replace(/\n/g, '<br>')}</p>`)
       .join('');
   }
@@ -576,13 +567,13 @@ const { session } = authResult;
           <button
             onclick="editJudge('${judge.id}')"
             class="flex-1 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-          >
+         >
             Edit
           </button>
           <button
             onclick="deleteJudge('${judge.id}', '${escapeHtml(judge.first_name)} ${escapeHtml(judge.last_name)}')"
             class="flex-1 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          >
+         >
             Delete
           </button>
         </div>
@@ -667,7 +658,7 @@ const { session } = authResult;
     try {
       const response = await fetch(`/api/media?judgeIds=${id}`);
       const data = await response.json();
-      if (response.ok && data.media && data.media.length > 0) {
+      if (response.ok && data.media && data.media.length> 0) {
         if (mediaSelectorId && (window as any)[`setSelectedMedia_${mediaSelectorId}`]) {
           (window as any)[`setSelectedMedia_${mediaSelectorId}`](data.media);
         }
@@ -726,7 +717,7 @@ const { session } = authResult;
       job_title: formData.get('job_title') || null,
       organization: formData.get('organization') || null,
       linkedin_url: formData.get('linkedin_url') || null,
-      profile_image_url: selectedMedia.length > 0 ? selectedMedia[0].file_url : null,
+      profile_image_url: selectedMedia.length> 0 ? selectedMedia[0].file_url : null,
       description: formData.get('description') || null,
       sort_order: formData.get('sort_order') ? parseInt(formData.get('sort_order') as string) : 0,
       is_visible: (document.getElementById('is_visible') as HTMLInputElement).checked,

@@ -4,20 +4,9 @@
  */
 import AdminLayout from '../../components/admin/AdminLayout.astro';
 import Modal from '../../components/admin/Modal.astro';
-import { requireAdminAuth } from '../../utils/supabase';
-
-// Secure authentication check
-const authResult = await requireAdminAuth(Astro.cookies, Astro.request);
-
-// Redirect if not authenticated
-if (!authResult.authenticated) {
-  return Astro.redirect(authResult.redirect);
-}
-
-const { session } = authResult;
 ---
 
-<AdminLayout title="Categories" activePage="categories" session={session}>
+<AdminLayout title="Categories" activePage="categories">
   <div class="space-y-8">
     <!-- Header -->
     <div class="flex items-center justify-between">
@@ -28,7 +17,7 @@ const { session } = authResult;
       <button
         id="addCategoryBtn"
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-      >
+     >
         + Add Category
       </button>
     </div>
@@ -108,7 +97,7 @@ const { session } = authResult;
               rows="3"
               class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="Brief description of this category..."
-            ></textarea>
+           ></textarea>
           </div>
 
           <div>
@@ -121,7 +110,7 @@ const { session } = authResult;
               rows="2"
               class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="Entry requirements, guidelines, etc."
-            ></textarea>
+           ></textarea>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -173,7 +162,7 @@ const { session } = authResult;
               <select
                 id="eventSelector"
                 class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              >
+             >
                 <option value="">+ Add an event</option>
                 <!-- Events will be loaded dynamically -->
               </select>
@@ -193,7 +182,7 @@ const { session } = authResult;
               <select
                 id="tagSelector"
                 class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              >
+             >
                 <option value="">+ Add a tag</option>
                 <!-- Tags will be loaded dynamically -->
               </select>
@@ -328,7 +317,7 @@ const { session } = authResult;
           type="button"
           onclick="removeEvent('${event.id}')"
           class="hover:bg-green-200 rounded-full p-0.5 transition-colors"
-        >
+       >
           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -353,7 +342,7 @@ const { session } = authResult;
           type="button"
           onclick="removeTag('${tag.id}')"
           class="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
-        >
+       >
           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -473,7 +462,7 @@ const { session } = authResult;
     const paragraphs = text.split(/\n\n+/);
     return paragraphs
       .map(para => para.trim())
-      .filter(para => para.length > 0)
+      .filter(para => para.length> 0)
       .map(para => `<p class="mb-3 last:mb-0">${escapeHtml(para).replace(/\n/g, '<br>')}</p>`)
       .join('');
   }
@@ -517,13 +506,13 @@ const { session } = authResult;
           <button
             onclick="editCategory('${category.id}')"
             class="flex-1 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-          >
+         >
             Edit
           </button>
           <button
             onclick="deleteCategory('${category.id}', '${escapeHtml(category.name)}')"
             class="flex-1 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          >
+         >
             Delete
           </button>
         </div>

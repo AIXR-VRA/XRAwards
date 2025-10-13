@@ -52,7 +52,7 @@ export interface UploadResult {
  * @returns Upload result with public URL
  */
 export async function uploadToR2(
-  file: Buffer | Uint8Array,
+  file: Uint8Array,
   path: string,
   contentType: string
 ): Promise<UploadResult> {

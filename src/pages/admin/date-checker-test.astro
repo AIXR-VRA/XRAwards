@@ -5,17 +5,8 @@
  * Test page to verify date checker utility functionality
  */
 import AdminLayout from '../../components/admin/AdminLayout.astro';
-import { requireAdminAuth } from '../../utils/supabase';
 
-// Secure authentication check
-const authResult = await requireAdminAuth(Astro.cookies, Astro.request);
 
-// Redirect if not authenticated
-if (!authResult.authenticated) {
-  return Astro.redirect(authResult.redirect);
-}
-
-const { session } = authResult;
 
 // Get all the date checker information
 const { 
@@ -70,7 +61,7 @@ function getTimeDifference(targetDate: Date | null): string {
 }
 ---
 
-<AdminLayout title="Date Checker Test" activePage="events" session={session}>
+<AdminLayout title="Date Checker Test" activePage="events">
   <div class="space-y-8">
     <!-- Header -->
     <div class="flex items-center justify-between">
@@ -130,7 +121,7 @@ function getTimeDifference(targetDate: Date | null): string {
               <strong>Date Object:</strong> {nominationsOpenDate ? nominationsOpenDate.toString() : 'N/A'}<br>
               <strong>UTC String:</strong> {nominationsOpenDate ? nominationsOpenDate.toUTCString() : 'N/A'}<br>
               <strong>ISO String:</strong> {nominationsOpenDate ? nominationsOpenDate.toISOString() : 'N/A'}<br>
-              <strong>Comparison:</strong> {nominationsOpenDate ? (today < nominationsOpenDate ? 'Future' : today > nominationsOpenDate ? 'Past' : 'Today') : 'N/A'}<br>
+              <strong>Comparison:</strong> {nominationsOpenDate ? (today < nominationsOpenDate ? 'Future' : today> nominationsOpenDate ? 'Past' : 'Today') : 'N/A'}<br>
               <strong>Time from now:</strong> {getTimeDifference(nominationsOpenDate)}
             </p>
           </div>
@@ -143,7 +134,7 @@ function getTimeDifference(targetDate: Date | null): string {
               <strong>Date Object:</strong> {nominationsCloseDate ? nominationsCloseDate.toString() : 'N/A'}<br>
               <strong>UTC String:</strong> {nominationsCloseDate ? nominationsCloseDate.toUTCString() : 'N/A'}<br>
               <strong>ISO String:</strong> {nominationsCloseDate ? nominationsCloseDate.toISOString() : 'N/A'}<br>
-              <strong>Comparison:</strong> {nominationsCloseDate ? (today < nominationsCloseDate ? 'Future' : today > nominationsCloseDate ? 'Past' : 'Today') : 'N/A'}<br>
+              <strong>Comparison:</strong> {nominationsCloseDate ? (today < nominationsCloseDate ? 'Future' : today> nominationsCloseDate ? 'Past' : 'Today') : 'N/A'}<br>
               <strong>Time from now:</strong> {getTimeDifference(nominationsCloseDate)}
             </p>
           </div>
@@ -156,7 +147,7 @@ function getTimeDifference(targetDate: Date | null): string {
               <strong>Date Object:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toString() : 'N/A'}<br>
               <strong>UTC String:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toUTCString() : 'N/A'}<br>
               <strong>ISO String:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toISOString() : 'N/A'}<br>
-              <strong>Comparison:</strong> {finalistsAnnouncedDate ? (today < finalistsAnnouncedDate ? 'Future' : today > finalistsAnnouncedDate ? 'Past' : 'Today') : 'N/A'}<br>
+              <strong>Comparison:</strong> {finalistsAnnouncedDate ? (today < finalistsAnnouncedDate ? 'Future' : today> finalistsAnnouncedDate ? 'Past' : 'Today') : 'N/A'}<br>
               <strong>Time from now:</strong> {getTimeDifference(finalistsAnnouncedDate)}
             </p>
           </div>
@@ -169,7 +160,7 @@ function getTimeDifference(targetDate: Date | null): string {
               <strong>Date Object:</strong> {judgingStartDate ? judgingStartDate.toString() : 'N/A'}<br>
               <strong>UTC String:</strong> {judgingStartDate ? judgingStartDate.toUTCString() : 'N/A'}<br>
               <strong>ISO String:</strong> {judgingStartDate ? judgingStartDate.toISOString() : 'N/A'}<br>
-              <strong>Comparison:</strong> {judgingStartDate ? (today < judgingStartDate ? 'Future' : today > judgingStartDate ? 'Past' : 'Today') : 'N/A'}<br>
+              <strong>Comparison:</strong> {judgingStartDate ? (today < judgingStartDate ? 'Future' : today> judgingStartDate ? 'Past' : 'Today') : 'N/A'}<br>
               <strong>Time from now:</strong> {getTimeDifference(judgingStartDate)}
             </p>
           </div>
@@ -182,7 +173,7 @@ function getTimeDifference(targetDate: Date | null): string {
               <strong>Date Object:</strong> {judgingEndDate ? judgingEndDate.toString() : 'N/A'}<br>
               <strong>UTC String:</strong> {judgingEndDate ? judgingEndDate.toUTCString() : 'N/A'}<br>
               <strong>ISO String:</strong> {judgingEndDate ? judgingEndDate.toISOString() : 'N/A'}<br>
-              <strong>Comparison:</strong> {judgingEndDate ? (today < judgingEndDate ? 'Future' : today > judgingEndDate ? 'Past' : 'Today') : 'N/A'}<br>
+              <strong>Comparison:</strong> {judgingEndDate ? (today < judgingEndDate ? 'Future' : today> judgingEndDate ? 'Past' : 'Today') : 'N/A'}<br>
               <strong>Time from now:</strong> {getTimeDifference(judgingEndDate)}
             </p>
           </div>
@@ -195,7 +186,7 @@ function getTimeDifference(targetDate: Date | null): string {
               <strong>Date Object:</strong> {ceremonyDate ? ceremonyDate.toString() : 'N/A'}<br>
               <strong>UTC String:</strong> {ceremonyDate ? ceremonyDate.toUTCString() : 'N/A'}<br>
               <strong>ISO String:</strong> {ceremonyDate ? ceremonyDate.toISOString() : 'N/A'}<br>
-              <strong>Comparison:</strong> {ceremonyDate ? (today < ceremonyDate ? 'Future' : today > ceremonyDate ? 'Past' : 'Today') : 'N/A'}<br>
+              <strong>Comparison:</strong> {ceremonyDate ? (today < ceremonyDate ? 'Future' : today> ceremonyDate ? 'Past' : 'Today') : 'N/A'}<br>
               <strong>Time from now:</strong> {getTimeDifference(ceremonyDate)}
             </p>
           </div>
@@ -282,7 +273,7 @@ function getTimeDifference(targetDate: Date | null): string {
                     ? 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                     : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                 }`}
-              >
+             >
                 {headerCTA.text}
               </a>
             </div>

@@ -4,20 +4,11 @@
  */
 import AdminLayout from '../../components/admin/AdminLayout.astro';
 import Modal from '../../components/admin/Modal.astro';
-import { requireAdminAuth } from '../../utils/supabase';
 
-// Secure authentication check
-const authResult = await requireAdminAuth(Astro.cookies, Astro.request);
 
-// Redirect if not authenticated
-if (!authResult.authenticated) {
-  return Astro.redirect(authResult.redirect);
-}
-
-const { session } = authResult;
 ---
 
-<AdminLayout title="Media Library" activePage="media-library" session={session}>
+<AdminLayout title="Media Library" activePage="media-library">
   <div class="space-y-8">
     <!-- Header -->
     <div class="flex items-center justify-between">
@@ -28,7 +19,7 @@ const { session } = authResult;
       <button
         id="uploadMediaBtn"
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-      >
+     >
         + Upload Media
       </button>
     </div>
@@ -85,7 +76,7 @@ const { session } = authResult;
       <button
         id="loadMoreBtn"
         class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-      >
+     >
         Load More
       </button>
       <p id="mediaCount" class="text-sm text-gray-500 mt-2"></p>
@@ -168,7 +159,7 @@ const { session } = authResult;
                 rows="3"
                 class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="Optional description..."
-              ></textarea>
+             ></textarea>
             </div>
 
             <div>
@@ -507,7 +498,7 @@ const { session } = authResult;
           type="button"
           onclick="remove${type}('${item.id}')"
           class="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
-        >
+       >
           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -681,7 +672,7 @@ const { session } = authResult;
             ${item.title || item.filename}
           </h3>
           <p class="text-xs text-gray-400 mt-1 font-mono">ID: ${item.id}</p>
-          <p class="text-sm text-gray-500 mt-1">${item.file_size >= 1000000 ? (item.file_size / 1000 / 1000).toFixed(2) + ' MB' : (item.file_size / 1000).toFixed(2) + ' kB'}</p>
+          <p class="text-sm text-gray-500 mt-1">${item.file_size>= 1000000 ? (item.file_size / 1000 / 1000).toFixed(2) + ' MB' : (item.file_size / 1000).toFixed(2) + ' kB'}</p>
           ${item.alt_text ? `<p class="text-xs text-gray-600 mt-1 truncate" title="${item.alt_text}">${item.alt_text}</p>` : ''}
           
           <!-- File URL -->
@@ -693,14 +684,14 @@ const { session } = authResult;
               onclick="copyToClipboard('${item.file_url}', this)"
               class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors whitespace-nowrap"
               title="Copy full URL to clipboard"
-            >
+           >
               Copy URL
             </button>
             <button
               onclick="copyPathToClipboard('${item.file_url}', this)"
               class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors whitespace-nowrap"
               title="Copy relative path to clipboard"
-            >
+           >
               Copy Path
             </button>
           </div>
@@ -721,13 +712,13 @@ const { session } = authResult;
           <button
             onclick="editMedia('${item.id}')"
             class="flex-1 bg-blue-500 text-white text-xs px-3 py-2 rounded hover:bg-blue-600"
-          >
+         >
             Edit
           </button>
           <button
             onclick="deleteMedia('${item.id}', '${item.filename}')"
             class="flex-1 bg-red-500 text-white text-xs px-3 py-2 rounded hover:bg-red-600"
-          >
+         >
             Delete
           </button>
         </div>
@@ -929,7 +920,7 @@ const { session } = authResult;
           preview.classList.remove('hidden');
         }
         
-        const fileSize = file.size >= 1000000 
+        const fileSize = file.size>= 1000000 
           ? (file.size / 1000 / 1000).toFixed(2) + ' MB' 
           : (file.size / 1000).toFixed(2) + ' kB';
         fileName.textContent = `${file.name} (${fileSize})`;

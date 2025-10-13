@@ -55,15 +55,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    // Convert file to buffer
+    // Convert file to Uint8Array (Cloudflare Workers compatible)
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const uint8Array = new Uint8Array(arrayBuffer);
 
     // Generate safe filename
     const path = generateSafeFilename(file.name, folder || undefined);
 
     // Upload to R2
-    const result = await uploadToR2(buffer, path, file.type);
+    const result = await uploadToR2(uint8Array, path, file.type);
 
     if (!result.success) {
       return new Response(

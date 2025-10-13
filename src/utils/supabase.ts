@@ -231,22 +231,30 @@ export function createSecureSupabaseClient(cookies: any, request?: Request) {
 export async function requireAdminAuth(cookies: any, request?: Request) {
   const supabase = createSecureSupabaseClient(cookies, request);
   
-  // Use getSession() for server-side authentication
-  const { data: { session }, error } = await supabase.auth.getSession();
+  // Use getUser() for secure server-side authentication
+  const { data: { user }, error } = await supabase.auth.getUser();
   
-  if (error || !session?.user) {
+  if (error || !user) {
     return {
       authenticated: false,
       redirect: '/admin/login',
-      session: null,
+      user: null,
       supabase: null
     };
   }
   
+  // Create a clean, serializable user object
+  const cleanUser = {
+    id: user.id,
+    email: user.email,
+    created_at: user.created_at,
+    updated_at: user.updated_at
+  };
+  
   return {
     authenticated: true,
     redirect: null,
-    session,
+    user: cleanUser,
     supabase
   };
 }
@@ -260,6 +268,7 @@ export async function requireAdminAuth(cookies: any, request?: Request) {
 export async function requireApiAuth(cookies: any, request?: Request) {
   const supabase = createSecureSupabaseClient(cookies, request);
   
+  // Use getUser() for secure server-side authentication
   const { data: { user }, error } = await supabase.auth.getUser();
   
   if (error || !user) {

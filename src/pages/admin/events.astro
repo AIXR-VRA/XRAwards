@@ -5,20 +5,11 @@
 import AdminLayout from '../../components/admin/AdminLayout.astro';
 import Modal from '../../components/admin/Modal.astro';
 import MediaSelector from '../../components/admin/MediaSelector.astro';
-import { requireAdminAuth } from '../../utils/supabase';
 
-// Secure authentication check
-const authResult = await requireAdminAuth(Astro.cookies, Astro.request);
 
-// Redirect if not authenticated
-if (!authResult.authenticated) {
-  return Astro.redirect(authResult.redirect);
-}
-
-const { session } = authResult;
 ---
 
-<AdminLayout title="Event Details" activePage="events" session={session}>
+<AdminLayout title="Event Details" activePage="events">
   <div class="space-y-8">
     <!-- Header -->
     <div class="flex items-center justify-between">
@@ -29,7 +20,7 @@ const { session } = authResult;
       <button
         id="addEventBtn"
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-      >
+     >
         + Add Event
       </button>
     </div>
@@ -151,7 +142,7 @@ const { session } = authResult;
                 rows="3"
                 class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="Brief description of the event..."
-              ></textarea>
+             ></textarea>
             </div>
           </div>
 
@@ -352,7 +343,7 @@ const { session } = authResult;
                 rows="3"
                 class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="Descriptive text about finalists and winners..."
-              ></textarea>
+             ></textarea>
             </div>
           </div>
 
@@ -370,7 +361,7 @@ const { session } = authResult;
                 rows="3"
                 class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="First highlight section text..."
-              ></textarea>
+             ></textarea>
             </div>
 
             <div>
@@ -399,7 +390,7 @@ const { session } = authResult;
                 rows="3"
                 class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="Second highlight section text..."
-              ></textarea>
+             ></textarea>
             </div>
           </div>
 
@@ -417,7 +408,7 @@ const { session } = authResult;
                 rows="3"
                 class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="Description of entertainment at the event..."
-              ></textarea>
+             ></textarea>
             </div>
 
             <div>
@@ -452,7 +443,7 @@ const { session } = authResult;
                   rows="3"
                   class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   placeholder="Starter/appetizer description..."
-                ></textarea>
+               ></textarea>
               </div>
 
               <div>
@@ -465,7 +456,7 @@ const { session } = authResult;
                   rows="3"
                   class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   placeholder="Main course description..."
-                ></textarea>
+               ></textarea>
               </div>
 
               <div>
@@ -478,7 +469,7 @@ const { session } = authResult;
                   rows="3"
                   class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   placeholder="Dessert description..."
-                ></textarea>
+               ></textarea>
               </div>
             </div>
 
@@ -644,13 +635,13 @@ const { session } = authResult;
           <button
             onclick="editEvent('${event.id}')"
             class="flex-1 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-          >
+         >
             Edit
           </button>
           <button
             onclick="deleteEvent('${event.id}', '${escapeHtml(event.event_name)}')"
             class="flex-1 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          >
+         >
             Delete
           </button>
         </div>
@@ -716,7 +707,7 @@ const { session } = authResult;
     // Multiple highlight images
     const highlightContainer = document.getElementById('currentHighlightImages')!;
     const highlightList = document.getElementById('currentHighlightImagesList')!;
-    if (event.highlight_images && event.highlight_images.length > 0) {
+    if (event.highlight_images && event.highlight_images.length> 0) {
       document.getElementById('highlightImagesCount')!.textContent = event.highlight_images.length.toString();
       highlightList.innerHTML = event.highlight_images.map((url: string) => 
         `<img src="${escapeHtml(url)}" alt="Highlight" class="w-full aspect-square object-cover rounded border border-gray-300" />`
@@ -729,7 +720,7 @@ const { session } = authResult;
     // Multiple entertainment images
     const entertainmentContainer = document.getElementById('currentEntertainmentImages')!;
     const entertainmentList = document.getElementById('currentEntertainmentImagesList')!;
-    if (event.entertainment_images && event.entertainment_images.length > 0) {
+    if (event.entertainment_images && event.entertainment_images.length> 0) {
       document.getElementById('entertainmentImagesCount')!.textContent = event.entertainment_images.length.toString();
       entertainmentList.innerHTML = event.entertainment_images.map((url: string) => 
         `<img src="${escapeHtml(url)}" alt="Entertainment" class="w-full aspect-square object-cover rounded border border-gray-300" />`
@@ -742,7 +733,7 @@ const { session } = authResult;
     // Multiple menu images
     const menuContainer = document.getElementById('currentMenuImages')!;
     const menuList = document.getElementById('currentMenuImagesList')!;
-    if (event.menu_images && event.menu_images.length > 0) {
+    if (event.menu_images && event.menu_images.length> 0) {
       document.getElementById('menuImagesCount')!.textContent = event.menu_images.length.toString();
       menuList.innerHTML = event.menu_images.map((url: string) => 
         `<img src="${escapeHtml(url)}" alt="Menu" class="w-full aspect-square object-cover rounded border border-gray-300" />`
@@ -882,9 +873,9 @@ const { session } = authResult;
       is_active: (document.getElementById('is_active') as HTMLInputElement).checked,
 
       // Hero & Video fields - use new selection if provided, otherwise preserve existing
-      hero_image: heroMedia.length > 0 ? heroMedia[0].file_url : (currentEditingEvent?.hero_image || null),
+      hero_image: heroMedia.length> 0 ? heroMedia[0].file_url : (currentEditingEvent?.hero_image || null),
       highlight_video: formData.get('highlight_video') || null,
-      highlight_video_cover_image: videoCoverMedia.length > 0 ? videoCoverMedia[0].file_url : (currentEditingEvent?.highlight_video_cover_image || null),
+      highlight_video_cover_image: videoCoverMedia.length> 0 ? videoCoverMedia[0].file_url : (currentEditingEvent?.highlight_video_cover_image || null),
 
       // Blurb fields
       finalists_winners_blurb: formData.get('finalists_winners_blurb') || null,
@@ -898,9 +889,9 @@ const { session } = authResult;
       menu_blurb_dessert: formData.get('menu_blurb_dessert') || null,
 
       // Array fields - use new selections if provided, otherwise preserve existing
-      highlight_images: highlightMedia.length > 0 ? highlightMedia.map((m: any) => m.file_url) : (currentEditingEvent?.highlight_images || []),
-      entertainment_images: entertainmentMedia.length > 0 ? entertainmentMedia.map((m: any) => m.file_url) : (currentEditingEvent?.entertainment_images || []),
-      menu_images: menuMedia.length > 0 ? menuMedia.map((m: any) => m.file_url) : (currentEditingEvent?.menu_images || []),
+      highlight_images: highlightMedia.length> 0 ? highlightMedia.map((m: any) => m.file_url) : (currentEditingEvent?.highlight_images || []),
+      entertainment_images: entertainmentMedia.length> 0 ? entertainmentMedia.map((m: any) => m.file_url) : (currentEditingEvent?.entertainment_images || []),
+      menu_images: menuMedia.length> 0 ? menuMedia.map((m: any) => m.file_url) : (currentEditingEvent?.menu_images || []),
     };
 
     try {
