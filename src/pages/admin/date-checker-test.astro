@@ -103,7 +103,14 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
                 <strong>UTC String:</strong> {nominationsOpenDate ? nominationsOpenDate.toUTCString() : 'N/A'}<br>
                 <strong>ISO String:</strong> {nominationsOpenDate ? nominationsOpenDate.toISOString() : 'N/A'}<br>
                 <strong>Comparison:</strong> {nominationsOpenDate ? (today < nominationsOpenDate ? 'Future' : today > nominationsOpenDate ? 'Past' : 'Today') : 'N/A'}<br>
-                <strong>Days from today:</strong> {nominationsOpenDate ? Math.ceil((nominationsOpenDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 'N/A'}
+                <strong>Time from now:</strong> {nominationsOpenDate ? (() => {
+                  const diffTime = nominationsOpenDate.getTime() - now.getTime();
+                  const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                  if (diffTime <= 0) return 'Past';
+                  if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
+                  return `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
+                })() : 'N/A'}
               </p>
             </div>
             
@@ -190,8 +197,16 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
             </div>
             
             <div>
-              <h3 class="font-medium text-gray-900 mb-2">Days Until Next</h3>
-              <p class="text-lg font-semibold">{eventPhase.daysUntilNext}</p>
+              <h3 class="font-medium text-gray-900 mb-2">Time Until Next</h3>
+              <p class="text-lg font-semibold">
+                {eventPhase.daysUntilNext === 0 ? 
+                  (eventPhase.statusMessage.includes('hour') ? 
+                    eventPhase.statusMessage.split(' ').slice(-2).join(' ') : 
+                    'Today'
+                  ) : 
+                  `${eventPhase.daysUntilNext} day${eventPhase.daysUntilNext !== 1 ? 's' : ''}`
+                }
+              </p>
             </div>
             
             <div>
@@ -254,7 +269,15 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
         <div class="bg-red-50 rounded-lg p-6 mb-8">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">Countdown Information</h2>
           <div class="space-y-2 text-sm">
-            <p><strong>Days:</strong> {countdownInfo.days}</p>
+            <p><strong>Time Remaining:</strong> 
+              {countdownInfo.days === 0 ? 
+                (countdownInfo.message.includes('hour') ? 
+                  countdownInfo.message.split(' ').slice(-2).join(' ') : 
+                  'Today'
+                ) : 
+                `${countdownInfo.days} day${countdownInfo.days !== 1 ? 's' : ''}`
+              }
+            </p>
             <p><strong>Message:</strong> {countdownInfo.message}</p>
             <p><strong>Is Urgent:</strong> {countdownInfo.isUrgent ? 'Yes' : 'No'}</p>
           </div>
@@ -270,6 +293,13 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
           
           <p class="mt-4"><strong>Raw Event Phase:</strong></p>
           <pre class="bg-white p-3 rounded border overflow-x-auto">{JSON.stringify(eventPhase, null, 2)}</pre>
+          
+          {eventPhase.debugInfo && (
+            <>
+              <p class="mt-4"><strong>Date Checker Debug Info:</strong></p>
+              <pre class="bg-white p-3 rounded border overflow-x-auto">{JSON.stringify(eventPhase.debugInfo, null, 2)}</pre>
+            </>
+          )}
         </div>
       </div>
     </div>

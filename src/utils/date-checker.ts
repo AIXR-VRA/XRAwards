@@ -62,6 +62,23 @@ function daysBetween(date1: Date, date2: Date): number {
 }
 
 /**
+ * Calculate time difference and return appropriate message
+ */
+function getTimeUntilMessage(targetDate: Date, currentTime: Date): { days: number; message: string } {
+  const diffTime = targetDate.getTime() - currentTime.getTime();
+  const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffTime <= 0) {
+    return { days: 0, message: 'Today' };
+  } else if (diffHours < 24) {
+    return { days: 0, message: `in ${diffHours} hour${diffHours !== 1 ? 's' : ''}` };
+  } else {
+    return { days: diffDays, message: `in ${diffDays} day${diffDays !== 1 ? 's' : ''}` };
+  }
+}
+
+/**
  * Format date for display
  */
 function formatDate(date: Date): string {
@@ -98,6 +115,9 @@ export async function getEventPhase(): Promise<EventPhase> {
   // Create today's date in UTC to avoid timezone issues
   const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
   
+  // For debugging - let's use the actual current time for more precise comparisons
+  const currentTime = new Date();
+  
   // Parse event dates
   const nominationsOpen = eventDetails.nominations_open ? new Date(eventDetails.nominations_open) : null;
   const nominationsClose = eventDetails.nominations_close ? new Date(eventDetails.nominations_close) : null;
@@ -106,8 +126,35 @@ export async function getEventPhase(): Promise<EventPhase> {
   const judgingEnd = eventDetails.judging_period_end ? new Date(eventDetails.judging_period_end) : null;
   const ceremony = eventDetails.awards_ceremony ? new Date(eventDetails.awards_ceremony) : null;
 
+  // Debug information
+  const debugInfo = {
+    currentTime: currentTime.toISOString(),
+    today: today.toISOString(),
+    nominationsOpen: nominationsOpen?.toISOString() || 'null',
+    nominationsClose: nominationsClose?.toISOString() || 'null',
+    finalistsAnnounced: finalistsAnnounced?.toISOString() || 'null',
+    judgingStart: judgingStart?.toISOString() || 'null',
+    judgingEnd: judgingEnd?.toISOString() || 'null',
+    ceremony: ceremony?.toISOString() || 'null',
+    comparisons: {
+      currentTimeLessThanNominationsOpen: nominationsOpen ? currentTime < nominationsOpen : 'N/A',
+      currentTimeBetweenNominations: nominationsOpen && nominationsClose ? 
+        (currentTime >= nominationsOpen && currentTime <= nominationsClose) : 'N/A',
+      currentTimeAfterNominationsClose: nominationsClose ? currentTime > nominationsClose : 'N/A',
+      currentTimeLessThanFinalists: finalistsAnnounced ? currentTime < finalistsAnnounced : 'N/A',
+      currentTimeAfterFinalists: finalistsAnnounced ? currentTime >= finalistsAnnounced : 'N/A',
+      currentTimeLessThanJudgingStart: judgingStart ? currentTime < judgingStart : 'N/A',
+      currentTimeBetweenJudging: judgingStart && judgingEnd ? 
+        (currentTime >= judgingStart && currentTime <= judgingEnd) : 'N/A',
+      currentTimeAfterCeremony: ceremony ? currentTime > ceremony : 'N/A'
+    }
+  };
+
+  // Debug logging
+  console.log('Date Checker Debug Info:', JSON.stringify(debugInfo, null, 2));
+
   // Determine phase
-  if (nominationsOpen && today < nominationsOpen) {
+  if (nominationsOpen && currentTime < nominationsOpen) {
     // Pre-nominations phase
     const daysUntil = daysBetween(today, nominationsOpen);
     return {
@@ -122,7 +169,7 @@ export async function getEventPhase(): Promise<EventPhase> {
       statusMessage: `Nominations open in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`,
       isUrgent: daysUntil <= 7
     };
-  } else if (nominationsOpen && nominationsClose && today >= nominationsOpen && today <= nominationsClose) {
+  } else if (nominationsOpen && nominationsClose && currentTime >= nominationsOpen && currentTime <= nominationsClose) {
     // Nominations open phase
     const daysUntil = daysBetween(today, nominationsClose);
     return {
@@ -137,22 +184,22 @@ export async function getEventPhase(): Promise<EventPhase> {
       statusMessage: `Nominations close in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`,
       isUrgent: daysUntil <= 7
     };
-  } else if (nominationsClose && finalistsAnnounced && today > nominationsClose && today < finalistsAnnounced) {
+  } else if (nominationsClose && finalistsAnnounced && currentTime > nominationsClose && currentTime < finalistsAnnounced) {
     // Nominations closed, waiting for finalists
-    const daysUntil = daysBetween(today, finalistsAnnounced);
+    const timeInfo = getTimeUntilMessage(finalistsAnnounced, currentTime);
     return {
       phase: 'nominations-closed',
-      daysUntilNext: daysUntil,
+      daysUntilNext: timeInfo.days,
       nextMilestone: `Finalists announced ${formatDate(finalistsAnnounced)}`,
       ctaButton: {
         text: 'Secure Tickets',
         href: eventDetails.tickets_portal_url || 'https://events.unitedxr.eu/2025?utm_source=AIXR&utm_medium=XR+Awards+Website&utm_campaign=link',
         variant: 'primary'
       },
-      statusMessage: `Finalists announced in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`,
-      isUrgent: daysUntil <= 3
+      statusMessage: `Finalists announced ${timeInfo.message}`,
+      isUrgent: timeInfo.days <= 1 || timeInfo.message.includes('hour')
     };
-  } else if (finalistsAnnounced && judgingStart && today >= finalistsAnnounced && today < judgingStart) {
+  } else if (finalistsAnnounced && judgingStart && currentTime >= finalistsAnnounced && currentTime < judgingStart) {
     // Finalists announced, waiting for judging
     const daysUntil = daysBetween(today, judgingStart);
     return {
@@ -167,7 +214,7 @@ export async function getEventPhase(): Promise<EventPhase> {
       statusMessage: `Judging begins in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`,
       isUrgent: false
     };
-  } else if (judgingStart && judgingEnd && today >= judgingStart && today <= judgingEnd) {
+  } else if (judgingStart && judgingEnd && currentTime >= judgingStart && currentTime <= judgingEnd) {
     // Judging period
     const daysUntil = daysBetween(today, judgingEnd);
     return {
@@ -182,7 +229,7 @@ export async function getEventPhase(): Promise<EventPhase> {
       statusMessage: `Judging in progress - ${daysUntil} day${daysUntil !== 1 ? 's' : ''} remaining`,
       isUrgent: false
     };
-  } else if (ceremony && today > ceremony) {
+  } else if (ceremony && currentTime > ceremony) {
     // Post-ceremony
     return {
       phase: 'post-ceremony',
@@ -198,6 +245,7 @@ export async function getEventPhase(): Promise<EventPhase> {
     };
   } else {
     // Default fallback
+    console.log('Date Checker: Falling back to default phase');
     return {
       phase: 'pre-nominations',
       daysUntilNext: 0,
@@ -208,7 +256,8 @@ export async function getEventPhase(): Promise<EventPhase> {
         variant: 'secondary'
       },
       statusMessage: 'Event details are being finalized',
-      isUrgent: false
+      isUrgent: false,
+      debugInfo: debugInfo
     };
   }
 }
