@@ -62,6 +62,7 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
           <p><strong>UTC String:</strong> {now.toUTCString()}</p>
           <p><strong>ISO String:</strong> {now.toISOString()}</p>
           <p><strong>Timezone Offset:</strong> {now.getTimezoneOffset()} minutes</p>
+          <p><strong>Today UTC Midnight:</strong> {today.toISOString()}</p>
         </div>
       </div>
 
@@ -96,7 +97,7 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
             <div class="space-y-2">
               <h3 class="font-medium text-gray-900">Nominations Open</h3>
               <p class="text-sm">
-                <strong>Date:</strong> {nominationsOpenDate ? nominationsOpenDate.toLocaleDateString('en-GB') : 'Not set'}<br>
+                <strong>Date:</strong> {nominationsOpenDate ? nominationsOpenDate.toLocaleString('en-GB') : 'Not set'}<br>
                 <strong>Raw Value:</strong> {eventDetails?.nominations_open || 'Not set'}<br>
                 <strong>Date Object:</strong> {nominationsOpenDate ? nominationsOpenDate.toString() : 'N/A'}<br>
                 <strong>UTC String:</strong> {nominationsOpenDate ? nominationsOpenDate.toUTCString() : 'N/A'}<br>
@@ -109,7 +110,7 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
             <div class="space-y-2">
               <h3 class="font-medium text-gray-900">Nominations Close</h3>
               <p class="text-sm">
-                <strong>Date:</strong> {nominationsCloseDate ? nominationsCloseDate.toLocaleDateString('en-GB') : 'Not set'}<br>
+                <strong>Date:</strong> {nominationsCloseDate ? nominationsCloseDate.toLocaleString('en-GB') : 'Not set'}<br>
                 <strong>Raw Value:</strong> {eventDetails?.nominations_close || 'Not set'}<br>
                 <strong>Date Object:</strong> {nominationsCloseDate ? nominationsCloseDate.toString() : 'N/A'}<br>
                 <strong>UTC String:</strong> {nominationsCloseDate ? nominationsCloseDate.toUTCString() : 'N/A'}<br>
@@ -122,7 +123,7 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
             <div class="space-y-2">
               <h3 class="font-medium text-gray-900">Finalists Announced</h3>
               <p class="text-sm">
-                <strong>Date:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toLocaleDateString('en-GB') : 'Not set'}<br>
+                <strong>Date:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toLocaleString('en-GB') : 'Not set'}<br>
                 <strong>Raw Value:</strong> {eventDetails?.finalists_announced || 'Not set'}<br>
                 <strong>Date Object:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toString() : 'N/A'}<br>
                 <strong>UTC String:</strong> {finalistsAnnouncedDate ? finalistsAnnouncedDate.toUTCString() : 'N/A'}<br>
@@ -135,7 +136,7 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
             <div class="space-y-2">
               <h3 class="font-medium text-gray-900">Judging Start</h3>
               <p class="text-sm">
-                <strong>Date:</strong> {judgingStartDate ? judgingStartDate.toLocaleDateString('en-GB') : 'Not set'}<br>
+                <strong>Date:</strong> {judgingStartDate ? judgingStartDate.toLocaleString('en-GB') : 'Not set'}<br>
                 <strong>Raw Value:</strong> {eventDetails?.judging_period_start || 'Not set'}<br>
                 <strong>Date Object:</strong> {judgingStartDate ? judgingStartDate.toString() : 'N/A'}<br>
                 <strong>UTC String:</strong> {judgingStartDate ? judgingStartDate.toUTCString() : 'N/A'}<br>
@@ -148,7 +149,7 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
             <div class="space-y-2">
               <h3 class="font-medium text-gray-900">Judging End</h3>
               <p class="text-sm">
-                <strong>Date:</strong> {judgingEndDate ? judgingEndDate.toLocaleDateString('en-GB') : 'Not set'}<br>
+                <strong>Date:</strong> {judgingEndDate ? judgingEndDate.toLocaleString('en-GB') : 'Not set'}<br>
                 <strong>Raw Value:</strong> {eventDetails?.judging_period_end || 'Not set'}<br>
                 <strong>Date Object:</strong> {judgingEndDate ? judgingEndDate.toString() : 'N/A'}<br>
                 <strong>UTC String:</strong> {judgingEndDate ? judgingEndDate.toUTCString() : 'N/A'}<br>
@@ -161,7 +162,7 @@ const ceremonyDate = eventDetails?.awards_ceremony ? new Date(eventDetails.award
             <div class="space-y-2">
               <h3 class="font-medium text-gray-900">Ceremony</h3>
               <p class="text-sm">
-                <strong>Date:</strong> {ceremonyDate ? ceremonyDate.toLocaleDateString('en-GB') : 'Not set'}<br>
+                <strong>Date:</strong> {ceremonyDate ? ceremonyDate.toLocaleString('en-GB') : 'Not set'}<br>
                 <strong>Raw Value:</strong> {eventDetails?.awards_ceremony || 'Not set'}<br>
                 <strong>Date Object:</strong> {ceremonyDate ? ceremonyDate.toString() : 'N/A'}<br>
                 <strong>UTC String:</strong> {ceremonyDate ? ceremonyDate.toUTCString() : 'N/A'}<br>

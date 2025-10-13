@@ -181,11 +181,12 @@ if (!session) {
                   Nominations Open
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   id="nominations_open"
                   name="nominations_open"
                   class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
+                <p class="text-xs text-gray-500 mt-1">When nominations open (UTC time)</p>
               </div>
 
               <div class="min-w-0">
@@ -193,11 +194,12 @@ if (!session) {
                   Nominations Close
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   id="nominations_close"
                   name="nominations_close"
                   class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
+                <p class="text-xs text-gray-500 mt-1">When nominations close (UTC time)</p>
               </div>
 
               <div class="min-w-0">
@@ -205,11 +207,12 @@ if (!session) {
                   Finalists Announced
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   id="finalists_announced"
                   name="finalists_announced"
                   class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
+                <p class="text-xs text-gray-500 mt-1">When finalists are announced (UTC time)</p>
               </div>
 
               <div class="min-w-0">
@@ -217,11 +220,12 @@ if (!session) {
                   Awards Ceremony
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   id="awards_ceremony"
                   name="awards_ceremony"
                   class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
+                <p class="text-xs text-gray-500 mt-1">When the ceremony takes place (UTC time)</p>
               </div>
 
               <div class="min-w-0">
@@ -229,11 +233,12 @@ if (!session) {
                   Judging Period Start
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   id="judging_period_start"
                   name="judging_period_start"
                   class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
+                <p class="text-xs text-gray-500 mt-1">When judging begins (UTC time)</p>
               </div>
 
               <div class="min-w-0">
@@ -241,11 +246,12 @@ if (!session) {
                   Judging Period End
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   id="judging_period_end"
                   name="judging_period_end"
                   class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
+                <p class="text-xs text-gray-500 mt-1">When judging ends (UTC time)</p>
               </div>
             </div>
           </div>
@@ -560,6 +566,15 @@ if (!session) {
     return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
+  // Convert TIMESTAMPTZ to datetime-local string for HTML datetime-local inputs
+  function timestamptzToDateTimeLocal(timestamptz: string | null): string {
+    if (!timestamptz) return '';
+    const date = new Date(timestamptz);
+    // Convert to local timezone for datetime-local input
+    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+    return localDate.toISOString().slice(0, 16); // Returns YYYY-MM-DDTHH:MM format
+  }
+
   // Load events
   async function loadEvents() {
     try {
@@ -773,12 +788,12 @@ if (!session) {
     (document.getElementById('venue_address') as HTMLInputElement).value = event.venue_address || '';
     (document.getElementById('organizer_name') as HTMLInputElement).value = event.organizer_name || '';
     (document.getElementById('description') as HTMLTextAreaElement).value = event.description || '';
-    (document.getElementById('nominations_open') as HTMLInputElement).value = event.nominations_open || '';
-    (document.getElementById('nominations_close') as HTMLInputElement).value = event.nominations_close || '';
-    (document.getElementById('finalists_announced') as HTMLInputElement).value = event.finalists_announced || '';
-    (document.getElementById('judging_period_start') as HTMLInputElement).value = event.judging_period_start || '';
-    (document.getElementById('judging_period_end') as HTMLInputElement).value = event.judging_period_end || '';
-    (document.getElementById('awards_ceremony') as HTMLInputElement).value = event.awards_ceremony || '';
+    (document.getElementById('nominations_open') as HTMLInputElement).value = timestamptzToDateTimeLocal(event.nominations_open);
+    (document.getElementById('nominations_close') as HTMLInputElement).value = timestamptzToDateTimeLocal(event.nominations_close);
+    (document.getElementById('finalists_announced') as HTMLInputElement).value = timestamptzToDateTimeLocal(event.finalists_announced);
+    (document.getElementById('judging_period_start') as HTMLInputElement).value = timestamptzToDateTimeLocal(event.judging_period_start);
+    (document.getElementById('judging_period_end') as HTMLInputElement).value = timestamptzToDateTimeLocal(event.judging_period_end);
+    (document.getElementById('awards_ceremony') as HTMLInputElement).value = timestamptzToDateTimeLocal(event.awards_ceremony);
     (document.getElementById('nomination_portal_url') as HTMLInputElement).value = event.nomination_portal_url || '';
     (document.getElementById('tickets_portal_url') as HTMLInputElement).value = event.tickets_portal_url || '';
     (document.getElementById('livestream_link') as HTMLInputElement).value = event.livestream_link || '';

@@ -82,6 +82,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     const body = await request.json();
 
+    // Helper function to convert datetime-local strings to UTC
+    const toUTC = (dateTimeStr: string | null): string | null => {
+      if (!dateTimeStr) return null;
+      // datetime-local inputs are in local timezone, convert to UTC
+      const localDate = new Date(dateTimeStr);
+      return localDate.toISOString();
+    };
+
     const eventData = {
       event_name: body.event_name,
       event_year: body.event_year,
@@ -90,12 +98,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       venue_address: body.venue_address,
       organizer_name: body.organizer_name,
       description: body.description,
-      nominations_open: body.nominations_open,
-      nominations_close: body.nominations_close,
-      finalists_announced: body.finalists_announced,
-      judging_period_start: body.judging_period_start,
-      judging_period_end: body.judging_period_end,
-      awards_ceremony: body.awards_ceremony,
+      nominations_open: toUTC(body.nominations_open),
+      nominations_close: toUTC(body.nominations_close),
+      finalists_announced: toUTC(body.finalists_announced),
+      judging_period_start: toUTC(body.judging_period_start),
+      judging_period_end: toUTC(body.judging_period_end),
+      awards_ceremony: toUTC(body.awards_ceremony),
       nomination_portal_url: body.nomination_portal_url,
       tickets_portal_url: body.tickets_portal_url,
       is_active: body.is_active || false,
@@ -184,6 +192,14 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
       });
     }
 
+    // Helper function to convert datetime-local strings to UTC
+    const toUTC = (dateTimeStr: string | null): string | null => {
+      if (!dateTimeStr) return null;
+      // datetime-local inputs are in local timezone, convert to UTC
+      const localDate = new Date(dateTimeStr);
+      return localDate.toISOString();
+    };
+
     const updateData = {
       event_name: eventData.event_name,
       event_year: eventData.event_year,
@@ -192,12 +208,12 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
       venue_address: eventData.venue_address,
       organizer_name: eventData.organizer_name,
       description: eventData.description,
-      nominations_open: eventData.nominations_open,
-      nominations_close: eventData.nominations_close,
-      finalists_announced: eventData.finalists_announced,
-      judging_period_start: eventData.judging_period_start,
-      judging_period_end: eventData.judging_period_end,
-      awards_ceremony: eventData.awards_ceremony,
+      nominations_open: toUTC(eventData.nominations_open),
+      nominations_close: toUTC(eventData.nominations_close),
+      finalists_announced: toUTC(eventData.finalists_announced),
+      judging_period_start: toUTC(eventData.judging_period_start),
+      judging_period_end: toUTC(eventData.judging_period_end),
+      awards_ceremony: toUTC(eventData.awards_ceremony),
       nomination_portal_url: eventData.nomination_portal_url,
       tickets_portal_url: eventData.tickets_portal_url,
       is_active: eventData.is_active || false,
