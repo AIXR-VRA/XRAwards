@@ -9,6 +9,7 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import CTAFooter from '../components/CTAFooter.astro';
+import FutureFeatures from '../components/sections/FutureFeatures.astro';
 import { Image } from 'astro:assets';
 import { getR2ImageUrl } from '../utils/r2';
 import { supabase } from '../utils/supabase';
@@ -300,6 +301,9 @@ const timelineEvents = [
         </ol>
       </div>
     </section>
+
+    <!-- Future Features Section -->
+    <FutureFeatures />
 
     <!-- Judges Section -->
     {judges && judges.length > 0 && (

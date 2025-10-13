@@ -1,0 +1,81 @@
+---
+/**
+ * Future Features Section
+ * Showcases the key features of XR Awards with animated graphics
+ */
+import { Image } from 'astro:assets';
+import { getR2ImageUrl } from '../../utils/r2';
+
+// Get feature images from R2
+const globalAwardsImage = getR2ImageUrl('/images/2025/10/graphic-global_1760355307670.png');
+const networkingImage = getR2ImageUrl('/images/2025/10/graphic-network_1760355331913.png');
+const premiersImage = getR2ImageUrl('/images/2025/10/graphic-premieres_1760355345600.png');
+const limitsImage = getR2ImageUrl('/images/2025/10/graphic-limits_1760355322258.png');
+
+const features = [
+  {
+    image: globalAwardsImage,
+    description: 'See the best in XR get recognized. Our awards ceremony is where top achievements in XR & AR take the spotlight. It\'s a night celebrating the big leaps in the industry, acknowledged and celebrated worldwide.'
+  },
+  {
+    image: networkingImage,
+    description: 'This is where XR\'s big names meet. It\'s not just an event; it\'s the ultimate meet-up spot for industry movers and shakers. Forge new connections, discuss ideas, and meet the people behind the big moves in XR.'
+  },
+  {
+    image: premiersImage,
+    description: 'Get a first look at what\'s new in XR. Our event features the latest breakthroughs and entertainment in the XR world. Expect new demos, immersive shows, and surprises that stretch the imagination.'
+  },
+  {
+    image: limitsImage,
+    description: 'See VR & AR\'s boundaries being pushed. We showcase the latest in tech and creativity, featuring cutting-edge ideas that redefine Spatial Computing. Be there to see the future of VR as it happens.'
+  }
+];
+---
+
+<section class="section bg-white">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12">
+      <div class="mb-6 md:mb-0">
+        <h2 class="text-4xl font-bold mb-4 text-left">Building the future of extended reality, together.</h2>
+        <p class="text-lg text-secondary text-left max-w-2xl">
+          See why industry leaders attend from around the world
+        </p>
+      </div>
+      <div class="flex gap-4 ml-auto">
+        <a href="/archive" class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors">Past Ceremonies</a>
+      </div>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      {features.map((feature, index) => (
+        <div class="flex flex-col items-start">
+          <!-- Image -->
+          <div class="relative w-full aspect-square mb-6 overflow-hidden rounded-2xl">
+            <Image
+              src={feature.image}
+              alt={`Feature ${index + 1}`}
+              width={400}
+              height={400}
+              class="w-full h-full object-contain"
+              format="webp"
+            />
+          </div>
+
+          <!-- Description -->
+          <p class="text-sm text-gray-700 leading-relaxed">
+            {feature.description}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .section {
+    padding: 4rem 0;
+  }
+</style>
+
