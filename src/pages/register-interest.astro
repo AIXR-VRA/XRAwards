@@ -1,17 +1,17 @@
 ---
 /**
- * Entry Kit Page
- * URL: /nominate/entry-kit
- * Information about the entry kit and form for downloading
+ * Register Interest Page
+ * URL: /register-interest
+ * For people who want to register their interest in the XR Awards
  */
 export const prerender = true;
 
-import Layout from '../../layouts/Layout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import CTAFooter from '../../components/CTAFooter.astro';
-import Button from '../../components/Button.astro';
-import { supabase } from '../../utils/supabase';
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CTAFooter from '../components/CTAFooter.astro';
+import Button from '../components/Button.astro';
+import { supabase } from '../utils/supabase';
 
 // Fetch active event details
 const { data: eventDetails } = await supabase
@@ -22,13 +22,13 @@ const { data: eventDetails } = await supabase
 ---
 
 <Layout
-  title={`Your Guide to Entering the ${eventDetails?.event_name || 'XR Awards Gala'} - AIXR XR Awards`}
-  description={`Download your essential entry kit for the ${eventDetails?.event_name || 'XR Awards Gala'}. Get category details, submission checklist, rules and guidelines to make your entry process smooth and successful.`}
+  title={`Register Your Interest - ${eventDetails?.event_name || 'XR Awards Gala'} - AIXR XR Awards`}
+  description={`Register your interest in the ${eventDetails?.event_name || 'XR Awards Gala'}. Stay updated on nominations, key dates, and exclusive opportunities to showcase your XR innovation.`}
 >
   <Header />
   
   <main class="min-h-screen bg-white">
-    <!-- Entry Kit Header -->
+    <!-- Register Interest Header -->
     <section class="relative bg-[#0E1022] pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
       <!-- Decorative Background Rings -->
       <!-- Left Ring - Offset Up with Gradient -->
@@ -44,8 +44,8 @@ const { data: eventDetails } = await supabase
       
       <!-- Content -->
       <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h1 class="entry-kit-title text-white mb-6">
-          Your Guide to Entering the {eventDetails?.event_name || 'XR Awards Gala'}
+        <h1 class="register-interest-title text-white mb-6">
+          Register Your Interest
         </h1>
         
         <!-- Decorative Dots -->
@@ -57,13 +57,13 @@ const { data: eventDetails } = await supabase
           <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
         </div>
         
-        <p class="entry-kit-subtitle text-white">
-          Download your essential entry kit for the {eventDetails?.event_name || 'XR Awards Gala'}
+        <p class="register-interest-subtitle text-white">
+          Stay updated on the {eventDetails?.event_name || 'XR Awards Gala'} and exclusive opportunities
         </p>
       </div>
     </section>
 
-    <!-- Entry Kit Information Section -->
+    <!-- Register Interest Information Section -->
     <section class="py-16" style="background-color: #F2F2F2;">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
@@ -72,62 +72,77 @@ const { data: eventDetails } = await supabase
           
           <!-- Left Column - Main Content -->
           <div>
-            <!-- What's in the Kit -->
+            <!-- What You'll Get -->
             <div class="mb-12">
               <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
-                What You'll Find in the Kit:
+                What You'll Get:
               </h2>
               <div class="space-y-4 text-gray-700">
                 <p class="text-lg">
-                  This kit is your essential tool for entering this years international celebrations. Simple and direct, it's designed to make your entry process smooth and successful.
+                  Register your interest to stay informed about the {eventDetails?.event_name || 'XR Awards Gala'} and receive exclusive updates about nominations, key dates, and special opportunities.
                 </p>
                 <ul class="space-y-4">
                   <li class="flex gap-3">
                     <span class="text-gray-400 mt-1">•</span>
                     <div>
-                      <strong class="font-semibold text-gray-900">Category Details:</strong> A clear outline of each award category. Know what fits your work best.
+                      <strong class="font-semibold text-gray-900">Early Notification:</strong> Be the first to know when nominations open and receive priority access to nomination materials.
                     </div>
                   </li>
                   <li class="flex gap-3">
                     <span class="text-gray-400 mt-1">•</span>
                     <div>
-                      <strong class="font-semibold text-gray-900">Submission Checklist:</strong> A list of exactly what you need to include with your entry. No more, no less.
+                      <strong class="font-semibold text-gray-900">Key Updates:</strong> Stay informed about important dates, category changes, and judging criteria updates.
                     </div>
                   </li>
                   <li class="flex gap-3">
                     <span class="text-gray-400 mt-1">•</span>
                     <div>
-                      <strong class="font-semibold text-gray-900">Rules and Guidelines:</strong> Important information to ensure your entry is eligible and on point.
+                      <strong class="font-semibold text-gray-900">Exclusive Content:</strong> Access to special webinars, nomination tips, and industry insights from past winners.
                     </div>
                   </li>
                   <li class="flex gap-3">
                     <span class="text-gray-400 mt-1">•</span>
                     <div>
-                      <strong class="font-semibold text-gray-900">Work on Your Entry Anytime:</strong> After logging in, download specific questions for each category. Plan and prepare your entry at your convenience.
+                      <strong class="font-semibold text-gray-900">Networking Opportunities:</strong> Connect with other XR innovators and industry leaders in our exclusive community.
                     </div>
                   </li>
                 </ul>
               </div>
             </div>
 
+            <!-- Why Register -->
+            <div class="mb-12">
+              <h3 class="text-xl md:text-2xl font-bold text-gray-900 mb-6">
+                Why Register Your Interest?
+              </h3>
+              <div class="space-y-4 text-gray-700">
+                <p class="text-lg">
+                  The XR Awards Gala is the world's leading celebration of VR, AR, and MR innovation. By registering your interest, you'll be part of an exclusive community of XR innovators and get early access to everything you need to prepare your nomination.
+                </p>
+                <p class="text-lg">
+                  Whether you're planning to nominate this year or just want to stay connected with the XR community, registering your interest ensures you won't miss any important updates or opportunities.
+                </p>
+              </div>
+            </div>
+
             <!-- Call to Action -->
             <div class="mt-8">
               <p class="text-lg text-gray-700 mb-6">
-                Entering the XR Awards Gala is your chance to be recognized among the best in the XR field. This kit is your first step towards showcasing your innovation and creativity.
+                Join thousands of XR professionals who are already registered and stay ahead of the curve in the world's most prestigious XR awards program.
               </p>
               <p class="text-lg font-bold text-gray-900">
-                Download the Kit. Ready Your Entry. Make Your Mark in XR.
+                Register Today. Stay Informed. Be Ready to Shine.
               </p>
             </div>
           </div>
 
-          <!-- Right Column - Entry Kit Form -->
+          <!-- Right Column - Registration Form -->
           <div>
             <div class="bg-gray-100 rounded-lg p-6 lg:p-8 sticky top-24">
               <div class="flex items-center gap-3 mb-6">
                 <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-semibold text-sm">1</div>
                 <h3 class="text-xl font-bold text-gray-900">
-                  Email
+                  Contact Information
                 </h3>
               </div>
               
@@ -193,7 +208,7 @@ const { data: eventDetails } = await supabase
                   type="submit"
                   class="w-full bg-[#4923EB] text-white font-medium py-3 px-6 rounded-lg hover:bg-[#3a1bb8] transition-colors focus:outline-none focus:ring-2 focus:ring-[#4923EB] focus:ring-offset-2"
                 >
-                  Next
+                  Register Interest
                 </button>
               </form>
             </div>
@@ -211,12 +226,12 @@ const { data: eventDetails } = await supabase
 </Layout>
 
 <style>
-  .entry-kit-title {
+  .register-interest-title {
     font-size: 35px;
     font-weight: 600;
   }
 
-  .entry-kit-subtitle {
+  .register-interest-subtitle {
     font-size: 16px;
     font-weight: 300;
     font-family: "IBM Plex Mono", monospace;
