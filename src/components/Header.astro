@@ -197,19 +197,35 @@ const moreItems = [
     </div>
 
     <!-- Mobile menu -->
-    <div id="mobile-menu" class="hidden md:hidden mt-2 rounded-3xl border border-gray-200 bg-white overflow-hidden" role="navigation" aria-label="Mobile navigation">
-      <div class="space-y-1 p-4">
+    <div id="mobile-menu" class="hidden md:hidden mt-2 rounded-3xl border border-gray-200 bg-white overflow-hidden max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 relative" role="navigation" aria-label="Mobile navigation">
+      <!-- Scroll indicators -->
+      <div id="scroll-top-indicator" class="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-white to-transparent pointer-events-none z-10 opacity-0 transition-opacity duration-200"></div>
+      <div id="scroll-bottom-indicator" class="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-white to-transparent pointer-events-none z-10 opacity-0 transition-opacity duration-200"></div>
+      
+      <div class="space-y-1 p-4 pb-6">
         {navigation.map((item) => (
           item.isDropdown ? (
             <div class="space-y-1">
-              <h3 class="px-3 py-2 text-base font-medium text-dark" style="font-family: var(--font-heading);">
-                {item.name}
-              </h3>
-              <nav aria-label={`${item.name} submenu`}>
+              <button 
+                class="mobile-dropdown-toggle w-full flex items-center justify-between px-3 py-2 text-base font-medium text-dark hover:bg-gray-50 transition-colors rounded-md"
+                style="font-family: var(--font-heading);"
+                aria-expanded="false"
+                aria-controls={`mobile-${item.name.toLowerCase()}-menu`}
+              >
+                <span>{item.name}</span>
+                <svg class="mobile-dropdown-icon h-4 w-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <nav 
+                id={`mobile-${item.name.toLowerCase()}-menu`}
+                class="mobile-dropdown-content hidden space-y-1 pl-4"
+                aria-label={`${item.name} submenu`}
+              >
                 {item.items.map((subItem) => (
                   <a
                     href={subItem.href}
-                    class="dropdown-link block px-6 py-2 rounded-md text-sm font-medium text-dark hover:bg-gray-50 transition-colors"
+                    class="dropdown-link block px-3 py-2 rounded-md text-sm font-medium text-dark hover:bg-gray-50 transition-colors"
                     style="font-family: var(--font-heading);"
                   >
                     {subItem.name}
@@ -278,6 +294,8 @@ const moreItems = [
       const navLinks = document.querySelectorAll('.nav-link');
       const button = document.getElementById('mobile-menu-button');
       const menu = document.getElementById('mobile-menu');
+      const scrollTopIndicator = document.getElementById('scroll-top-indicator');
+      const scrollBottomIndicator = document.getElementById('scroll-bottom-indicator');
       let isMenuOpen = false;
 
       // Handle scroll for transparent header, logo swap, and text color
@@ -313,6 +331,75 @@ const moreItems = [
         }
       };
 
+      // Handle mobile menu scroll indicators
+      const handleMenuScroll = () => {
+        if (!menu || !scrollTopIndicator || !scrollBottomIndicator) return;
+        
+        const scrollTop = menu.scrollTop;
+        const scrollHeight = menu.scrollHeight;
+        const clientHeight = menu.clientHeight;
+        
+        // Show/hide top indicator
+        if (scrollTop > 10) {
+          scrollTopIndicator.style.opacity = '1';
+        } else {
+          scrollTopIndicator.style.opacity = '0';
+        }
+        
+        // Show/hide bottom indicator
+        if (scrollTop + clientHeight < scrollHeight - 10) {
+          scrollBottomIndicator.style.opacity = '1';
+        } else {
+          scrollBottomIndicator.style.opacity = '0';
+        }
+      };
+
+      // Handle mobile dropdown toggles
+      const handleMobileDropdownToggle = (event) => {
+        const button = event.currentTarget;
+        const expanded = button.getAttribute('aria-expanded') === 'true';
+        const content = document.getElementById(button.getAttribute('aria-controls'));
+        const icon = button.querySelector('.mobile-dropdown-icon');
+        
+        // Close all other dropdowns first
+        const allDropdownToggles = document.querySelectorAll('.mobile-dropdown-toggle');
+        const allDropdownContents = document.querySelectorAll('.mobile-dropdown-content');
+        
+        allDropdownToggles.forEach(toggle => {
+          if (toggle !== button) {
+            toggle.setAttribute('aria-expanded', 'false');
+            const toggleIcon = toggle.querySelector('.mobile-dropdown-icon');
+            if (toggleIcon) {
+              toggleIcon.style.transform = 'rotate(0deg)';
+            }
+          }
+        });
+        
+        allDropdownContents.forEach(content => {
+          if (content !== document.getElementById(button.getAttribute('aria-controls'))) {
+            content.classList.add('hidden');
+          }
+        });
+        
+        // Toggle current dropdown
+        if (expanded) {
+          // Close current dropdown
+          button.setAttribute('aria-expanded', 'false');
+          content.classList.add('hidden');
+          icon.style.transform = 'rotate(0deg)';
+        } else {
+          // Open current dropdown
+          button.setAttribute('aria-expanded', 'true');
+          content.classList.remove('hidden');
+          icon.style.transform = 'rotate(180deg)';
+        }
+        
+        // Update scroll indicators after content change
+        setTimeout(() => {
+          handleMenuScroll();
+        }, 100);
+      };
+
       // Mobile menu toggle handler
       const handleMenuClick = () => {
         const expanded = button.getAttribute('aria-expanded') === 'true';
@@ -320,6 +407,13 @@ const moreItems = [
         menu?.classList.toggle('hidden');
         isMenuOpen = !isMenuOpen;
         handleScroll(); // Update styling when menu toggles
+        
+        // Reset scroll indicators when menu opens
+        if (isMenuOpen) {
+          setTimeout(() => {
+            handleMenuScroll();
+          }, 100);
+        }
       };
 
       // Initial check
@@ -328,11 +422,26 @@ const moreItems = [
       // Add event listeners
       window.addEventListener('scroll', handleScroll, { passive: true });
       button?.addEventListener('click', handleMenuClick);
+      menu?.addEventListener('scroll', handleMenuScroll, { passive: true });
+      
+      // Add mobile dropdown toggle listeners
+      const mobileDropdownToggles = document.querySelectorAll('.mobile-dropdown-toggle');
+      mobileDropdownToggles.forEach(toggle => {
+        toggle.addEventListener('click', handleMobileDropdownToggle);
+      });
 
       // Store cleanup function
       cleanup = () => {
         window.removeEventListener('scroll', handleScroll);
         button?.removeEventListener('click', handleMenuClick);
+        menu?.removeEventListener('scroll', handleMenuScroll);
+        
+        // Remove mobile dropdown listeners
+        const mobileDropdownToggles = document.querySelectorAll('.mobile-dropdown-toggle');
+        mobileDropdownToggles.forEach(toggle => {
+          toggle.removeEventListener('click', handleMobileDropdownToggle);
+        });
+        
         isInitialized = false;
       };
     };
@@ -344,7 +453,16 @@ const moreItems = [
       initHeader();
     }
     
-    // Also listen for Astro page transitions
-    document.addEventListener('astro:page-load', initHeader);
+    // Listen for Astro page transitions and reinitialize
+    document.addEventListener('astro:page-load', () => {
+      // Small delay to ensure DOM is ready
+      setTimeout(initHeader, 10);
+    });
+    
+    // Also listen for Astro navigation events
+    document.addEventListener('astro:before-preparation', () => {
+      // Clean up before navigation
+      if (cleanup) cleanup();
+    });
   })();
 </script>

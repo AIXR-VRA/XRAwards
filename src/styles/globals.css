@@ -326,6 +326,47 @@ a {
   box-shadow: 0 0 0 3px rgba(46, 163, 242, 0.1);
 }
 
+/* Mobile Menu Scrollbar */
+#mobile-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+#mobile-menu::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+#mobile-menu::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+#mobile-menu::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Mobile Dropdown Animations */
+.mobile-dropdown-content {
+  transition: all 0.2s ease-in-out;
+  overflow: hidden;
+}
+
+.mobile-dropdown-content.hidden {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+}
+
+.mobile-dropdown-content:not(.hidden) {
+  max-height: 200px;
+  opacity: 1;
+  margin-top: 0.25rem;
+}
+
+.mobile-dropdown-icon {
+  transition: transform 0.2s ease-in-out;
+}
+
 /* Utilities */
 .text-center { text-align: center; }
 .text-left { text-align: left; }
