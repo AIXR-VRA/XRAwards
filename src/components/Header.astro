@@ -282,18 +282,25 @@ const moreItems = [
     let isInitialized = false;
 
     const initHeader = () => {
+      // Clean up previous listeners first
+      if (cleanup) cleanup();
+      
+      // Check if required elements exist
+      const navContainer = document.getElementById('nav-container');
+      const button = document.getElementById('mobile-menu-button');
+      const menu = document.getElementById('mobile-menu');
+      
+      if (!navContainer || !button || !menu) {
+        console.warn('Header elements not found, skipping initialization');
+        return;
+      }
+
       // Prevent multiple initializations
       if (isInitialized) return;
       isInitialized = true;
 
-      // Clean up previous listeners
-      if (cleanup) cleanup();
-
-      const navContainer = document.getElementById('nav-container');
       const logo = document.getElementById('header-logo');
       const navLinks = document.querySelectorAll('.nav-link');
-      const button = document.getElementById('mobile-menu-button');
-      const menu = document.getElementById('mobile-menu');
       const scrollTopIndicator = document.getElementById('scroll-top-indicator');
       const scrollBottomIndicator = document.getElementById('scroll-bottom-indicator');
       let isMenuOpen = false;
@@ -429,19 +436,21 @@ const moreItems = [
       mobileDropdownToggles.forEach(toggle => {
         toggle.addEventListener('click', handleMobileDropdownToggle);
       });
+      
+      // Store mobile dropdown cleanup
+      const mobileDropdownCleanup = () => {
+        const mobileDropdownToggles = document.querySelectorAll('.mobile-dropdown-toggle');
+        mobileDropdownToggles.forEach(toggle => {
+          toggle.removeEventListener('click', handleMobileDropdownToggle);
+        });
+      };
 
       // Store cleanup function
       cleanup = () => {
         window.removeEventListener('scroll', handleScroll);
         button?.removeEventListener('click', handleMenuClick);
         menu?.removeEventListener('scroll', handleMenuScroll);
-        
-        // Remove mobile dropdown listeners
-        const mobileDropdownToggles = document.querySelectorAll('.mobile-dropdown-toggle');
-        mobileDropdownToggles.forEach(toggle => {
-          toggle.removeEventListener('click', handleMobileDropdownToggle);
-        });
-        
+        mobileDropdownCleanup();
         isInitialized = false;
       };
     };
