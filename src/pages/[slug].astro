@@ -46,7 +46,8 @@ if (!event) {
   return Astro.redirect('/404');
 }
 
-// Check if ceremony has happened yet - redirect to programme if not
+// Check if ceremony has happened yet - we'll handle redirect client-side to avoid ugly server redirect
+let shouldRedirect = false;
 if (event.awards_ceremony) {
   const ceremonyDate = new Date(event.awards_ceremony);
   const oneDayAfter = new Date(ceremonyDate);
@@ -55,7 +56,7 @@ if (event.awards_ceremony) {
   
   // If ceremony hasn't happened yet (or is within 1 day), redirect to programme
   if (now < oneDayAfter) {
-    return Astro.redirect('/programme');
+    shouldRedirect = true;
   }
 }
 
@@ -98,6 +99,14 @@ const otherWinners = winners?.slice(3) || [];
   <Header />
 
   <main class="min-h-screen bg-white">
+    <!-- Client-side redirect script -->
+    {shouldRedirect && (
+      <script>
+        // Clean client-side redirect to avoid ugly server redirect message
+        window.location.replace('/programme');
+      </script>
+    )}
+
     <!-- Hero Section with Background Image -->
     <section class="relative pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
       <div class="absolute inset-0 z-0">
