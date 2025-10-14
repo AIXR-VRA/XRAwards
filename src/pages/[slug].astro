@@ -46,19 +46,13 @@ if (!event) {
   return Astro.redirect('/404');
 }
 
-// Check if ceremony has happened yet - we'll handle redirect client-side to avoid ugly server redirect
-let shouldRedirect = false;
-if (event.awards_ceremony) {
-  const ceremonyDate = new Date(event.awards_ceremony);
-  const oneDayAfter = new Date(ceremonyDate);
-  oneDayAfter.setDate(oneDayAfter.getDate() + 1);
-  const now = new Date();
-  
-  // If ceremony hasn't happened yet (or is within 1 day), redirect to programme
-  if (now < oneDayAfter) {
-    shouldRedirect = true;
-  }
-}
+// We'll handle the redirect logic entirely on the client side to avoid server-side redirects
+// Pass the event data to the client for processing
+const eventData = {
+  is_active: event.is_active,
+  awards_ceremony: event.awards_ceremony,
+  slug: event.slug
+};
 
 // Get sponsors for this event
 const { data: sponsorEvents } = await supabase
@@ -100,12 +94,21 @@ const otherWinners = winners?.slice(3) || [];
 
   <main class="min-h-screen bg-white">
     <!-- Client-side redirect script -->
-    {shouldRedirect && (
-      <script>
-        // Clean client-side redirect to avoid ugly server redirect message
-        window.location.replace('/programme');
-      </script>
-    )}
+    <script is:inline define:vars={{ eventData }}>
+      // Check if ceremony has happened yet - handle redirect client-side to avoid ugly server redirect
+      if (eventData.is_active && eventData.awards_ceremony) {
+        const ceremonyDate = new Date(eventData.awards_ceremony);
+        const oneDayAfter = new Date(ceremonyDate);
+        oneDayAfter.setDate(oneDayAfter.getDate() + 1);
+        const now = new Date();
+        
+        // If ceremony hasn't happened yet (or is within 1 day), redirect to programme
+        if (now < oneDayAfter) {
+          // Clean client-side redirect to avoid ugly server redirect message
+          window.location.replace('/programme');
+        }
+      }
+    </script>
 
     <!-- Hero Section with Background Image -->
     <section class="relative pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">

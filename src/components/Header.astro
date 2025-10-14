@@ -35,7 +35,6 @@ const navigation = [
   { name: 'Judges', href: '/judges' },
   { 
     name: 'Ceremonies', 
-    href: '#', 
     isDropdown: true,
     items: [
       { name: `${currentYear} Ceremony`, href: `/${yearToSlug[currentYear] || `xr-awards-${currentYear}`}` },
@@ -46,7 +45,6 @@ const navigation = [
   },
   { 
     name: 'Finalists', 
-    href: '#', 
     isDropdown: true,
     items: [
       { name: `${currentYear} Finalists`, href: `/winners-and-finalists-${currentYear}` },
@@ -73,11 +71,11 @@ const moreItems = [
 ---
 
 <header class="fixed top-0 left-0 right-0 z-50">
-  <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+  <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4" aria-label="Main navigation">
     <div id="nav-container" class="flex items-center justify-between h-16 px-6 rounded-2xl border border-white/20 transition-all duration-300">
       <!-- Logo -->
       <div class="shrink-0">
-        <a href="/" class="flex items-center">
+        <a href="/" class="flex items-center" aria-label="XR Awards - Home">
           <img
             id="header-logo"
             src="/XRA-Logo.svg"
@@ -92,21 +90,28 @@ const moreItems = [
         {navigation.map((item) => (
           item.isDropdown ? (
             <div class="relative group">
-              <button class="nav-link flex items-center text-white hover:text-primary transition-colors text-sm font-medium py-2" style="font-family: var(--font-heading);">
+              <button 
+                class="nav-link flex items-center text-white hover:text-primary transition-colors text-sm font-medium py-2" 
+                style="font-family: var(--font-heading);"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
                 {item.name}
-                <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <title>Dropdown arrow</title>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
               
               <!-- Dropdown Menu -->
-              <div class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50" role="menu" aria-label={`${item.name} submenu`}>
                 <div class="py-2">
                   {item.items.map((subItem) => (
                     <a
                       href={subItem.href}
                       class="dropdown-link block px-4 py-2 text-sm text-dark hover:bg-gray-50 transition-colors"
                       style="font-family: var(--font-heading);"
+                      role="menuitem"
                     >
                       {subItem.name}
                     </a>
@@ -127,21 +132,28 @@ const moreItems = [
         
         <!-- More Dropdown -->
         <div class="relative group">
-          <button class="nav-link flex items-center text-white hover:text-primary transition-colors text-sm font-medium py-2" style="font-family: var(--font-heading);">
+          <button 
+            class="nav-link flex items-center text-white hover:text-primary transition-colors text-sm font-medium py-2" 
+            style="font-family: var(--font-heading);"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
             More
-            <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <title>Dropdown arrow</title>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
           
           <!-- Dropdown Menu -->
-          <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+          <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50" role="menu" aria-label="Additional navigation">
             <div class="py-2">
               {moreItems.map((item) => (
                 <a
                   href={item.href}
                   class="dropdown-link block px-4 py-2 text-sm text-dark hover:bg-gray-50 transition-colors"
                   style="font-family: var(--font-heading);"
+                  role="menuitem"
                 >
                   {item.name}
                 </a>
@@ -176,7 +188,8 @@ const moreItems = [
           aria-expanded="false"
           aria-label="Toggle navigation menu"
         >
-          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <title>Menu icon</title>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
@@ -184,23 +197,25 @@ const moreItems = [
     </div>
 
     <!-- Mobile menu -->
-    <div id="mobile-menu" class="hidden md:hidden mt-2 rounded-3xl border border-gray-200 bg-white overflow-hidden">
+    <div id="mobile-menu" class="hidden md:hidden mt-2 rounded-3xl border border-gray-200 bg-white overflow-hidden" role="navigation" aria-label="Mobile navigation">
       <div class="space-y-1 p-4">
         {navigation.map((item) => (
           item.isDropdown ? (
             <div class="space-y-1">
-              <div class="px-3 py-2 text-base font-medium text-dark" style="font-family: var(--font-heading);">
+              <h3 class="px-3 py-2 text-base font-medium text-dark" style="font-family: var(--font-heading);">
                 {item.name}
-              </div>
-              {item.items.map((subItem) => (
-                <a
-                  href={subItem.href}
-                  class="dropdown-link block px-6 py-2 rounded-md text-sm font-medium text-dark hover:bg-gray-50 transition-colors"
-                  style="font-family: var(--font-heading);"
-                >
-                  {subItem.name}
-                </a>
-              ))}
+              </h3>
+              <nav aria-label={`${item.name} submenu`}>
+                {item.items.map((subItem) => (
+                  <a
+                    href={subItem.href}
+                    class="dropdown-link block px-6 py-2 rounded-md text-sm font-medium text-dark hover:bg-gray-50 transition-colors"
+                    style="font-family: var(--font-heading);"
+                  >
+                    {subItem.name}
+                  </a>
+                ))}
+              </nav>
             </div>
           ) : (
             <a
@@ -213,15 +228,20 @@ const moreItems = [
           )
         ))}
         <div class="border-t border-gray-200 my-2"></div>
-        {moreItems.map((item) => (
-          <a
-            href={item.href}
-            class="dropdown-link block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-50 transition-colors"
-            style="font-family: var(--font-heading);"
-          >
-            {item.name}
-          </a>
-        ))}
+        <h3 class="px-3 py-2 text-base font-medium text-dark" style="font-family: var(--font-heading);">
+          More
+        </h3>
+        <nav aria-label="Additional navigation">
+          {moreItems.map((item) => (
+            <a
+              href={item.href}
+              class="dropdown-link block px-3 py-2 rounded-md text-base font-medium text-dark hover:bg-gray-50 transition-colors"
+              style="font-family: var(--font-heading);"
+            >
+              {item.name}
+            </a>
+          ))}
+        </nav>
         <a
           href={ctaButton.href}
           class={`block px-3 py-2 rounded-md text-base font-medium transition-colors text-center mt-4 ${
