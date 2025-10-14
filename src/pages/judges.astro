@@ -90,7 +90,7 @@ const { data: judges } = await supabase
     <section class="py-16 md:py-20" style="background-color: #F2F2F2;">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {judges && judges.length > 0 ? (
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {judges.map((judge) => (
               <div class="judge-card bg-white rounded-xl overflow-hidden group shadow-sm hover:shadow-lg transition-shadow duration-300">
                 {/* Judge Image */}
