@@ -10,6 +10,8 @@ import Footer from '../components/Footer.astro';
 import CTAFooter from '../components/CTAFooter.astro';
 import { Image } from 'astro:assets';
 import { createClient } from '@supabase/supabase-js';
+import { getR2ImageUrl } from '../utils/r2';
+import { getCTAButton } from '../utils/date-checker';
 // import { nl2br } from '../utils/helpers'; // Unused import
 // import { getCTAButton } from '../utils/date-checker';
 
@@ -30,6 +32,9 @@ export async function getStaticPaths() {
 }
 
 const { year } = Astro.params;
+
+// Get dynamic CTA button for winners reveal
+const ctaButton = await getCTAButton('footer');
 
 const supabase = createClient(
   import.meta.env.PUBLIC_SUPABASE_URL,
@@ -224,7 +229,7 @@ const categoriesWithFinalists = categories.map((category: any) => {
                            href={event.tickets_portal_url}
                            target="_blank"
                            rel="noopener noreferrer"
-                           class="inline-flex items-center px-4 py-2 font-medium rounded-lg transition-colors text-sm bg-[#4923EB] hover:bg-[#3A1BB8] text-white"
+                           class="inline-flex items-center px-4 py-2 font-medium rounded-lg transition-colors text-sm bg-[#F37137] hover:bg-[#E55A2B] text-white"
                          >
                            Secure Tickets
                            <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -346,43 +351,35 @@ const categoriesWithFinalists = categories.map((category: any) => {
               {category.mainWinner && (
                 <div class="winner-card rounded-2xl overflow-hidden shadow-lg">
                   <!-- Winner Header with Gradient -->
-                  <div class="winner-gradient p-8 md:p-10 relative min-h-[240px] flex items-center">
-                    <!-- Decorative Plant Element -->
+                  <div class="winner-gradient p-6 md:p-8 relative min-h-[180px] flex items-center">
+                    <!-- Decorative Awards Crest -->
                     <div class="absolute right-0 top-0 bottom-0 w-48 opacity-70">
-                      <svg class="absolute right-8 top-1/2 -translate-y-1/2 h-full w-auto" viewBox="0 0 200 400" fill="none">
-                        <!-- Plant stem and leaves -->
-                        <path d="M100 50 Q95 100 100 150 Q105 200 100 250 Q95 300 100 350" stroke="black" stroke-width="8" fill="none"/>
-                        <ellipse cx="75" cy="80" rx="35" ry="50" fill="black" transform="rotate(-30 75 80)"/>
-                        <ellipse cx="125" cy="120" rx="35" ry="50" fill="black" transform="rotate(30 125 120)"/>
-                        <ellipse cx="70" cy="160" rx="35" ry="50" fill="black" transform="rotate(-25 70 160)"/>
-                        <ellipse cx="130" cy="200" rx="35" ry="50" fill="black" transform="rotate(25 130 200)"/>
-                        <ellipse cx="75" cy="240" rx="35" ry="50" fill="black" transform="rotate(-30 75 240)"/>
-                        <ellipse cx="125" cy="280" rx="35" ry="50" fill="black" transform="rotate(30 125 280)"/>
-                        <ellipse cx="70" cy="320" rx="35" ry="50" fill="black" transform="rotate(-35 70 320)"/>
-                      </svg>
+                      <img 
+                        src={getR2ImageUrl('images/2025/10/awards-crest-right_1760444565413.png')}
+                        alt="Awards Crest"
+                        class="absolute right-8 top-1/2 -translate-y-1/2 h-full w-auto object-contain"
+                      />
                     </div>
 
                     <div class="relative z-10 max-w-2xl">
-                      <h3 class="text-2xl md:text-3xl font-semibold text-white mb-3">
+                      <h3 class="text-xl md:text-2xl font-semibold text-white mb-3">
                         Winner: {category.mainWinner.title}
                       </h3>
-                      <p class="text-lg md:text-xl text-white/95 mb-6">
+                      <p class="text-base md:text-lg text-white/95 mb-6 font-mono">
                         By {category.mainWinner.organization}
                       </p>
-                      {category.mainWinner.website_url ? (
-                        <a
-                          href={category.mainWinner.website_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="inline-block px-8 py-3 bg-[#D4A574] text-black text-sm font-bold rounded-full hover:bg-[#C39563] transition-colors"
-                        >
-                          >>> REGISTER INTEREST FOR {parseInt(year) + 1}
-                        </a>
-                      ) : (
-                        <span class="inline-block px-8 py-3 bg-[#D4A574] text-black text-sm font-bold rounded-full">
-                          >>> REGISTER INTEREST FOR {parseInt(year) + 1}
-                        </span>
-                      )}
+                       <a
+                         href={ctaButton.href}
+                         class={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                           ctaButton.variant === 'primary' 
+                             ? 'bg-[#F37137] text-white hover:bg-[#E55A2B]' 
+                             : ctaButton.variant === 'secondary'
+                             ? 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                             : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                         }`}
+                       >
+                         {ctaButton.text}
+                       </a>
                     </div>
                   </div>
                 </div>
