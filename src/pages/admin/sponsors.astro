@@ -28,6 +28,12 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     <!-- Filter -->
     <div class="bg-white border border-gray-200 rounded-lg p-4">
       <div class="flex flex-wrap gap-4">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search sponsors..."
+          class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 min-w-64"
+        />
         <select id="eventFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
           <option value="">All Events</option>
         </select>
@@ -211,7 +217,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   let selectedSponsorEvents: any[] = [];
   let selectedSponsorCategories: any[] = [];
   let mediaSelectorId: string = '';
-  let filters = { event: '', category: '', visibility: '' };
+  let filters = { event: '', category: '', visibility: '', search: '' };
 
   // Load events
   async function loadEvents() {
@@ -283,6 +289,21 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
       // Filter by visibility
       if (filters.visibility === 'visible' && !sponsor.is_visible) return false;
       if (filters.visibility === 'hidden' && sponsor.is_visible) return false;
+
+      // Search filter
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase();
+        const searchableText = [
+          sponsor.name,
+          sponsor.tagline,
+          sponsor.description,
+          sponsor.website_url,
+          sponsor.events?.map((e: any) => e.event_name).join(' '),
+          sponsor.categories?.map((c: any) => c.name).join(' ')
+        ].filter(Boolean).join(' ').toLowerCase();
+        
+        if (!searchableText.includes(searchTerm)) return false;
+      }
 
       return true;
     });
@@ -421,6 +442,12 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     });
 
     // Set up filter event listeners
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    searchInput?.addEventListener('input', (e) => {
+      filters.search = (e.target as HTMLInputElement).value;
+      renderSponsors();
+    });
+
     const eventFilter = document.getElementById('eventFilter') as HTMLSelectElement;
     eventFilter?.addEventListener('change', (e) => {
       filters.event = (e.target as HTMLSelectElement).value;

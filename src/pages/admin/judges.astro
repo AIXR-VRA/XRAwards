@@ -28,6 +28,12 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     <!-- Filter -->
     <div class="bg-white border border-gray-200 rounded-lg p-4">
       <div class="flex flex-wrap gap-4">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search judges..."
+          class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 min-w-64"
+        />
         <select id="eventFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
           <option value="">All Events</option>
         </select>
@@ -239,7 +245,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   let selectedJudgeEvents: any[] = [];
   let selectedJudgeTags: any[] = [];
   let mediaSelectorId: string = '';
-  let filters = { event: '', tag: '', visibility: '' };
+  let filters = { event: '', tag: '', visibility: '', search: '' };
 
   // Load events
   async function loadEvents() {
@@ -311,6 +317,23 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
       // Filter by visibility
       if (filters.visibility === 'visible' && !judge.is_visible) return false;
       if (filters.visibility === 'hidden' && judge.is_visible) return false;
+
+      // Search filter
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase();
+        const searchableText = [
+          judge.first_name,
+          judge.last_name,
+          judge.job_title,
+          judge.organization,
+          judge.description,
+          judge.linkedin_url,
+          judge.events?.map((e: any) => e.event_name).join(' '),
+          judge.tags?.map((t: any) => t.name).join(' ')
+        ].filter(Boolean).join(' ').toLowerCase();
+        
+        if (!searchableText.includes(searchTerm)) return false;
+      }
 
       return true;
     });
@@ -449,6 +472,12 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     });
 
     // Set up filter event listeners
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    searchInput?.addEventListener('input', (e) => {
+      filters.search = (e.target as HTMLInputElement).value;
+      renderJudges();
+    });
+
     const eventFilter = document.getElementById('eventFilter') as HTMLSelectElement;
     eventFilter?.addEventListener('change', (e) => {
       filters.event = (e.target as HTMLSelectElement).value;

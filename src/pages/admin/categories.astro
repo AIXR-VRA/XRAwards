@@ -25,6 +25,12 @@ import Modal from '../../components/admin/Modal.astro';
     <!-- Filter -->
     <div class="bg-white border border-gray-200 rounded-lg p-4">
       <div class="flex flex-wrap gap-4">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search categories..."
+          class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 min-w-64"
+        />
         <select id="eventFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
           <option value="">All Events</option>
         </select>
@@ -200,7 +206,7 @@ import Modal from '../../components/admin/Modal.astro';
   let availableEvents: any[] = [];
   let selectedCategoryTags: any[] = [];
   let selectedCategoryEvents: any[] = [];
-  let filters = { event: '', visibility: '', tag: '' };
+  let filters = { event: '', visibility: '', tag: '', search: '' };
 
   // Load events
   async function loadEvents() {
@@ -271,6 +277,21 @@ import Modal from '../../components/admin/Modal.astro';
       if (filters.tag) {
         const hasTag = category.tags?.some((t: any) => t.id === filters.tag);
         if (!hasTag) return false;
+      }
+
+      // Search filter
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase();
+        const searchableText = [
+          category.name,
+          category.description,
+          category.additional_info,
+          category.slug,
+          category.tags?.map((t: any) => t.name).join(' '),
+          category.events?.map((e: any) => e.event_name).join(' ')
+        ].filter(Boolean).join(' ').toLowerCase();
+        
+        if (!searchableText.includes(searchTerm)) return false;
       }
 
       return true;
@@ -410,6 +431,12 @@ import Modal from '../../components/admin/Modal.astro';
     });
 
     // Set up filter event listeners
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    searchInput?.addEventListener('input', (e) => {
+      filters.search = (e.target as HTMLInputElement).value;
+      renderCategories();
+    });
+
     const eventFilter = document.getElementById('eventFilter') as HTMLSelectElement;
     eventFilter?.addEventListener('change', (e) => {
       filters.event = (e.target as HTMLSelectElement).value;
