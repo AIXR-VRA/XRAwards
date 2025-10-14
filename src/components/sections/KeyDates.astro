@@ -113,9 +113,9 @@ const colorClasses = {
 
   <div class="relative">
     <!-- Timeline Container -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4 px-8 lg:px-12">
+    <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4 px-8 lg:px-12">
       {keyDates.map((item, index) => (
-        <div class="relative group h-full">
+        <div class={`relative group h-full ${index === keyDates.length - 1 ? 'col-span-2 md:col-span-1 lg:col-span-1' : ''}`}>
           <!-- Connecting Line (desktop only) -->
           {index < keyDates.length - 1 && (
             <div class="hidden lg:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-white/20 to-transparent -translate-x-0 z-0"></div>
