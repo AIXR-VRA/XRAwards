@@ -5,7 +5,7 @@
  */
 
 export interface Props {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'orange';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'orange' | 'orange-alt';
   size?: 'sm' | 'md' | 'lg';
   href?: string;
   type?: 'button' | 'submit' | 'reset';
@@ -32,6 +32,7 @@ const variants = {
   outline: 'border-2 border-zinc-700 text-white hover:bg-zinc-800 focus:ring-zinc-700',
   ghost: 'text-zinc-300 hover:text-white hover:bg-zinc-800 focus:ring-zinc-700',
   orange: 'bg-[#FB7430] text-white hover:bg-[#E5691C] focus:ring-[#FB7430]',
+  'orange-alt': 'bg-[#F37137] text-white hover:bg-[#E55A2B] focus:ring-[#F37137]',
 };
 
 const sizes = {
