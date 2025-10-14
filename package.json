@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "check-rebuild": "node scripts/check-event-rebuild.js"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",

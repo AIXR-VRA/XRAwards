@@ -1,0 +1,75 @@
+name: Scheduled Rebuild Based on Event Dates
+
+on:
+  schedule:
+    # Run every 6 hours to check for event phase changes
+    - cron: '0 */6 * * *'
+  # Also allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  check-event-dates:
+    runs-on: ubuntu-latest
+    name: Check Event Dates and Rebuild
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Check if rebuild is needed
+        id: check-rebuild
+        run: |
+          # Run the event date checker script and capture output
+          OUTPUT=$(yarn check-rebuild 2>&1 || true)
+          echo "$OUTPUT"
+          
+          # Extract rebuild decision from output
+          if echo "$OUTPUT" | grep -q "REBUILD_NEEDED=true"; then
+            echo "REBUILD_NEEDED=true" >> $GITHUB_OUTPUT
+            REASONS=$(echo "$OUTPUT" | grep "REBUILD_REASONS=" | cut -d'=' -f2- || echo "Event milestone detected")
+            echo "REBUILD_REASONS=$REASONS" >> $GITHUB_OUTPUT
+          else
+            echo "REBUILD_NEEDED=false" >> $GITHUB_OUTPUT
+            echo "REBUILD_REASONS=No critical milestones" >> $GITHUB_OUTPUT
+          fi
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: Build and Deploy (if needed)
+        if: steps.check-rebuild.outputs.REBUILD_NEEDED == 'true'
+        run: |
+          echo "🚀 Rebuild needed: ${{ steps.check-rebuild.outputs.REBUILD_REASONS }}"
+          
+          # Build the project
+          yarn build
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          PUBLIC_R2_PUBLIC_URL: ${{ secrets.PUBLIC_R2_PUBLIC_URL }}
+
+      - name: Deploy to Cloudflare Pages (if rebuilt)
+        if: steps.check-rebuild.outputs.REBUILD_NEEDED == 'true'
+        run: |
+          echo "📦 Deploying to Cloudflare Pages..."
+          npx wrangler@latest pages deploy .
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Create deployment summary
+        if: always()
+        run: |
+          if [ "${{ steps.check-rebuild.outputs.REBUILD_NEEDED }}" == "true" ]; then
+            echo "✅ Rebuild triggered: ${{ steps.check-rebuild.outputs.REBUILD_REASONS }}"
+          else
+            echo "ℹ️ No rebuild needed - no critical event milestones detected"
+          fi
