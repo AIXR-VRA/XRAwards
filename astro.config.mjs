@@ -7,7 +7,7 @@ import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://xr-awards.daniel-12f.workers.dev/',
+  site: 'https://xrawards.aixr.org',
   output: 'server', // Changed from 'static' to support API routes and admin pages
   adapter: cloudflare(),
   image: {
