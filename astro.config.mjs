@@ -5,6 +5,8 @@ import sitemap from '@astrojs/sitemap';
 import cloudflare from '@astrojs/cloudflare';
 import react from '@astrojs/react';
 
+import partytown from '@astrojs/partytown';
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://xrawards.aixr.org',
@@ -21,7 +23,7 @@ export default defineConfig({
     prefetchAll: true,
     defaultStrategy: 'viewport',
   },
-  integrations: [react(), sitemap()],
+  integrations: [react(), sitemap(), partytown()],
   build: {
     assets: '_astro',
     assetsPrefix: '/',
