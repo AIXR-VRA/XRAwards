@@ -1,8 +1,8 @@
 ---
 /**
- * Finalist Share Tool
+ * Share your status as a finalist
  * URL: /finalist-share
- * Tool for generating shareable finalist images with overlay frame
+ * Generate your finalist image and tag us on social media
  */
 export const prerender = true;
 
@@ -48,8 +48,8 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
 ---
 
 <Layout
-  title="Finalist Share Tool - AIXR XR Awards"
-  description="Create shareable images for XR Awards finalists with custom overlay frames."
+  title="Share your status as a finalist - AIXR XR Awards"
+  description="Generate your finalist image and tag us on social media. Create shareable images for XR Awards finalists with custom overlay frames."
 >
   <Header />
 
@@ -69,7 +69,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
       <!-- Content -->
       <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h1 class="page-title text-white mb-6">
-          Finalist Share Tool
+          Share your status as a finalist
         </h1>
 
         <!-- Decorative Dots -->
@@ -82,7 +82,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
         </div>
 
         <p class="page-subtitle text-white">
-          Create shareable images for {eventDetails?.event_year || '2025'} XR Awards finalists
+          Generate your finalist image and tag us on social media
         </p>
       </div>
     </section>
@@ -644,34 +644,38 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
       // Fixed variables
       const eventYear = '2025'; // You can make this dynamic from eventDetails
       const hashtag = `#XRAwards${eventYear.slice(-2)}`;
-      const handle = '@XRAwards';
       const winnersPageUrl = `https://xrawards.aixr.org/winners-and-finalists-${eventYear}`;
       const finalistName = selectedFinalist.title;
       const category = selectedFinalist.category;
       
+      // Social media handles
+      const twitterHandles = '@vrawards @aixrorg';
+      const instagramHandles = '@vrawards @unitedxr @aixrorg';
+      const linkedinHandles = '@unitedXR @aixr';
+      
       // Random message templates
       const twitterTemplates = [
-        `🎉 Excited to be a finalist in the ${category} category at the ${eventYear} XR Awards! ${hashtag} ${handle}\n\nSee all finalists: ${winnersPageUrl}`,
-        `🏆 Honored to be selected as a finalist for ${finalistName} in the ${category} category at the ${eventYear} XR Awards! ${hashtag} ${handle}\n\nView all finalists: ${winnersPageUrl}`,
-        `✨ Amazing news! ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! ${hashtag} ${handle}\n\nCheck out all finalists: ${winnersPageUrl}`,
-        `🚀 Proud to announce that ${finalistName} has been selected as a finalist in the ${category} category at the ${eventYear} XR Awards! ${hashtag} ${handle}\n\nSee all finalists: ${winnersPageUrl}`,
-        `🎊 We're thrilled that ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! ${hashtag} ${handle}\n\nView all finalists: ${winnersPageUrl}`
+        `🎉 Excited to be a finalist in the ${category} category at the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nSee all finalists: ${winnersPageUrl}`,
+        `🏆 Honored to be selected as a finalist for ${finalistName} in the ${category} category at the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nView all finalists: ${winnersPageUrl}`,
+        `✨ Amazing news! ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nCheck out all finalists: ${winnersPageUrl}`,
+        `🚀 Proud to announce that ${finalistName} has been selected as a finalist in the ${category} category at the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nSee all finalists: ${winnersPageUrl}`,
+        `🎊 We're thrilled that ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nView all finalists: ${winnersPageUrl}`
       ];
       
       const linkedinTemplates = [
-        `Thrilled to announce that ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis recognition means a lot to our team and we're excited to be part of the XR community.\n\nView all finalists and winners: ${winnersPageUrl}\n\n${hashtag} ${handle}`,
-        `We're incredibly proud to share that ${finalistName} has been chosen as a finalist in the ${category} category for the ${eventYear} XR Awards! 🎉\n\nThis achievement reflects our commitment to innovation in the XR space.\n\nSee all finalists: ${winnersPageUrl}\n\n${hashtag} ${handle}`,
-        `Exciting news! ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nWe're honored to be recognized alongside such incredible talent in the XR industry.\n\nView all finalists and winners: ${winnersPageUrl}\n\n${hashtag} ${handle}`,
-        `We're delighted to announce that ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! ✨\n\nThis recognition validates our team's hard work and dedication to pushing the boundaries of XR technology.\n\nCheck out all finalists: ${winnersPageUrl}\n\n${hashtag} ${handle}`,
-        `Amazing news! ${finalistName} has been chosen as a finalist in the ${category} category for the ${eventYear} XR Awards! 🚀\n\nWe're grateful for this recognition and excited to be part of the XR community's continued growth.\n\nView all finalists: ${winnersPageUrl}\n\n${hashtag} ${handle}`
+        `Thrilled to announce that ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis recognition means a lot to our team and we're excited to be part of the XR community.\n\nView all finalists and winners: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`,
+        `We're incredibly proud to share that ${finalistName} has been chosen as a finalist in the ${category} category for the ${eventYear} XR Awards! 🎉\n\nThis achievement reflects our commitment to innovation in the XR space.\n\nSee all finalists: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`,
+        `Exciting news! ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nWe're honored to be recognized alongside such incredible talent in the XR industry.\n\nView all finalists and winners: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`,
+        `We're delighted to announce that ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! ✨\n\nThis recognition validates our team's hard work and dedication to pushing the boundaries of XR technology.\n\nCheck out all finalists: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`,
+        `Amazing news! ${finalistName} has been chosen as a finalist in the ${category} category for the ${eventYear} XR Awards! 🚀\n\nWe're grateful for this recognition and excited to be part of the XR community's continued growth.\n\nView all finalists: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`
       ];
       
       const instagramTemplates = [
-        `🎉 FINALIST ANNOUNCEMENT! 🎉\n\nWe're beyond excited to share that ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis is such an honor and we can't wait to celebrate with the amazing XR community! ✨\n\nCheck out all the incredible finalists: ${winnersPageUrl}\n\n${hashtag} ${handle} #XR #VirtualReality #AugmentedReality #Innovation`,
-        `🏆 WE DID IT! 🏆\n\n${finalistName} is officially a finalist in the ${category} category for the ${eventYear} XR Awards! 🎊\n\nWe're so proud of this achievement and grateful to be part of such an innovative community! 💫\n\nSee all the amazing finalists: ${winnersPageUrl}\n\n${hashtag} ${handle} #XR #VR #AR #Innovation #Technology`,
-        `✨ INCREDIBLE NEWS! ✨\n\n${finalistName} has been chosen as a finalist in the ${category} category for the ${eventYear} XR Awards! 🚀\n\nThis recognition means everything to our team! Thank you to the XR community for this amazing opportunity! 🙏\n\nView all finalists: ${winnersPageUrl}\n\n${hashtag} ${handle} #XR #VirtualReality #AugmentedReality #Innovation #Awards`,
-        `🎊 CELEBRATION TIME! 🎊\n\nWe're thrilled to announce that ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis is a dream come true! We're so excited to be part of this incredible journey! ✨\n\nCheck out all finalists: ${winnersPageUrl}\n\n${hashtag} ${handle} #XR #VR #AR #Innovation #Community`,
-        `🚀 AMAZING ACHIEVEMENT! 🚀\n\n${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🎉\n\nWe're over the moon with this recognition! The XR community continues to inspire us every day! 💫\n\nSee all the incredible finalists: ${winnersPageUrl}\n\n${hashtag} ${handle} #XR #VirtualReality #AugmentedReality #Innovation #Technology`
+        `🎉 FINALIST ANNOUNCEMENT! 🎉\n\nWe're beyond excited to share that ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis is such an honor and we can't wait to celebrate with the amazing XR community! ✨\n\nCheck out all the incredible finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VirtualReality #AugmentedReality #Innovation`,
+        `🏆 WE DID IT! 🏆\n\n${finalistName} is officially a finalist in the ${category} category for the ${eventYear} XR Awards! 🎊\n\nWe're so proud of this achievement and grateful to be part of such an innovative community! 💫\n\nSee all the amazing finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VR #AR #Innovation #Technology`,
+        `✨ INCREDIBLE NEWS! ✨\n\n${finalistName} has been chosen as a finalist in the ${category} category for the ${eventYear} XR Awards! 🚀\n\nThis recognition means everything to our team! Thank you to the XR community for this amazing opportunity! 🙏\n\nView all finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VirtualReality #AugmentedReality #Innovation #Awards`,
+        `🎊 CELEBRATION TIME! 🎊\n\nWe're thrilled to announce that ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis is a dream come true! We're so excited to be part of this incredible journey! ✨\n\nCheck out all finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VR #AR #Innovation #Community`,
+        `🚀 AMAZING ACHIEVEMENT! 🚀\n\n${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🎉\n\nWe're over the moon with this recognition! The XR community continues to inspire us every day! 💫\n\nSee all the incredible finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VirtualReality #AugmentedReality #Innovation #Technology`
       ];
       
       // Randomly select templates
@@ -910,7 +914,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
       
       switch(platform) {
         case 'twitter':
-          shareText = `🎉 Excited to be a finalist in the ${category} category at the ${eventYear} XR Awards! #XRAwards25 @XRAwards`;
+          shareText = `🎉 Excited to be a finalist in the ${category} category at the ${eventYear} XR Awards! #XRAwards25 @vrawards @aixrorg`;
           shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(winnersPageUrl)}`;
           break;
           
@@ -921,7 +925,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
           
         case 'instagram':
           // Instagram doesn't support direct URL sharing, so we'll open their web interface
-          shareText = `🎉 FINALIST ANNOUNCEMENT! 🎉\n\nWe're beyond excited to share that ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis is such an honor and we can't wait to celebrate with the amazing XR community! ✨\n\nCheck out all the incredible finalists: ${winnersPageUrl}\n\n#XRAwards25 @XRAwards #XR #VirtualReality #AugmentedReality #Innovation`;
+          shareText = `🎉 FINALIST ANNOUNCEMENT! 🎉\n\nWe're beyond excited to share that ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis is such an honor and we can't wait to celebrate with the amazing XR community! ✨\n\nCheck out all the incredible finalists: ${winnersPageUrl}\n\n#XRAwards25 @vrawards @unitedxr @aixrorg #XR #VirtualReality #AugmentedReality #Innovation`;
           // For Instagram, we'll copy the text and open their web interface
           navigator.clipboard.writeText(shareText).then(() => {
             alert('Text copied to clipboard! You can now paste it in Instagram with your image.');
