@@ -279,7 +279,6 @@ const moreItems = [
 <script is:inline>
   (() => {
     let cleanup = null;
-    let isInitialized = false;
 
     const initHeader = () => {
       // Clean up previous listeners first
@@ -294,10 +293,6 @@ const moreItems = [
         console.warn('Header elements not found, skipping initialization');
         return;
       }
-
-      // Prevent multiple initializations
-      if (isInitialized) return;
-      isInitialized = true;
 
       const logo = document.getElementById('header-logo');
       const navLinks = document.querySelectorAll('.nav-link');
@@ -432,10 +427,16 @@ const moreItems = [
       menu?.addEventListener('scroll', handleMenuScroll, { passive: true });
       
       // Add mobile dropdown toggle listeners
-      const mobileDropdownToggles = document.querySelectorAll('.mobile-dropdown-toggle');
-      mobileDropdownToggles.forEach(toggle => {
-        toggle.addEventListener('click', handleMobileDropdownToggle);
-      });
+      const addMobileDropdownListeners = () => {
+        const mobileDropdownToggles = document.querySelectorAll('.mobile-dropdown-toggle');
+        mobileDropdownToggles.forEach(toggle => {
+          // Remove any existing listeners first
+          toggle.removeEventListener('click', handleMobileDropdownToggle);
+          toggle.addEventListener('click', handleMobileDropdownToggle);
+        });
+      };
+      
+      addMobileDropdownListeners();
       
       // Store mobile dropdown cleanup
       const mobileDropdownCleanup = () => {
@@ -451,7 +452,6 @@ const moreItems = [
         button?.removeEventListener('click', handleMenuClick);
         menu?.removeEventListener('scroll', handleMenuScroll);
         mobileDropdownCleanup();
-        isInitialized = false;
       };
     };
 
@@ -465,13 +465,18 @@ const moreItems = [
     // Listen for Astro page transitions and reinitialize
     document.addEventListener('astro:page-load', () => {
       // Small delay to ensure DOM is ready
-      setTimeout(initHeader, 10);
+      setTimeout(initHeader, 50);
     });
     
     // Also listen for Astro navigation events
     document.addEventListener('astro:before-preparation', () => {
       // Clean up before navigation
       if (cleanup) cleanup();
+    });
+    
+    // Additional safety: reinitialize on any navigation
+    document.addEventListener('astro:after-swap', () => {
+      setTimeout(initHeader, 10);
     });
   })();
 </script>
