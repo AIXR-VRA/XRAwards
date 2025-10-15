@@ -118,6 +118,15 @@ const ogImageUrl = getOGImageUrl(image);
 		<!-- View Transitions -->
 		<ViewTransitions />
 
+		<!-- Google Analytics -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-NF24NV1RFG"></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'G-NF24NV1RFG');
+		</script>
+
 		<!-- Additional head content from pages -->
 		<slot name="head" />
 	</head>
