@@ -118,9 +118,9 @@ const ogImageUrl = getOGImageUrl(image);
 		<!-- View Transitions -->
 		<ViewTransitions />
 
-		<!-- Google Analytics -->
-		<script async src="https://www.googletagmanager.com/gtag/js?id=G-NF24NV1RFG" is:inline></script>
-		<script is:inline>
+		<!-- Google Analytics with Partytown -->
+		<script is:inline type="text/partytown" async src="https://www.googletagmanager.com/gtag/js?id=G-NF24NV1RFG"></script>
+		<script is:inline type="text/partytown"
 			window.dataLayer = window.dataLayer || [];
 			function gtag(){dataLayer.push(arguments);}
 			gtag('js', new Date());
