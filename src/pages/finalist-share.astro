@@ -482,11 +482,6 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
           <div 
             class="finalist-item px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
             data-finalist-id="${finalist.id}"
-            data-finalist-title="${finalist.title || ''}"
-            data-finalist-organization="${finalist.organization || ''}"
-            data-finalist-image="${finalist.image || ''}"
-            data-finalist-description="${finalist.description || ''}"
-            data-finalist-category="${finalist.category || ''}"
           >
             <div class="flex items-start justify-between">
               <div class="flex-1 min-w-0">
@@ -517,13 +512,18 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
 
     // Select a finalist
     function selectFinalist(element) {
+      const finalistId = element.getAttribute('data-finalist-id');
+      const finalist = allFinalists.find(f => f.id === finalistId);
+      
+      if (!finalist) return;
+      
       selectedFinalist = {
-        id: element.getAttribute('data-finalist-id'),
-        title: element.getAttribute('data-finalist-title'),
-        organization: element.getAttribute('data-finalist-organization'),
-        image: element.getAttribute('data-finalist-image'),
-        description: element.getAttribute('data-finalist-description'),
-        category: element.getAttribute('data-finalist-category')
+        id: finalist.id,
+        title: finalist.title,
+        organization: finalist.organization,
+        image: finalist.image,
+        description: finalist.description,
+        category: finalist.category
       };
 
       // Update search input
@@ -646,7 +646,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
           <h4 class="font-semibold text-gray-900">${selectedFinalist.title || 'Untitled'}</h4>
           ${selectedFinalist.organization ? `<p class="text-sm text-[#4923EB]">${selectedFinalist.organization}</p>` : ''}
           ${selectedFinalist.category ? `<p class="text-xs text-gray-500 uppercase">${selectedFinalist.category}</p>` : ''}
-          ${selectedFinalist.description ? `<p class="text-sm text-gray-600 mt-2">${selectedFinalist.description}</p>` : ''}
+          ${selectedFinalist.description ? `<p class="text-sm text-gray-600 mt-2 leading-relaxed">${selectedFinalist.description}</p>` : ''}
         </div>
       `;
       selectedFinalistInfo?.classList.remove('hidden');
