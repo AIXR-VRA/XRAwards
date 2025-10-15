@@ -1,0 +1,479 @@
+---
+/**
+ * Finalist Share Tool
+ * URL: /finalist-share
+ * Tool for generating shareable finalist images with overlay frame
+ */
+export const prerender = true;
+
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CTAFooter from '../components/CTAFooter.astro';
+import { Image } from 'astro:assets';
+import { getR2ImageUrl } from '../utils/r2';
+import { supabase } from '../utils/supabase';
+import { getEventPhase } from '../utils/date-checker';
+
+// Fetch active event details
+const { data: eventDetails } = await supabase
+  .from('event_details')
+  .select('*')
+  .eq('is_active', true)
+  .single();
+
+// Get current event phase
+const eventPhase = await getEventPhase();
+
+// Get finalists for the active event
+const { data: finalists } = await supabase
+  .from('finalists')
+  .select(`
+    id,
+    title,
+    organization,
+    image_url,
+    description,
+    category_id,
+    categories!category_id (
+      name,
+      slug
+    )
+  `)
+  .eq('event_id', eventDetails?.id)
+  .order('title', { ascending: true });
+
+// Get the overlay frame image
+const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist_frame_2024_1760450572001.png');
+---
+
+<Layout
+  title="Finalist Share Tool - AIXR XR Awards"
+  description="Create shareable images for XR Awards finalists with custom overlay frames."
+>
+  <Header />
+
+  <main class="min-h-screen bg-white">
+    <!-- Page Header -->
+    <section class="relative bg-[#0E1022] pt-32 md:pt-40 pb-20 md:pb-32 overflow-hidden">
+      <!-- Decorative Background Rings -->
+      <div class="absolute -left-20 md:left-0 top-1/4 -translate-y-1/2 -translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #E91E8C 0%, #5D1635 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+      <div class="absolute -right-20 md:right-0 top-3/4 -translate-y-1/2 translate-x-1/2 w-[300px] h-[300px] md:w-[450px] md:h-[450px]">
+        <div class="absolute inset-0 rounded-full" style="background: linear-gradient(180deg, #00D4D8 0%, #0A4B52 100%);"></div>
+        <div class="absolute top-[55px] left-[55px] right-[55px] bottom-[55px] md:top-[75px] md:left-[75px] md:right-[75px] md:bottom-[75px] rounded-full bg-[#0E1022]"></div>
+      </div>
+
+      <!-- Content -->
+      <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="page-title text-white mb-6">
+          Finalist Share Tool
+        </h1>
+
+        <!-- Decorative Dots -->
+        <div class="flex justify-center gap-2 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        </div>
+
+        <p class="page-subtitle text-white">
+          Create shareable images for {eventDetails?.event_year || '2025'} XR Awards finalists
+        </p>
+      </div>
+    </section>
+
+    <!-- Main Tool Section -->
+    <section class="py-16 md:py-24 bg-white">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <!-- Left: Selection Panel -->
+          <div class="space-y-6">
+            <!-- Search Input -->
+            <div>
+              <label for="finalist-search" class="block text-sm font-medium text-gray-700 mb-2">
+                Search Finalists
+              </label>
+              <div class="relative">
+                <input 
+                  type="text" 
+                  id="finalist-search" 
+                  placeholder="Type to search finalists..."
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4923EB] focus:border-transparent"
+                  autocomplete="off"
+                />
+                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+
+            <!-- Finalists List -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Finalists ({finalists?.length || 0} total)
+              </label>
+              <div id="finalists-list" class="border border-gray-300 rounded-lg max-h-80 overflow-y-auto">
+                <!-- Finalists will be populated here -->
+              </div>
+            </div>
+
+            <!-- Selected Finalist Info -->
+            <div id="selected-finalist-info" class="bg-gray-50 rounded-lg p-4 hidden">
+              <h3 class="font-semibold text-gray-900 mb-2">Selected Finalist</h3>
+              <div id="finalist-info-content">
+                <!-- Content will be populated here -->
+              </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 class="font-semibold text-blue-900 mb-2">How to use:</h4>
+              <ul class="text-sm text-blue-800 space-y-1">
+                <li>• Select a finalist from the dropdown</li>
+                <li>• Preview the image on the right</li>
+                <li>• Click download to save the image</li>
+                <li>• Share on social media to celebrate!</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Right: Preview Panel -->
+          <div class="space-y-6">
+            <h3 class="text-xl font-semibold text-gray-900">Preview</h3>
+            
+            <!-- Image Preview -->
+            <div class="relative bg-white rounded-2xl shadow-lg overflow-hidden">
+              <div id="finalist-preview" class="relative aspect-square bg-gray-100">
+                <!-- Placeholder when no finalist selected -->
+                <div id="preview-placeholder" class="absolute inset-0 flex items-center justify-center">
+                  <div class="text-center">
+                    <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p class="text-gray-500">Select a finalist to see preview</p>
+                  </div>
+                </div>
+                
+                <!-- Finalist image container -->
+                <div id="finalist-image-container" class="absolute inset-0 hidden">
+                  <!-- Finalist image will be loaded here -->
+                </div>
+                
+                <!-- Overlay frame -->
+                <div id="overlay-frame" class="absolute inset-0 pointer-events-none hidden">
+                  <img 
+                    src={overlayFrame}
+                    alt="Finalist frame overlay"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <!-- Download Button -->
+            <button 
+              id="download-btn"
+              class="w-full px-6 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+            >
+              Download Image
+            </button>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <CTAFooter />
+  </main>
+
+  <Footer />
+</Layout>
+
+<script define:vars={{ finalists }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('finalist-search');
+    const finalistsList = document.getElementById('finalists-list');
+    const selectedFinalistInfo = document.getElementById('selected-finalist-info');
+    const finalistInfoContent = document.getElementById('finalist-info-content');
+    const previewPlaceholder = document.getElementById('preview-placeholder');
+    const finalistImageContainer = document.getElementById('finalist-image-container');
+    const overlayFrame = document.getElementById('overlay-frame');
+    const downloadBtn = document.getElementById('download-btn');
+
+    let selectedFinalist = null;
+    let allFinalists = [];
+    let filteredFinalists = [];
+
+    // Initialize finalists data
+    function initializeFinalists() {
+      allFinalists = finalists?.map((finalist) => ({
+        id: finalist.id,
+        title: finalist.title || 'Untitled',
+        organization: finalist.organization || '',
+        image: finalist.image_url || '',
+        description: finalist.description || '',
+        category: finalist.categories ? finalist.categories.name : ''
+      })) || [];
+    }
+
+    // Search functionality - filter the list
+    searchInput?.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      filterFinalists(searchTerm);
+    });
+
+    // Filter finalists based on search term
+    function filterFinalists(searchTerm) {
+      if (searchTerm.length === 0) {
+        filteredFinalists = [...allFinalists];
+      } else {
+        filteredFinalists = allFinalists.filter(finalist => {
+          const title = finalist.title?.toLowerCase() || '';
+          const organization = finalist.organization?.toLowerCase() || '';
+          const category = finalist.category?.toLowerCase() || '';
+          
+          return title.includes(searchTerm) || 
+                 organization.includes(searchTerm) || 
+                 category.includes(searchTerm);
+        });
+      }
+      renderFinalistsList();
+    }
+
+    // Render the finalists list
+    function renderFinalistsList() {
+      if (!finalistsList) return;
+      
+      if (filteredFinalists.length === 0) {
+        finalistsList.innerHTML = '<div class="px-4 py-8 text-center text-gray-500">No finalists found</div>';
+      } else {
+        finalistsList.innerHTML = filteredFinalists.map((finalist) => `
+          <div 
+            class="finalist-item px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
+            data-finalist-id="${finalist.id}"
+            data-finalist-title="${finalist.title || ''}"
+            data-finalist-organization="${finalist.organization || ''}"
+            data-finalist-image="${finalist.image || ''}"
+            data-finalist-description="${finalist.description || ''}"
+            data-finalist-category="${finalist.category || ''}"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex-1 min-w-0">
+                <div class="font-medium text-gray-900 truncate">${finalist.title || 'Untitled'}</div>
+                ${finalist.organization ? `<div class="text-sm text-[#4923EB] truncate">${finalist.organization}</div>` : ''}
+                ${finalist.category ? `<div class="text-xs text-gray-500 uppercase mt-1">${finalist.category}</div>` : ''}
+              </div>
+              <div class="ml-3 flex-shrink-0">
+                <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Handle click on finalist items
+    finalistsList?.addEventListener('click', (e) => {
+      const item = e.target.closest('.finalist-item');
+      if (item) {
+        selectFinalist(item);
+      }
+    });
+
+    // Select a finalist
+    function selectFinalist(element) {
+      selectedFinalist = {
+        id: element.getAttribute('data-finalist-id'),
+        title: element.getAttribute('data-finalist-title'),
+        organization: element.getAttribute('data-finalist-organization'),
+        image: element.getAttribute('data-finalist-image'),
+        description: element.getAttribute('data-finalist-description'),
+        category: element.getAttribute('data-finalist-category')
+      };
+
+      // Update search input
+      searchInput.value = selectedFinalist.title || '';
+      
+      updatePreview();
+      updateSelectedInfo();
+      enableDownload();
+    }
+
+    function resetSelection() {
+      selectedFinalist = null;
+      showPlaceholder();
+      hideSelectedInfo();
+      disableDownload();
+    }
+
+    function updatePreview() {
+      if (!selectedFinalist) {
+        showPlaceholder();
+        return;
+      }
+
+      hidePlaceholder();
+      showImageContainer();
+
+      if (selectedFinalist.image) {
+        const img = document.createElement('img');
+        img.src = selectedFinalist.image;
+        img.alt = selectedFinalist.title;
+        img.className = 'w-full h-full object-cover';
+        img.onload = () => {
+          showOverlayFrame();
+        };
+        img.onerror = () => {
+          showPlaceholder();
+        };
+        
+        finalistImageContainer.innerHTML = '';
+        finalistImageContainer.appendChild(img);
+      } else {
+        showPlaceholder();
+      }
+    }
+
+    function updateSelectedInfo() {
+      if (!selectedFinalist) return;
+
+      finalistInfoContent.innerHTML = `
+        <div class="space-y-2">
+          <h4 class="font-semibold text-gray-900">${selectedFinalist.title || 'Untitled'}</h4>
+          ${selectedFinalist.organization ? `<p class="text-sm text-[#4923EB]">${selectedFinalist.organization}</p>` : ''}
+          ${selectedFinalist.category ? `<p class="text-xs text-gray-500 uppercase">${selectedFinalist.category}</p>` : ''}
+          ${selectedFinalist.description ? `<p class="text-sm text-gray-600 mt-2">${selectedFinalist.description}</p>` : ''}
+        </div>
+      `;
+      selectedFinalistInfo?.classList.remove('hidden');
+    }
+
+    function showPlaceholder() {
+      previewPlaceholder?.classList.remove('hidden');
+      finalistImageContainer?.classList.add('hidden');
+      overlayFrame?.classList.add('hidden');
+    }
+
+    function hidePlaceholder() {
+      previewPlaceholder?.classList.add('hidden');
+    }
+
+    function showImageContainer() {
+      finalistImageContainer?.classList.remove('hidden');
+    }
+
+    function showOverlayFrame() {
+      overlayFrame?.classList.remove('hidden');
+    }
+
+    function showSelectedInfo() {
+      selectedFinalistInfo?.classList.remove('hidden');
+    }
+
+    function hideSelectedInfo() {
+      selectedFinalistInfo?.classList.add('hidden');
+    }
+
+    function enableDownload() {
+      downloadBtn.disabled = false;
+    }
+
+    function disableDownload() {
+      downloadBtn.disabled = true;
+    }
+
+    // Download functionality
+    downloadBtn?.addEventListener('click', async () => {
+      if (!selectedFinalist) return;
+
+      try {
+        // Create a canvas to combine the images
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Set canvas size (assuming square images)
+        const size = 800;
+        canvas.width = size;
+        canvas.height = size;
+
+        // Load the finalist image
+        const finalistImg = new Image();
+        finalistImg.crossOrigin = 'anonymous';
+        
+        finalistImg.onload = () => {
+          // Draw the finalist image
+          ctx.drawImage(finalistImg, 0, 0, size, size);
+          
+          // Load and draw the overlay frame
+          const overlayImg = new Image();
+          overlayImg.crossOrigin = 'anonymous';
+          
+          overlayImg.onload = () => {
+            // Draw the overlay frame
+            ctx.drawImage(overlayImg, 0, 0, size, size);
+            
+            // Convert to blob and download
+            canvas.toBlob((blob) => {
+              if (!blob) return;
+              
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `${selectedFinalist.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_finalist_share.png`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            }, 'image/png');
+          };
+          
+          overlayImg.src = '${overlayFrame}';
+        };
+        
+        finalistImg.src = selectedFinalist.image || '';
+      } catch (error) {
+        console.error('Error generating image:', error);
+        alert('Error generating image. Please try again.');
+      }
+    });
+
+    // Initialize
+    initializeFinalists();
+    filteredFinalists = [...allFinalists];
+    renderFinalistsList();
+  });
+</script>
+
+<style>
+  .page-title {
+    font-size: 35px;
+    font-weight: 600;
+  }
+
+  .page-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  .finalist-card {
+    transition: all 0.3s ease;
+  }
+
+  .finalist-card:hover {
+    transform: translateY(-2px);
+  }
+</style>
