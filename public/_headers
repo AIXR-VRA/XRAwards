@@ -49,3 +49,18 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# Exclude all Astro scripts from Cloudflare Rocket Loader
+/_astro/*.js
+  CF-Rocket-Loader: false
+
+# Exclude specific Astro client scripts from Rocket Loader
+/_astro/ClientRouter.astro_astro_type_script_index_0_lang.*.js
+  CF-Rocket-Loader: false
+
+/_astro/page.*.js
+  CF-Rocket-Loader: false
+
+# Exclude any script with data-astro-exec attribute (more specific pattern)
+/_astro/*.astro_astro_type_script_*.js
+  CF-Rocket-Loader: false
