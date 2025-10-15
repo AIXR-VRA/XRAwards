@@ -10,13 +10,13 @@ export interface Props {
 }
 
 const {
-	title = "Your Site Name | Tagline Goes Here",
-	description = "A compelling description of your website that will appear in search results and social media shares. Keep it between 150-160 characters for optimal display.",
+	title = "XR Awards | Celebrating Excellence in Extended Reality",
+	description = "The premier awards ceremony recognizing outstanding achievements in Extended Reality (XR) technology, including VR, AR, and MR innovations across industries.",
 	image = "/og-image.jpg",
 	canonical = Astro.url.href
 } = Astro.props;
 
-const siteName = "Your Site Name";
+const siteName = "XR Awards";
 const siteTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
 ---
 
