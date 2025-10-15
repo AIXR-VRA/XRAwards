@@ -129,6 +129,83 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
               <div id="finalist-info-content">
                 <!-- Content will be populated here -->
               </div>
+              
+              <!-- Thumbnail Selection -->
+              <div id="thumbnail-selection" class="mt-4 pt-4 border-t border-gray-200">
+                <h4 class="text-sm font-medium text-gray-700 mb-3">Custom Thumbnail (Optional)</h4>
+                <div class="space-y-3">
+                  <!-- Current thumbnail preview -->
+                  <div id="current-thumbnail-preview" class="flex items-center space-x-3">
+                    <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                      <img id="current-thumbnail-img" src="" alt="Current thumbnail" class="w-full h-full object-cover" />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm text-gray-600">Using original finalist image</p>
+                      <p class="text-xs text-gray-500">Click "Change Thumbnail" to select a different image</p>
+                    </div>
+                  </div>
+                  
+                  <!-- File upload for custom thumbnail -->
+                  <div id="thumbnail-upload-container" class="hidden">
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                      <input 
+                        type="file" 
+                        id="thumbnail-file-input"
+                        accept="image/png,image/jpeg,image/webp"
+                        class="hidden"
+                      />
+                      <div id="upload-area" class="cursor-pointer">
+                        <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p class="text-sm text-gray-600 mb-1">Click to upload a custom thumbnail</p>
+                        <p class="text-xs text-gray-500">PNG, JPEG, or WebP • Max 10MB • 1:1 aspect ratio recommended</p>
+                      </div>
+                    </div>
+                    
+                    <!-- Uploaded file preview -->
+                    <div id="uploaded-file-preview" class="mt-3 hidden">
+                      <div class="flex items-center space-x-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg overflow-hidden flex-shrink-0">
+                          <img id="uploaded-thumbnail-preview" src="" alt="Uploaded thumbnail" class="w-full h-full object-cover" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-sm font-medium text-green-800">Custom thumbnail loaded</p>
+                          <p id="uploaded-filename" class="text-xs text-green-600 truncate"></p>
+                        </div>
+                        <button 
+                          type="button"
+                          id="remove-uploaded-thumbnail"
+                          class="text-red-500 hover:text-red-700 transition-colors"
+                          title="Remove uploaded thumbnail"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Thumbnail controls -->
+                  <div class="flex items-center space-x-2">
+                    <button 
+                      id="change-thumbnail-btn"
+                      type="button"
+                      class="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Change Thumbnail
+                    </button>
+                    <button 
+                      id="reset-thumbnail-btn"
+                      type="button"
+                      class="px-3 py-2 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors hidden"
+                    >
+                      Reset to Original
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -300,10 +377,26 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
     const twitterCopy = document.getElementById('twitter-copy');
     const linkedinCopy = document.getElementById('linkedin-copy');
     const instagramCopy = document.getElementById('instagram-copy');
+    
+    // Thumbnail selection elements
+    const thumbnailSelection = document.getElementById('thumbnail-selection');
+    const currentThumbnailPreview = document.getElementById('current-thumbnail-preview');
+    const currentThumbnailImg = document.getElementById('current-thumbnail-img');
+    const thumbnailUploadContainer = document.getElementById('thumbnail-upload-container');
+    const thumbnailFileInput = document.getElementById('thumbnail-file-input');
+    const uploadArea = document.getElementById('upload-area');
+    const uploadedFilePreview = document.getElementById('uploaded-file-preview');
+    const uploadedThumbnailPreview = document.getElementById('uploaded-thumbnail-preview');
+    const uploadedFilename = document.getElementById('uploaded-filename');
+    const removeUploadedThumbnail = document.getElementById('remove-uploaded-thumbnail');
+    const changeThumbnailBtn = document.getElementById('change-thumbnail-btn');
+    const resetThumbnailBtn = document.getElementById('reset-thumbnail-btn');
 
     let selectedFinalist = null;
     let allFinalists = [];
     let filteredFinalists = [];
+    let customThumbnailFile = null;
+    let customThumbnailUrl = null;
 
     // Initialize finalists data
     function initializeFinalists() {
@@ -403,6 +496,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
       updateSelectedInfo();
       updateSocialCopy();
       enableDownload();
+      updateThumbnailPreview();
     }
 
     function resetSelection() {
@@ -413,10 +507,13 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
       }
       
       selectedFinalist = null;
+      customThumbnailFile = null;
+      customThumbnailUrl = null;
       showPlaceholder();
       hideSelectedInfo();
       hideSocialCopy();
       disableDownload();
+      hideThumbnailSelection();
     }
 
     function updatePreview() {
@@ -442,7 +539,8 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
         canvas.width = size;
         canvas.height = size;
 
-        // Load the finalist image
+        // Load the finalist image (use custom thumbnail if selected)
+        const imageToUse = customThumbnailUrl || selectedFinalist.image;
         const finalistImg = new Image();
         finalistImg.crossOrigin = 'anonymous';
         
@@ -497,7 +595,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
           overlayImg.src = overlayProxyUrl;
         };
         
-        finalistImg.src = selectedFinalist.image || '';
+        finalistImg.src = imageToUse || '';
       } else {
         showPlaceholder();
       }
@@ -594,6 +692,106 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
 
     function hideSocialCopy() {
       socialCopy?.classList.add('hidden');
+    }
+
+    // Thumbnail selection functions
+    function updateThumbnailPreview() {
+      if (!selectedFinalist) {
+        hideThumbnailSelection();
+        return;
+      }
+
+      showThumbnailSelection();
+      
+      // Update current thumbnail preview
+      const thumbnailUrl = customThumbnailUrl || selectedFinalist.image;
+      if (thumbnailUrl) {
+        currentThumbnailImg.src = thumbnailUrl;
+        currentThumbnailImg.alt = customThumbnailUrl ? 'Custom thumbnail' : 'Original finalist image';
+      }
+      
+      // Update preview text
+      const previewText = currentThumbnailPreview.querySelector('p');
+      if (previewText) {
+        previewText.textContent = customThumbnailUrl ? 'Using custom thumbnail' : 'Using original finalist image';
+      }
+      
+      // Show/hide reset button
+      if (customThumbnailUrl) {
+        resetThumbnailBtn?.classList.remove('hidden');
+      } else {
+        resetThumbnailBtn?.classList.add('hidden');
+      }
+    }
+
+    function showThumbnailSelection() {
+      thumbnailSelection?.classList.remove('hidden');
+    }
+
+    function hideThumbnailSelection() {
+      thumbnailSelection?.classList.add('hidden');
+    }
+
+    function showThumbnailUpload() {
+      thumbnailUploadContainer?.classList.remove('hidden');
+      changeThumbnailBtn?.classList.add('hidden');
+    }
+
+    function hideThumbnailUpload() {
+      thumbnailUploadContainer?.classList.add('hidden');
+      changeThumbnailBtn?.classList.remove('hidden');
+    }
+
+    function handleFileUpload(file) {
+      // Validate file type
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Please select a PNG, JPEG, or WebP image file.');
+        return;
+      }
+
+      // Validate file size (10MB max)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        alert('File size must be less than 10MB.');
+        return;
+      }
+
+      // Create object URL for preview
+      if (customThumbnailUrl) {
+        URL.revokeObjectURL(customThumbnailUrl);
+      }
+
+      customThumbnailFile = file;
+      customThumbnailUrl = URL.createObjectURL(file);
+
+      // Update UI
+      uploadedThumbnailPreview.src = customThumbnailUrl;
+      uploadedFilename.textContent = file.name;
+      uploadedFilePreview?.classList.remove('hidden');
+      
+      // Update main preview
+      updateThumbnailPreview();
+      updatePreview(); // Refresh the preview with new thumbnail
+      hideThumbnailUpload();
+    }
+
+    function removeCustomThumbnail() {
+      if (customThumbnailUrl) {
+        URL.revokeObjectURL(customThumbnailUrl);
+      }
+      
+      customThumbnailFile = null;
+      customThumbnailUrl = null;
+      
+      // Update UI
+      uploadedFilePreview?.classList.add('hidden');
+      updateThumbnailPreview();
+      updatePreview(); // Refresh the preview with original image
+    }
+
+    function resetThumbnail() {
+      removeCustomThumbnail();
     }
 
     function enableDownload() {
@@ -711,6 +909,52 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
         window.open(shareUrl, '_blank', 'width=600,height=400,scrollbars=yes,resizable=yes');
       }
     }
+
+    // Thumbnail button event listeners
+    changeThumbnailBtn?.addEventListener('click', () => {
+      showThumbnailUpload();
+    });
+
+    resetThumbnailBtn?.addEventListener('click', () => {
+      resetThumbnail();
+    });
+
+    // File upload event listeners
+    uploadArea?.addEventListener('click', () => {
+      thumbnailFileInput?.click();
+    });
+
+    thumbnailFileInput?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        handleFileUpload(file);
+      }
+    });
+
+    removeUploadedThumbnail?.addEventListener('click', () => {
+      removeCustomThumbnail();
+    });
+
+    // Drag and drop support
+    uploadArea?.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('border-blue-400', 'bg-blue-50');
+    });
+
+    uploadArea?.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+    });
+
+    uploadArea?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+      
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFileUpload(files[0]);
+      }
+    });
 
     // Initialize
     initializeFinalists();
