@@ -36,6 +36,13 @@
 /
   Cache-Control: public, max-age=3600, s-maxage=86400
 
+# CORS headers for all pages
+/*
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, HEAD, OPTIONS
+  Access-Control-Allow-Headers: *
+  Access-Control-Max-Age: 3600
+
 # Security headers for all pages
 /*
   X-Frame-Options: DENY

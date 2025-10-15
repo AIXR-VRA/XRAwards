@@ -197,7 +197,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
   <Footer />
 </Layout>
 
-<script define:vars={{ finalists }}>
+<script define:vars={{ finalists, overlayFrame }}>
   document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('finalist-search');
     const finalistsList = document.getElementById('finalists-list');
@@ -205,7 +205,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
     const finalistInfoContent = document.getElementById('finalist-info-content');
     const previewPlaceholder = document.getElementById('preview-placeholder');
     const finalistImageContainer = document.getElementById('finalist-image-container');
-    const overlayFrame = document.getElementById('overlay-frame');
+    const overlayFrameElement = document.getElementById('overlay-frame');
     const downloadBtn = document.getElementById('download-btn');
 
     let selectedFinalist = null;
@@ -218,7 +218,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
         id: finalist.id,
         title: finalist.title || 'Untitled',
         organization: finalist.organization || '',
-        image: finalist.image_url || '',
+        image: finalist.image_url ? `/api/proxy-image?url=${encodeURIComponent(finalist.image_url)}` : '',
         description: finalist.description || '',
         category: finalist.categories ? finalist.categories.name : ''
       })) || [];
@@ -363,7 +363,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
     function showPlaceholder() {
       previewPlaceholder?.classList.remove('hidden');
       finalistImageContainer?.classList.add('hidden');
-      overlayFrame?.classList.add('hidden');
+      overlayFrameElement?.classList.add('hidden');
     }
 
     function hidePlaceholder() {
@@ -375,7 +375,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
     }
 
     function showOverlayFrame() {
-      overlayFrame?.classList.remove('hidden');
+      overlayFrameElement?.classList.remove('hidden');
     }
 
     function showSelectedInfo() {
@@ -440,7 +440,9 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
             }, 'image/png');
           };
           
-          overlayImg.src = '${overlayFrame}';
+          // Use proxy for overlay frame as well
+          const overlayProxyUrl = `/api/proxy-image?url=${encodeURIComponent(overlayFrame)}`;
+          overlayImg.src = overlayProxyUrl;
         };
         
         finalistImg.src = selectedFinalist.image || '';
