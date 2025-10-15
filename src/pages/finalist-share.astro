@@ -934,6 +934,9 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
           return;
       }
       
+      // Copy the text to clipboard for all platforms
+      copyToClipboard(shareText, `${platform} content`);
+      
       // Open the share URL in a new tab
       if (shareUrl) {
         window.open(shareUrl, '_blank', 'width=600,height=400,scrollbars=yes,resizable=yes');
