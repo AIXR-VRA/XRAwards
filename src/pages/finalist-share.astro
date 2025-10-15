@@ -367,6 +367,17 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
               img.style.cursor = 'pointer';
               img.title = 'Right-click to download';
               
+              // Add right-click handler for proper filename
+              img.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${selectedFinalist.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_finalist_share.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+              });
+              
               finalistImageContainer.innerHTML = '';
               finalistImageContainer.appendChild(img);
               
