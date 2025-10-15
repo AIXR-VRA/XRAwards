@@ -349,6 +349,42 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
                     </button>
                   </div>
                 </div>
+
+                <!-- Press Release Template -->
+                <div>
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="block text-sm font-medium text-gray-700">Press Release Template</label>
+                    <div class="flex gap-1">
+                      <button 
+                        id="download-press-release" 
+                        class="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                        title="Download as .txt file"
+                      >
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                  <div class="relative">
+                    <textarea 
+                      id="press-release-copy" 
+                      readonly 
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm resize-none"
+                      rows="12"
+                    ></textarea>
+                    <button 
+                      id="copy-press-release" 
+                      class="absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-700 transition-colors"
+                      title="Copy to clipboard"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -364,7 +400,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
   <Footer />
 </Layout>
 
-<script define:vars={{ finalists, overlayFrame }}>
+<script define:vars={{ finalists, overlayFrame, eventDetails }}>
   document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('finalist-search');
     const finalistsList = document.getElementById('finalists-list');
@@ -377,6 +413,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
     const twitterCopy = document.getElementById('twitter-copy');
     const linkedinCopy = document.getElementById('linkedin-copy');
     const instagramCopy = document.getElementById('instagram-copy');
+    const pressReleaseCopy = document.getElementById('press-release-copy');
     
     // Thumbnail selection elements
     const thumbnailSelection = document.getElementById('thumbnail-selection');
@@ -687,6 +724,9 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
       linkedinCopy.value = randomLinkedIn;
       instagramCopy.value = randomInstagram;
       
+      // Generate press release template
+      updatePressReleaseTemplate();
+      
       showSocialCopy();
     }
 
@@ -696,6 +736,71 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
 
     function hideSocialCopy() {
       socialCopy?.classList.add('hidden');
+    }
+
+    function updatePressReleaseTemplate() {
+      if (!selectedFinalist) return;
+
+      const eventYear = eventDetails?.event_year || '2025';
+      const eventName = eventDetails?.event_name || 'XR Awards';
+      const today = new Date();
+      const todayFormatted = today.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      
+      const finalistName = selectedFinalist.title;
+      const organization = selectedFinalist.organization || '';
+      const category = selectedFinalist.category;
+      const description = selectedFinalist.description || '';
+      const websiteUrl = selectedFinalist.website_url || '';
+      
+      // Helper function to clean description for press release
+      const cleanDescription = (desc) => {
+        if (!desc) return '';
+        // Remove trailing period if it exists, we'll add proper punctuation in context
+        return desc.trim().replace(/\.$/, '');
+      };
+      
+      const cleanDesc = cleanDescription(description);
+      
+      // Array of varied quote templates
+      const quoteTemplates = [
+        '"We are thrilled to be recognized as a finalist for the ' + eventYear + ' ' + eventName + '," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "This recognition validates our commitment to pushing the boundaries of what\'s possible in extended reality technology."',
+        '"Being selected as a finalist for the ' + eventYear + ' ' + eventName + ' is a tremendous honor," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "This achievement reflects our dedication to innovation and excellence in the XR space."',
+        '"We\'re incredibly proud to be recognized as a finalist in the ' + category + ' category," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "This recognition from the XR community means everything to our team."',
+        '"This finalist selection for the ' + eventYear + ' ' + eventName + ' represents years of hard work and innovation," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "We\'re excited to be part of such an incredible community of XR pioneers."',
+        '"Being chosen as a finalist validates our vision for the future of extended reality," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "We\'re honored to be recognized alongside the industry\'s most innovative projects."'
+      ];
+      
+      // Randomly select a quote template
+      const selectedQuote = quoteTemplates[Math.floor(Math.random() * quoteTemplates.length)];
+      
+      // Generate dynamic press release using string concatenation
+      const pressReleaseTemplate = finalistName + ' Selected as Finalist for ' + eventYear + ' ' + eventName + ' in ' + category + ' Category\n\n' +
+        (organization ? organization + ' ' : '') + 'Recognized for Innovation in Extended Reality Technology\n\n' +
+        'International - ' + todayFormatted + ': For immediate release\n\n' +
+        finalistName + (organization ? ' by ' + organization : '') + ' has been selected as a finalist in the ' + category + ' category for the prestigious ' + eventYear + ' ' + eventName + '. This recognition highlights the innovative work being done in the extended reality space and showcases the cutting-edge technology that is shaping the future of immersive experiences.\n\n' +
+        'The ' + eventName + ' celebrate outstanding achievements and innovation in virtual, augmented, and mixed reality across diverse sectors globally. Being selected as a finalist represents recognition from industry experts and peers for exceptional work in the XR field.\n\n' +
+        finalistName + (cleanDesc ? ' - ' + cleanDesc : '') + ' demonstrates the kind of innovative thinking and technical excellence that the ' + eventName + ' were established to recognize. The project showcases the potential of extended reality technology to transform industries and create meaningful experiences for users.\n\n' +
+        selectedQuote + '\n\n' +
+        'Winners will be announced during the ' + eventName + ' ceremony. For more information about the awards, finalists, and ceremony details, visit https://xrawards.aixr.org' + (websiteUrl ? ' or learn more about ' + finalistName + ' at ' + websiteUrl : '') + '.\n\n' +
+        'Contact\n' +
+        'For any press and media enquiries, please contact:\n\n' +
+        'AIXR Press Team: awards@aixr.org\n' +
+        'Stereopsia | United XR Europe: emma@stereopsia.com\n' +
+        'Finalist Press Contact: [Finalist key contact]\n\n' +
+        'Social media\n' +
+        'Twitter: \n' +
+        'Instagram: \n' +
+        'LinkedIn:\n\n' +
+        'About ' + finalistName + ': ' + (cleanDesc ? cleanDesc + '.' : '[Brief description of the finalist\'s project/company and their work in XR technology]') + '\n\n' +
+        'Our boilerplate:\n\n' +
+        'About AIXR - The Academy of International Extended Reality (AIXR) hosts the prestigious international AIXR XR Awards, established in 2017. The awards celebrate outstanding achievements and innovation in virtual, augmented, and mixed reality across diverse sectors globally. Recognized as a benchmark for excellence, the AIXR XR Awards aim to elevate groundbreaking work, honor industry leaders, and drive the immersive technology ecosystem forward. AIXR fosters a global community connecting professionals and innovators within the tech industry. Learn more at https://xrawards.aixr.org.\n\n' +
+        'About United XR Europe - United XR Europe represents the strategic collaboration between AWE and Stereopsia, combining the strengths of AWE EU and Stereopsia into a unified platform. It is dedicated to fostering a global community and celebrating excellence in the immersive technology industry. Learn more at www.unitedxr.eu.';
+
+      pressReleaseCopy.value = pressReleaseTemplate;
     }
 
     // Thumbnail selection functions
@@ -844,6 +949,10 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
       copyToClipboard(instagramCopy.value, 'Instagram copy');
     });
 
+    document.getElementById('copy-press-release')?.addEventListener('click', () => {
+      copyToClipboard(pressReleaseCopy.value, 'Press release template');
+    });
+
     // Share button functionality
     document.getElementById('share-twitter')?.addEventListener('click', () => {
       shareToSocial('twitter');
@@ -855,6 +964,28 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
 
     document.getElementById('share-instagram')?.addEventListener('click', () => {
       shareToSocial('instagram');
+    });
+
+    // Press release download functionality
+    document.getElementById('download-press-release')?.addEventListener('click', () => {
+      if (!selectedFinalist) return;
+
+      const pressReleaseText = pressReleaseCopy.value;
+      const filename = `${selectedFinalist.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_press_release.txt`;
+      
+      // Create and download the file
+      const blob = new Blob([pressReleaseText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      // Clean up the URL
+      URL.revokeObjectURL(url);
     });
 
     function copyToClipboard(text, label) {
