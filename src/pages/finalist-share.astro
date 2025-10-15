@@ -135,9 +135,10 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h4 class="font-semibold text-blue-900 mb-2">How to use:</h4>
               <ul class="text-sm text-blue-800 space-y-1">
-                <li>• Select a finalist from the dropdown</li>
-                <li>• Preview the image on the right</li>
-                <li>• Click download to save the image</li>
+                <li>• Select a finalist from the list</li>
+                <li>• Preview the combined image on the right</li>
+                <li>• Right-click the preview to download directly</li>
+                <li>• Or use the download button below</li>
                 <li>• Share on social media to celebrate!</li>
               </ul>
             </div>
@@ -165,14 +166,6 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
                   <!-- Finalist image will be loaded here -->
                 </div>
                 
-                <!-- Overlay frame -->
-                <div id="overlay-frame" class="absolute inset-0 pointer-events-none hidden">
-                  <img 
-                    src={overlayFrame}
-                    alt="Finalist frame overlay"
-                    class="w-full h-full object-cover"
-                  />
-                </div>
               </div>
             </div>
             
@@ -205,7 +198,6 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
     const finalistInfoContent = document.getElementById('finalist-info-content');
     const previewPlaceholder = document.getElementById('preview-placeholder');
     const finalistImageContainer = document.getElementById('finalist-image-container');
-    const overlayFrameElement = document.getElementById('overlay-frame');
     const downloadBtn = document.getElementById('download-btn');
 
     let selectedFinalist = null;
@@ -312,6 +304,12 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
     }
 
     function resetSelection() {
+      // Clean up any existing blob URL
+      if (finalistImageContainer.currentBlobUrl) {
+        URL.revokeObjectURL(finalistImageContainer.currentBlobUrl);
+        finalistImageContainer.currentBlobUrl = null;
+      }
+      
       selectedFinalist = null;
       showPlaceholder();
       hideSelectedInfo();
@@ -328,19 +326,64 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
       showImageContainer();
 
       if (selectedFinalist.image) {
-        const img = document.createElement('img');
-        img.src = selectedFinalist.image;
-        img.alt = selectedFinalist.title;
-        img.className = 'w-full h-full object-cover';
-        img.onload = () => {
-          showOverlayFrame();
-        };
-        img.onerror = () => {
+        // Create a canvas to combine the images
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
           showPlaceholder();
+          return;
+        }
+
+        // Set canvas size
+        const size = 800;
+        canvas.width = size;
+        canvas.height = size;
+
+        // Load the finalist image
+        const finalistImg = new Image();
+        finalistImg.crossOrigin = 'anonymous';
+        
+        finalistImg.onload = () => {
+          // Draw the finalist image
+          ctx.drawImage(finalistImg, 0, 0, size, size);
+          
+          // Load and draw the overlay frame
+          const overlayImg = new Image();
+          overlayImg.crossOrigin = 'anonymous';
+          
+          overlayImg.onload = () => {
+            // Draw the overlay frame
+            ctx.drawImage(overlayImg, 0, 0, size, size);
+            
+            // Convert canvas to image and display
+            canvas.toBlob((blob) => {
+              if (!blob) return;
+              
+              const url = URL.createObjectURL(blob);
+              const img = document.createElement('img');
+              img.src = url;
+              img.alt = `${selectedFinalist.title} - Finalist Share Image`;
+              img.className = 'w-full h-full object-cover';
+              img.style.cursor = 'pointer';
+              img.title = 'Right-click to download';
+              
+              finalistImageContainer.innerHTML = '';
+              finalistImageContainer.appendChild(img);
+              
+              // Store the blob URL for cleanup later
+              if (finalistImageContainer.currentBlobUrl) {
+                URL.revokeObjectURL(finalistImageContainer.currentBlobUrl);
+              }
+              finalistImageContainer.currentBlobUrl = url;
+            }, 'image/png');
+          };
+          
+          // Use proxy for overlay frame
+          const overlayProxyUrl = `/api/proxy-image?url=${encodeURIComponent(overlayFrame)}`;
+          overlayImg.src = overlayProxyUrl;
         };
         
-        finalistImageContainer.innerHTML = '';
-        finalistImageContainer.appendChild(img);
+        finalistImg.src = selectedFinalist.image || '';
       } else {
         showPlaceholder();
       }
@@ -363,7 +406,6 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
     function showPlaceholder() {
       previewPlaceholder?.classList.remove('hidden');
       finalistImageContainer?.classList.add('hidden');
-      overlayFrameElement?.classList.add('hidden');
     }
 
     function hidePlaceholder() {
@@ -374,9 +416,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
       finalistImageContainer?.classList.remove('hidden');
     }
 
-    function showOverlayFrame() {
-      overlayFrameElement?.classList.remove('hidden');
-    }
+    // Overlay frame is now part of the combined image
 
     function showSelectedInfo() {
       selectedFinalistInfo?.classList.remove('hidden');
@@ -399,56 +439,23 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
       if (!selectedFinalist) return;
 
       try {
-        // Create a canvas to combine the images
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
+        // Get the current combined image from the preview
+        const previewImg = finalistImageContainer.querySelector('img');
+        if (!previewImg || !previewImg.src) {
+          alert('Please wait for the image to load before downloading.');
+          return;
+        }
 
-        // Set canvas size (assuming square images)
-        const size = 800;
-        canvas.width = size;
-        canvas.height = size;
-
-        // Load the finalist image
-        const finalistImg = new Image();
-        finalistImg.crossOrigin = 'anonymous';
-        
-        finalistImg.onload = () => {
-          // Draw the finalist image
-          ctx.drawImage(finalistImg, 0, 0, size, size);
-          
-          // Load and draw the overlay frame
-          const overlayImg = new Image();
-          overlayImg.crossOrigin = 'anonymous';
-          
-          overlayImg.onload = () => {
-            // Draw the overlay frame
-            ctx.drawImage(overlayImg, 0, 0, size, size);
-            
-            // Convert to blob and download
-            canvas.toBlob((blob) => {
-              if (!blob) return;
-              
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `${selectedFinalist.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_finalist_share.png`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              URL.revokeObjectURL(url);
-            }, 'image/png');
-          };
-          
-          // Use proxy for overlay frame as well
-          const overlayProxyUrl = `/api/proxy-image?url=${encodeURIComponent(overlayFrame)}`;
-          overlayImg.src = overlayProxyUrl;
-        };
-        
-        finalistImg.src = selectedFinalist.image || '';
+        // Create a link to download the current preview image
+        const a = document.createElement('a');
+        a.href = previewImg.src;
+        a.download = `${selectedFinalist.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_finalist_share.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       } catch (error) {
-        console.error('Error generating image:', error);
-        alert('Error generating image. Please try again.');
+        console.error('Error downloading image:', error);
+        alert('Error downloading image. Please try again.');
       }
     });
 
