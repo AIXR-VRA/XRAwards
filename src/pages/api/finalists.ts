@@ -9,14 +9,26 @@
 import type { APIRoute } from 'astro';
 import { requireApiAuth, createSecureSupabaseClient } from '../../utils/supabase';
 
-// GET - List all finalists
-export const GET: APIRoute = async ({ cookies }) => {
+// GET - List finalists with pagination and search
+export const GET: APIRoute = async ({ url, cookies }) => {
   try {
     // GET doesn't require authentication for public data
     const supabase = createSecureSupabaseClient(cookies);
 
-    // Fetch finalists with their categories, event details, and tags
-    const { data, error } = await supabase
+    // Parse query parameters
+    const searchParams = url.searchParams;
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const search = searchParams.get('search') || '';
+    const category = searchParams.get('category') || '';
+    const event = searchParams.get('event') || '';
+    const winner = searchParams.get('winner') || '';
+
+    // Calculate offset
+    const offset = (page - 1) * limit;
+
+    // Build the query
+    let query = supabase
       .from('finalists')
       .select(`
         *,
@@ -26,8 +38,34 @@ export const GET: APIRoute = async ({ cookies }) => {
           tag_id,
           tags (*)
         )
-      `)
-      .order('created_at', { ascending: false });
+      `, { count: 'exact' });
+
+    // Apply filters
+    if (category) {
+      query = query.eq('category_id', category);
+    }
+    
+    if (event) {
+      query = query.eq('event_id', event);
+    }
+    
+    if (winner === 'winners') {
+      query = query.eq('is_winner', true);
+    } else if (winner === 'finalists') {
+      query = query.eq('is_winner', false);
+    }
+
+    // Apply search filter
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,organization.ilike.%${search}%,description.ilike.%${search}%`);
+    }
+
+    // Apply ordering and pagination
+    query = query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    const { data, error, count } = await query;
 
     if (error) throw error;
 
@@ -38,7 +76,15 @@ export const GET: APIRoute = async ({ cookies }) => {
     }));
 
     return new Response(
-      JSON.stringify({ finalists: finalistsWithTags }),
+      JSON.stringify({ 
+        finalists: finalistsWithTags,
+        pagination: {
+          page,
+          limit,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / limit)
+        }
+      }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {

@@ -235,6 +235,8 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   let selectedFinalistTags: any[] = [];
   let mediaSelectorId: string = '';
   let filters = { category: '', event: '', winner: '', search: '' };
+  let pagination = { page: 1, limit: 50, total: 0, totalPages: 0 };
+  let isLoading = false;
 
   // Load tags
   async function loadTags() {
@@ -382,15 +384,37 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     }
   }
 
-  // Load finalists
-  async function loadFinalists() {
+  // Load finalists with pagination and filters
+  async function loadFinalists(page = 1) {
+    if (isLoading) return;
+    
+    isLoading = true;
+    const list = document.getElementById('finalistsList')!;
+    list.innerHTML = `
+      <div class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p class="text-gray-500 mt-2">Loading finalists...</p>
+      </div>
+    `;
+    
     try {
-      const response = await fetch('/api/finalists');
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: pagination.limit.toString(),
+        ...(filters.search && { search: filters.search }),
+        ...(filters.category && { category: filters.category }),
+        ...(filters.event && { event: filters.event }),
+        ...(filters.winner && { winner: filters.winner })
+      });
+
+      const response = await fetch(`/api/finalists?${params}`);
       const data = await response.json();
       
       if (!response.ok) throw new Error(data.error);
       
       finalists = data.finalists || [];
+      pagination = data.pagination || { page: 1, limit: 50, total: 0, totalPages: 0 };
       renderFinalists();
     } catch (error: any) {
       const list = document.getElementById('finalistsList')!;
@@ -399,6 +423,8 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
           <p class="text-red-600">Error loading finalists: ${error.message}</p>
         </div>
       `;
+    } finally {
+      isLoading = false;
     }
   }
 
@@ -420,33 +446,12 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
       .join('');
   }
 
-  // Filter finalists
+  // Filter finalists (now handled server-side, but keeping for compatibility)
   function getFilteredFinalists() {
-    return finalists.filter(f => {
-      if (filters.category && f.category_id !== filters.category) return false;
-      if (filters.event && f.event_id !== filters.event) return false;
-      if (filters.winner === 'winners' && !f.is_winner) return false;
-      if (filters.winner === 'finalists' && f.is_winner) return false;
-      
-      // Search filter
-      if (filters.search) {
-        const searchTerm = filters.search.toLowerCase();
-        const searchableText = [
-          f.title,
-          f.organization,
-          f.description,
-          f.categories?.name,
-          f.event_details?.event_name
-        ].filter(Boolean).join(' ').toLowerCase();
-        
-        if (!searchableText.includes(searchTerm)) return false;
-      }
-      
-      return true;
-    });
+    return finalists;
   }
 
-  // Render finalists
+  // Render finalists with pagination
   function renderFinalists() {
     const list = document.getElementById('finalistsList')!;
     const filtered = getFilteredFinalists();
@@ -454,13 +459,13 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     if (filtered.length === 0) {
       list.innerHTML = `
         <div class="text-center py-12">
-          <p class="text-gray-500">No finalists found. ${finalists.length> 0 ? 'Try adjusting filters.' : 'Add your first finalist!'}</p>
+          <p class="text-gray-500">No finalists found. ${pagination.total > 0 ? 'Try adjusting filters.' : 'Add your first finalist!'}</p>
         </div>
       `;
       return;
     }
 
-    list.innerHTML = filtered.map(finalist => `
+    let html = filtered.map(finalist => `
       <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-shadow">
         <div class="flex items-start gap-4">
           ${finalist.image_url ? `
@@ -504,27 +509,67 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
         </div>
       </div>
     `).join('');
+
+    // Add pagination controls
+    if (pagination.totalPages > 1) {
+      html += `
+        <div class="mt-8 flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4">
+          <div class="text-sm text-gray-700">
+            Showing ${((pagination.page - 1) * pagination.limit) + 1} to ${Math.min(pagination.page * pagination.limit, pagination.total)} of ${pagination.total} results
+          </div>
+          <div class="flex items-center space-x-2">
+            <button
+              onclick="loadFinalists(${pagination.page - 1})"
+              ${pagination.page <= 1 ? 'disabled' : ''}
+              class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <span class="px-3 py-2 text-sm text-gray-700">
+              Page ${pagination.page} of ${pagination.totalPages}
+            </span>
+            <button
+              onclick="loadFinalists(${pagination.page + 1})"
+              ${pagination.page >= pagination.totalPages ? 'disabled' : ''}
+              class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    list.innerHTML = html;
   }
 
-  // Filters
+  // Filters with debouncing for search
+  let searchTimeout: NodeJS.Timeout;
   document.getElementById('searchInput')!.addEventListener('input', (e) => {
     filters.search = (e.target as HTMLInputElement).value;
-    renderFinalists();
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      pagination.page = 1; // Reset to first page when searching
+      loadFinalists(1);
+    }, 500); // 500ms debounce
   });
 
   document.getElementById('categoryFilter')!.addEventListener('change', (e) => {
     filters.category = (e.target as HTMLSelectElement).value;
-    renderFinalists();
+    pagination.page = 1; // Reset to first page when filtering
+    loadFinalists(1);
   });
 
   document.getElementById('eventFilter')!.addEventListener('change', (e) => {
     filters.event = (e.target as HTMLSelectElement).value;
-    renderFinalists();
+    pagination.page = 1; // Reset to first page when filtering
+    loadFinalists(1);
   });
 
   document.getElementById('winnerFilter')!.addEventListener('change', (e) => {
     filters.winner = (e.target as HTMLSelectElement).value;
-    renderFinalists();
+    pagination.page = 1; // Reset to first page when filtering
+    loadFinalists(1);
   });
 
   // Modal controls
@@ -628,7 +673,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
 
-      await loadFinalists();
+      await loadFinalists(pagination.page);
     } catch (error: any) {
       alert('Error deleting finalist: ' + error.message);
     }
@@ -673,14 +718,17 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
       if (!response.ok) throw new Error(result.error);
 
       closeModal();
-      await loadFinalists();
+      await loadFinalists(pagination.page);
     } catch (error: any) {
       modalError.textContent = error.message;
       modalError.classList.remove('hidden');
     }
   });
 
+  // Make loadFinalists globally accessible for pagination buttons
+  (window as any).loadFinalists = loadFinalists;
+
   // Initial load
-  Promise.all([loadCategories(), loadEvents(), loadTags()]).then(loadFinalists);
+  Promise.all([loadCategories(), loadEvents(), loadTags()]).then(() => loadFinalists(1));
 </script>
 
