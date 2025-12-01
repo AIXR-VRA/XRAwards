@@ -43,7 +43,8 @@ export const EventBanner: React.FC<EventBannerProps> = ({ eventDate, ticketsUrl 
       const diff = event.getTime() - now.getTime();
 
       if (diff <= 0) {
-        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        // Event has passed, hide banner
+        setIsVisible(false);
         return;
       }
 
@@ -73,36 +74,36 @@ export const EventBanner: React.FC<EventBannerProps> = ({ eventDate, ticketsUrl 
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-[#4923EB] via-[#3a1bb8] to-[#4923EB] text-white shadow-lg border-t border-white/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
           {/* Countdown */}
-          <div className="flex items-center gap-4 sm:gap-6">
-            <div className="text-xs sm:text-sm font-medium whitespace-nowrap">
-              Event in:
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="text-xs sm:text-sm font-medium whitespace-nowrap" style={{ fontFamily: '"IBM Plex Mono", monospace' }}>
+              Winners Announced In:
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
               {countdown.days > 0 && (
                 <div className="flex flex-col items-center">
-                  <span className="text-lg sm:text-xl font-bold font-['Jura']">
+                  <span className="text-base sm:text-lg font-bold font-['Jura']">
                     {countdown.days.toString().padStart(2, '0')}
                   </span>
                   <span className="text-[10px] sm:text-xs opacity-80">Days</span>
                 </div>
               )}
               <div className="flex flex-col items-center">
-                <span className="text-lg sm:text-xl font-bold font-['Jura']">
+                <span className="text-base sm:text-lg font-bold font-['Jura']">
                   {countdown.hours.toString().padStart(2, '0')}
                 </span>
                 <span className="text-[10px] sm:text-xs opacity-80">Hours</span>
               </div>
               <div className="flex flex-col items-center">
-                <span className="text-lg sm:text-xl font-bold font-['Jura']">
+                <span className="text-base sm:text-lg font-bold font-['Jura']">
                   {countdown.minutes.toString().padStart(2, '0')}
                 </span>
                 <span className="text-[10px] sm:text-xs opacity-80">Mins</span>
               </div>
               <div className="flex flex-col items-center">
-                <span className="text-lg sm:text-xl font-bold font-['Jura']">
+                <span className="text-base sm:text-lg font-bold font-['Jura']">
                   {countdown.seconds.toString().padStart(2, '0')}
                 </span>
                 <span className="text-[10px] sm:text-xs opacity-80">Secs</span>
@@ -116,7 +117,7 @@ export const EventBanner: React.FC<EventBannerProps> = ({ eventDate, ticketsUrl 
               href={ticketsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-4 sm:px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors text-sm sm:text-base whitespace-nowrap"
+              className="inline-flex items-center px-4 sm:px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors text-sm sm:text-base whitespace-nowrap"
             >
               Reserve Final Tickets Now
             </a>

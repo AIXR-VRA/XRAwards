@@ -2,6 +2,18 @@
 import '../styles/globals.css';
 import { ViewTransitions } from 'astro:transitions';
 import { getAbsoluteUrl, getCanonicalUrl, getOGImageUrl, cleanTitle, cleanDescription } from '../utils/seo';
+import { supabase } from '../utils/supabase';
+import { EventBanner } from '../components/EventBanner';
+
+// Fetch active event details for banner
+const { data: eventDetails } = await supabase
+	.from('event_details')
+	.select('awards_ceremony, tickets_portal_url')
+	.eq('is_active', true)
+	.single();
+
+const eventDate = eventDetails?.awards_ceremony || null;
+const ticketsUrl = eventDetails?.tickets_portal_url || 'https://events.unitedxr.eu/2025?utm_source=AIXR&utm_medium=XR+Awards+Website&utm_campaign=link';
 
 export interface Props {
 	title?: string;
@@ -150,6 +162,9 @@ const ogImageUrl = getOGImageUrl(image);
 	</head>
 	<body class="bg-zinc-950 text-white antialiased">
 		<slot />
+
+		<!-- Event Banner -->
+		<EventBanner client:load eventDate={eventDate} ticketsUrl={ticketsUrl} />
 
 		<!-- Scripts -->
 		<script>
