@@ -10,7 +10,7 @@ import partytown from '@astrojs/partytown';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://xrawards.aixr.org',
-  output: 'server', // Changed from 'static' to support API routes and admin pages
+  output: 'hybrid', // Hybrid mode: pre-rendered pages served as static files, admin/API routes use server rendering
   adapter: cloudflare(),
   image: {
     // Disable remote image optimization entirely to avoid build failures

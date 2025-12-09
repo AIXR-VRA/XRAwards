@@ -301,18 +301,8 @@ const logoVirtualware = getR2ImageUrl('/images/2025/10/logo-virtualware-white_17
               <div>
                 <h3 class="text-xl font-bold text-gray-900 mb-4">XR Awards Gala Schedule</h3>
                 <p class="text-lg text-gray-700 mb-4">
-                  Join us for the prestigious XR Awards Gala on <strong>{eventDetails?.awards_ceremony ? new Date(eventDetails.awards_ceremony).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) : 'Thu 09 Dec 2025'}</strong> in {eventDetails?.location || 'Brussels, Belgium'}.
+                  Join us for the prestigious XR Awards Gala on <strong>{eventDetails?.awards_ceremony ? new Date(eventDetails.awards_ceremony).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) : 'Thu 09 Dec 2025'}</strong> in {eventDetails?.location || 'Brussels, Belgium'}. <strong>The event starts at 7pm.</strong>
                 </p>
-                
-                <div class="bg-gray-50 p-4 rounded-lg">
-                  <h4 class="font-semibold text-gray-900 mb-2">Gala Schedule:</h4>
-                  <ul class="space-y-2 text-gray-700">
-                    <li><strong>Drinks Reception</strong> – 6:00pm CET</li>
-                    <li><strong>Sit Down Dinner</strong> – 7:00pm CET</li>
-                    <li><strong>Awards Ceremony</strong> – 8:30pm CET</li>
-                    <li><strong>After Party</strong> – 10:30pm CET</li>
-                  </ul>
-                </div>
                 
                 <p class="text-sm text-gray-600 mt-4">
                   <strong>Dress Code:</strong> <a href="https://help.aixr.org/en/articles/7001836-is-there-a-dress-code" class="text-[#4923EB] hover:underline" target="_blank" rel="noopener noreferrer">Black tie required</a>
