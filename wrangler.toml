@@ -2,6 +2,3 @@ name = "xr-awards"
 pages_build_output_dir = "dist"
 compatibility_date = "2025-10-13"
 compatibility_flags = ["nodejs_compat"]
-
-[assets]
-not_found_handling = "404-page"
