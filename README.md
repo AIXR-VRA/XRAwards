@@ -207,6 +207,15 @@ MIT License - feel free to use this template for personal or commercial projects
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 - [Cloudflare Pages Documentation](https://developers.cloudflare.com/pages/)
 
+## 🔧 Troubleshooting
+
+### 404 Errors on Production
+
+If you're experiencing 404 errors on production (especially with pre-rendered pages), ensure that:
+- All pages with `export const prerender = true` are generating static HTML files in the `dist/` folder
+- Cloudflare Pages Functions are properly configured to handle routing
+- Check build logs to ensure pages are being pre-rendered successfully
+
 ---
 
 **Happy building!** 🎉
