@@ -11,6 +11,7 @@ import partytown from '@astrojs/partytown';
 export default defineConfig({
   site: 'https://xrawards.aixr.org',
   output: 'server', // Server mode: pages with prerender: true are static, others are server-rendered
+  trailingSlash: 'always', // Ensure URLs always have trailing slashes for Cloudflare Pages compatibility
   adapter: cloudflare(),
   image: {
     // Disable remote image optimization entirely to avoid build failures
