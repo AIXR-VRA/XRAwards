@@ -11,22 +11,7 @@ import partytown from '@astrojs/partytown';
 export default defineConfig({
   site: 'https://xrawards.aixr.org',
   output: 'server', // Server mode: pages with prerender: true are static, others are server-rendered
-  adapter: cloudflare({
-    routes: {
-      extend: {
-        // Exclude prerendered pages from worker - serve them as static files
-        // This ensures Cloudflare Pages serves static HTML files directly
-        // Only admin and API routes will go through the worker
-        exclude: [
-          { pattern: '/*' }, // Exclude all routes by default (serve as static)
-        ],
-        include: [
-          { pattern: '/admin/*' }, // Admin pages need server rendering
-          { pattern: '/api/*' }, // API routes need server rendering
-        ],
-      },
-    },
-  }),
+  adapter: cloudflare(),
   image: {
     // Disable remote image optimization entirely to avoid build failures
     // with broken Supabase storage URLs during build
