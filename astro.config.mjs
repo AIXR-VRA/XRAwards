@@ -28,7 +28,7 @@ export default defineConfig({
   build: {
     assets: '_astro',
     assetsPrefix: '/',
-    inlineStylesheets: 'auto',
+    inlineStylesheets: 'always',
   },
   vite: {
     // @ts-ignore - tailwindcss plugin type compatibility
