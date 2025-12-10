@@ -69,7 +69,7 @@ const { data: sponsors } = await supabase
 const ctaButton = await getCTAButton('hero');
 
 // Get hero image URL
-const heroImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-hero_1760202291581.png');
+const heroImageUrl = getR2ImageUrl('/images/2025/12/stage-no-screen-2.png');
 const unitedXRLogoUrl = getR2ImageUrl('/images/2025/10/xr-awards-united-xr-logo_1760202728750.png');
 const whatsNew2025ImageUrl = getR2ImageUrl('/images/2025/10/apple-holding-2024-trophy_1760204737832.jpg');
 const highlights2024ImageUrl = getR2ImageUrl('/images/2025/10/obsidian-award-winner-2024_1760204866862.png');
@@ -141,7 +141,7 @@ const asgardsWrathImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-win
       
       <!-- Content -->
       <div class="relative z-10 max-w-6xl mx-auto px-6 sm:px-6 lg:px-8 py-32 w-full">
-        <div class="max-w-3xl">
+        <div class="max-w-5xl">
           <!-- Date and Location -->
           <p class="text-sm md:text-base text-white mb-8 font-mono">
             {eventDetails?.location || 'Brussels, Belgium'}
@@ -150,21 +150,24 @@ const asgardsWrathImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-win
           </p>
           
           <!-- Main Branding -->
-          <div class="mb-8">
-            <Image 
-              src={unitedXRLogoUrl} 
-              alt="United XR" 
-              class="h-16 md:h-24 lg:h-28 w-auto mb-6"
-              width={400}
-              height={200}
-              loading="eager"
-            />
+          <div class="mb-8 grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 md:gap-16 items-center">
+            <!-- Column 1: Logo -->
+            <div class="pr-0 md:pr-12">
+              <Image 
+                src={unitedXRLogoUrl} 
+                alt="United XR" 
+                class="h-16 md:h-24 lg:h-28 w-auto"
+                width={400}
+                height={200}
+                loading="eager"
+              />
+            </div>
+            
+            <!-- Column 2: Headline -->
+            <h2 class="text-xl md:text-3xl lg:text-4xl font-normal text-white leading-relaxed">
+              The largest global celebration of VR & AR announces winners
+            </h2>
           </div>
-          
-          <!-- Headline -->
-          <h2 class="text-2xl md:text-3xl lg:text-4xl font-normal text-white mb-8 leading-relaxed">
-            AIXR XR Awards joins United XR to create the largest global celebration of VR & AR.
-          </h2>
           
           <!-- Carousel Indicators -->
           <div class="flex items-center gap-2 mb-8">
