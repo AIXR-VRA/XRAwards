@@ -14,6 +14,7 @@ import { getR2ImageUrl } from '../utils/r2';
 // Product images from R2
 const trophyImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-main-trophy-design_1760351347176.png');
 const accoladesImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-accolades-tropy-design_1760351357634.png');
+const obsidianImageUrl = 'https://pub-8816934acbc2497196aa7525c50bc9cc.r2.dev/images/2025/10/obsidian-award-winner-2024_1760204866862.png';
 ---
 
 <Layout
@@ -98,7 +99,7 @@ const accoladesImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-accolades-tro
               <div class="bg-gray-50 border border-gray-200 rounded-sm p-6">
                 <div class="flex items-baseline justify-between mb-3">
                   <p class="text-sm text-gray-700">XR Awards Trophy & Certificates</p>
-                  <p class="text-sm font-semibold text-gray-900">£ 820.00</p>
+                  <p class="text-sm font-semibold text-gray-900">£ 820.00 +VAT</p>
                 </div>
                 
                 <p class="text-xs text-gray-500 mb-4">Shipping added at checkout</p>
@@ -121,7 +122,81 @@ const accoladesImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-accolades-tro
                   <div class="flex-1">
                     <div class="block text-xs mb-1 invisible">‎</div>
                     <a
-                      href="mailto:awards@aixr.org?subject=XR%20Awards%20Store%20-%20Trophy%20Order&body=Hello%2C%0A%0AI%20would%20like%20to%20order%20the%20following%3A%0A%0AProduct%3A%20XR%20Awards%20Trophy%20%26%20Certificates%0AQuantity%3A%201%0AUnit%20Price%3A%20%C2%A3820.00%0A%0APlease%20send%20me%20payment%20and%20shipping%20details.%0A%0AThank%20you!"
+                      href="https://buy.stripe.com/00w9AU99o28E7HdaEAa7C0g"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="block w-full px-4 py-2 bg-[#4923EB] text-white text-sm font-medium rounded-sm hover:bg-[#3a1bb8] transition-colors text-center"
+                    >
+                      Order
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Obsidian Award -->
+        <div class="mb-16 md:mb-24">
+          <h2 class="text-xl md:text-2xl font-semibold text-gray-900 mb-8">Obsidian Award</h2>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+            <!-- Left: Image + Bullets -->
+            <div>
+              <div class="mb-6 overflow-hidden rounded-lg relative" style="aspect-ratio: 1;">
+                <img
+                  src={obsidianImageUrl}
+                  alt="Obsidian Award"
+                  class="absolute top-0 left-0 w-full object-cover"
+                  style="height: 200%; object-position: top;"
+                  loading="lazy"
+                />
+              </div>
+              
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li>• Special award for exceptional achievement</li>
+                <li>• Custom-made to order</li>
+                <li>• Fully handmade and machined in the UK</li>
+                <li>• Manufacturing & insurance costs included</li>
+              </ul>
+            </div>
+
+            <!-- Right: Description + Order Form -->
+            <div class="flex flex-col">
+              <p class="text-base text-gray-700 mb-6 leading-relaxed">
+                The Obsidian Award represents the pinnacle of excellence in immersive technology. This special award is reserved for those who have achieved extraordinary recognition in the XR industry.
+              </p>
+
+              <!-- Order Form -->
+              <div class="bg-gray-50 border border-gray-200 rounded-sm p-6">
+                <div class="flex items-baseline justify-between mb-3">
+                  <p class="text-sm text-gray-700">Obsidian Award</p>
+                  <p class="text-sm font-semibold text-gray-900">£ 925.00 +VAT</p>
+                </div>
+                
+                <p class="text-xs text-gray-500 mb-4">Shipping added at checkout</p>
+
+                <div class="flex flex-row gap-3">
+                  <div class="w-auto">
+                    <label for="obsidian-quantity" class="block text-xs text-gray-600 mb-1">
+                      Quantity <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="obsidian-quantity"
+                      min="1"
+                      max="20"
+                      value="1"
+                      class="w-20 px-3 py-2 border border-gray-300 rounded-sm text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#4923EB] focus:border-[#4923EB]"
+                    />
+                  </div>
+                  
+                  <div class="flex-1">
+                    <div class="block text-xs mb-1 invisible">‎</div>
+                    <a
+                      href="https://buy.stripe.com/eVqaEY71g3cI5z5bIEa7C0i"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       class="block w-full px-4 py-2 bg-[#4923EB] text-white text-sm font-medium rounded-sm hover:bg-[#3a1bb8] transition-colors text-center"
                     >
                       Order
@@ -169,7 +244,7 @@ const accoladesImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-accolades-tro
               <div class="bg-gray-50 border border-gray-200 rounded-sm p-6">
                 <div class="flex items-baseline justify-between mb-3">
                   <p class="text-sm text-gray-700">XR Accolades</p>
-                  <p class="text-sm font-semibold text-gray-900">£ 395.00</p>
+                  <p class="text-sm font-semibold text-gray-900">£ 395.00 +VAT</p>
                 </div>
                 
                 <p class="text-xs text-gray-500 mb-4">Shipping added at checkout</p>
@@ -192,7 +267,9 @@ const accoladesImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-accolades-tro
                   <div class="flex-1">
                     <div class="block text-xs mb-1 invisible">‎</div>
                     <a
-                      href="mailto:awards@aixr.org?subject=XR%20Awards%20Store%20-%20Accolade%20Order&body=Hello%2C%0A%0AI%20would%20like%20to%20order%20the%20following%3A%0A%0AProduct%3A%20XR%20Accolades%0AQuantity%3A%201%0AUnit%20Price%3A%20%C2%A3395.00%0A%0APlease%20send%20me%20payment%20and%20shipping%20details.%0A%0AThank%20you!"
+                      href="https://buy.stripe.com/aFa7sMgBQ7sYaTp4gca7C0h"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       class="block w-full px-4 py-2 bg-[#4923EB] text-white text-sm font-medium rounded-sm hover:bg-[#3a1bb8] transition-colors text-center"
                     >
                       Order
