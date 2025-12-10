@@ -4,6 +4,7 @@ import { ViewTransitions } from 'astro:transitions';
 import { getAbsoluteUrl, getCanonicalUrl, getOGImageUrl, cleanTitle, cleanDescription } from '../utils/seo';
 import { supabase } from '../utils/supabase';
 import { EventBanner } from '../components/EventBanner';
+import CookieConsent from '../components/cookie-consent/CookieConsent.astro';
 
 // Fetch active event details for banner
 const { data: eventDetails } = await supabase
@@ -148,13 +149,39 @@ const ogImageUrl = getOGImageUrl(image);
 		<!-- View Transitions -->
 		<ViewTransitions />
 
-		<!-- Google Analytics with Partytown -->
-		<script is:inline type="text/partytown" async src="https://www.googletagmanager.com/gtag/js?id=G-NF24NV1RFG"></script>
-		<script is:inline type="text/partytown">
+		<!-- Initialize dataLayer + consents BEFORE GA loads -->
+		<script is:inline>
+			// Initialize dataLayer
 			window.dataLayer = window.dataLayer || [];
-			function gtag(){dataLayer.push(arguments);}
-			gtag('js', new Date());
-			gtag('config', 'G-NF24NV1RFG');
+			
+			// Define gtag function globally for consent management
+			window.gtag = function gtag(){ window.dataLayer.push(arguments); };
+			
+			// Check if user already accepted cookies (vanilla-cookieconsent stores in cc_cookie)
+			var hasAnalyticsConsent = false;
+			try {
+				var ccCookie = document.cookie.match(/cc_cookie=([^;]+)/);
+				if (ccCookie) {
+					var consent = JSON.parse(decodeURIComponent(ccCookie[1]));
+					hasAnalyticsConsent = consent.categories && consent.categories.includes('analytics');
+				}
+			} catch (e) {}
+			
+			// Set consent based on stored preference (or default denied for new visitors)
+			var consentState = hasAnalyticsConsent ? 'granted' : 'denied';
+			window.gtag('consent', 'default', {
+				ad_storage: consentState,
+				ad_user_data: consentState,
+				ad_personalization: consentState,
+				analytics_storage: consentState,
+			});
+		</script>
+		
+		<!-- Google Analytics 4 -->
+		<script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-NF24NV1RFG"></script>
+		<script is:inline>
+			window.gtag('js', new Date());
+			window.gtag('config', 'G-NF24NV1RFG');
 		</script>
 
 		<!-- Additional head content from pages -->
@@ -165,6 +192,11 @@ const ogImageUrl = getOGImageUrl(image);
 
 		<!-- Event Banner -->
 		<EventBanner client:load eventDate={eventDate} ticketsUrl={ticketsUrl} />
+
+		<!-- Cookie Consent Banner -->
+		<div id="cc-container">
+			<CookieConsent />
+		</div>
 
 		<!-- Scripts -->
 		<script>

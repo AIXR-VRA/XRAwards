@@ -1,0 +1,35 @@
+---
+import 'vanilla-cookieconsent/dist/cookieconsent.css';
+---
+
+<style>
+  /* Cookie consent glass effect - inline to ensure it's not stripped in production */
+  #cc-main .cm,
+  #cc-main .cm.cm--box {
+    background: rgba(0, 0, 0, 0.6) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4) !important;
+    padding: 1.25rem !important;
+    max-width: 480px !important;
+    width: calc(100% - 2rem) !important;
+    min-height: auto !important;
+    margin: 0 auto !important;
+  }
+  
+  /* Ensure title is on its own line */
+  #cc-main .cm .cm__title {
+    display: block !important;
+    margin-bottom: 0.75rem !important;
+  }
+</style>
+
+<script>
+  import { run } from 'vanilla-cookieconsent';
+  import { config } from './CookieConsentConfig';
+
+  run(config);
+</script>
+
