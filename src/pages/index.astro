@@ -221,7 +221,7 @@ const asgardsWrathImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-win
         <!-- Feature Cards -->
         <div class="flex flex-col md:flex-row gap-8 md:gap-24 mb-4 md:mb-6 max-w-full">
           <!-- Card 1: What's new for 2025? -->
-          <a href={eventDetails?.slug ? `/${eventDetails.slug}` : '#'} class="group relative w-[85vw] md:w-[41%]">
+          <a href={eventDetails?.slug ? `/${eventDetails.slug}/` : '#'} class="group relative w-[85vw] md:w-[41%]">
             <div class="aspect-video overflow-hidden rounded-lg">
               <Image 
                 src={whatsNew2025ImageUrl} 
@@ -242,7 +242,7 @@ const asgardsWrathImage = getR2ImageUrl('/images/2025/10/xr-game-of-the-year-win
           </a>
 
           <!-- Card 2: See 2024 Highlights -->
-          <a href={previousEventDetails?.slug ? `/${previousEventDetails.slug}` : '#'} class="group relative w-[85vw] md:w-[41%]">
+          <a href={previousEventDetails?.slug ? `/${previousEventDetails.slug}/` : '#'} class="group relative w-[85vw] md:w-[41%]">
             <div class="aspect-video overflow-hidden rounded-lg">
               <Image 
                 src={highlights2024ImageUrl} 

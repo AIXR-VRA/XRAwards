@@ -49,7 +49,7 @@ const { data: event } = await supabase
   .single();
 
 if (!event) {
-  return Astro.redirect('/404');
+  return Astro.redirect('/404/');
 }
 
 // Get categories for this event with their tags

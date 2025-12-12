@@ -43,7 +43,7 @@ const { data: event } = await supabase
   .single();
 
 if (!event) {
-  return Astro.redirect('/404');
+  return Astro.redirect('/404/');
 }
 
 // We'll handle the redirect logic entirely on the client side to avoid server-side redirects
@@ -106,7 +106,7 @@ const otherWinners = winners?.slice(3) || [];
         // If ceremony hasn't happened yet (or is within 1 day), redirect to programme
         if (now < oneDayAfter) {
           // Clean client-side redirect to avoid ugly server redirect message
-          window.location.replace('/programme');
+          window.location.replace('/programme/');
         }
       }
     </script>
@@ -422,7 +422,7 @@ const otherWinners = winners?.slice(3) || [];
 
           <div class="text-center mt-12">
             <a
-              href={`/winners-and-finalists-${event.event_year}`}
+              href={`/winners-and-finalists-${event.event_year}/`}
               class="inline-block px-8 py-4 bg-[#4923EB] text-white text-base font-bold rounded-full hover:bg-[#3a1bb8] transition-colors"
             >
               See all {event.event_year} Winners & Finalists
