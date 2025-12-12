@@ -65,8 +65,8 @@ if (eventDetails?.id) {
 const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist_frame_2024_1760450572001.png');
 
 // Get the base crest images
-const crestBaseBlack = getR2ImageUrl('/images/2025/12/2025-crest-black_1765575914969.png');
-const crestBaseWhite = getR2ImageUrl('/images/2025/12/2025-crest-white_1765575931976.png');
+const crestBaseBlack = getR2ImageUrl('/images/2025/12/xra-winner_crests-252_1765577014221.png');
+const crestBaseWhite = getR2ImageUrl('/images/2025/12/xra-winner_crests-253_1765577030174.png');
 
 // Ensure we have valid data - if not, provide empty defaults
 const safeEventDetails = eventDetails || null;
@@ -1175,6 +1175,13 @@ const safeFinalists = finalists || [];
 
     // Accolade crest generation
     async function generateAccoladeCrest(accolade, projectName, year, variant = 'black') {
+      // Ensure Jura font is loaded before rendering
+      try {
+        await document.fonts.load('bold 72px Jura');
+      } catch (e) {
+        console.warn('Could not preload Jura font:', e);
+      }
+
       return new Promise((resolve, reject) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -1243,9 +1250,10 @@ const safeFinalists = finalists || [];
           });
 
           // Year at bottom (within wreath base) - where "2025" was
-          ctx.font = `bold ${48 * scaleFactor}px sans-serif`;
+          // Using Jura font, larger size
+          ctx.font = `bold ${72 * scaleFactor}px Jura, sans-serif`;
           ctx.textBaseline = 'middle';
-          ctx.fillText(year, imgWidth * 0.5, imgHeight * 0.83);
+          ctx.fillText(year, imgWidth * 0.5, imgHeight * 0.86);
 
           // Convert to blob URL
           canvas.toBlob((blob) => {
