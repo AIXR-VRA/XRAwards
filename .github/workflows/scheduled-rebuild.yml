@@ -69,21 +69,11 @@ jobs:
       - name: Sync GitHub PAT to Cloudflare Pages (if rebuilt)
         if: steps.check-rebuild.outputs.REBUILD_NEEDED == 'true'
         run: |
-          curl -X PATCH "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/xr-awards" \
-            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            --data '{
-              "deployment_configs": {
-                "production": {
-                  "env_vars": {
-                    "GH_PAT": {
-                      "type": "secret_text",
-                      "value": "${{ secrets.GH_PAT }}"
-                    }
-                  }
-                }
-              }
-            }'
+          if [ -z "${{ secrets.GH_PAT }}" ]; then
+            echo "⚠️ Warning: GH_PAT secret is not set in GitHub Actions"
+            exit 1
+          fi
+          echo "${{ secrets.GH_PAT }}" | npx wrangler@latest pages secret put GH_PAT --project-name=xr-awards
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
