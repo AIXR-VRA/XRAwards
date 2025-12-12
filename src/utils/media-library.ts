@@ -204,76 +204,110 @@ export async function getMedia(request: GetMediaRequest = {}): Promise<GetMediaR
     const totalCount = searchData?.length || 0;
     const paginatedData = searchData?.slice(offset, offset + limit) || [];
 
-    // Get relationships for each media item
-    const mediaWithRelationships = await Promise.all(
-      paginatedData.map(async (media: any) => {
-        const [eventsResult, categoriesResult, finalistsResult, sponsorsResult, tagsResult, judgesResult] = await Promise.all([
-          supabase
-            .from('media_events')
-            .select(`
-              event_details!inner(id, event_year, event_name)
-            `)
-            .eq('media_id', media.media_id),
-          
-          supabase
-            .from('media_categories')
-            .select(`
-              categories!inner(id, name, slug)
-            `)
-            .eq('media_id', media.media_id),
-          
-          supabase
-            .from('media_finalists')
-            .select(`
-              finalists!inner(id, title, organization)
-            `)
-            .eq('media_id', media.media_id),
-          
-          supabase
-            .from('media_sponsors')
-            .select(`
-              sponsors!inner(id, name, website_url)
-            `)
-            .eq('media_id', media.media_id),
-          
-          supabase
-            .from('media_tags')
-            .select(`
-              tags!inner(id, name, slug)
-            `)
-            .eq('media_id', media.media_id),
-          
-          supabase
-            .from('media_judges')
-            .select(`
-              judges!inner(id, first_name, last_name, job_title)
-            `)
-            .eq('media_id', media.media_id)
-        ]);
+    // Get all media IDs for batch loading relationships
+    const mediaIds = paginatedData.map((media: any) => media.media_id);
+    
+    if (mediaIds.length === 0) {
+      return {
+        success: true,
+        media: [],
+        totalCount: 0,
+      };
+    }
 
-        return {
-          id: media.media_id,
-          filename: media.filename,
-          original_filename: media.original_filename,
-          file_url: media.file_url,
-          alt_text: media.alt_text,
-          title: media.title,
-          description: media.description,
-          mime_type: media.mime_type,
-          file_size: media.file_size,
-          upload_date: media.upload_date,
-          events: eventsResult.data?.map((item: any) => item.event_details) || [],
-          categories: categoriesResult.data?.map((item: any) => item.categories) || [],
-          finalists: finalistsResult.data?.map((item: any) => item.finalists) || [],
-          sponsors: sponsorsResult.data?.map((item: any) => item.sponsors) || [],
-          tags: tagsResult.data?.map((item: any) => item.tags) || [],
-          judges: judgesResult.data?.map((item: any) => ({
-            ...item.judges,
-            name: `${item.judges.first_name} ${item.judges.last_name}`.trim()
-          })) || [],
-        };
-      })
-    );
+    // Batch load all relationships in parallel (6 queries total instead of 6 per item)
+    const [eventsResult, categoriesResult, finalistsResult, sponsorsResult, tagsResult, judgesResult] = await Promise.all([
+      supabase
+        .from('media_events')
+        .select(`media_id, event_details!inner(id, event_year, event_name)`)
+        .in('media_id', mediaIds),
+      
+      supabase
+        .from('media_categories')
+        .select(`media_id, categories!inner(id, name, slug)`)
+        .in('media_id', mediaIds),
+      
+      supabase
+        .from('media_finalists')
+        .select(`media_id, finalists!inner(id, title, organization)`)
+        .in('media_id', mediaIds),
+      
+      supabase
+        .from('media_sponsors')
+        .select(`media_id, sponsors!inner(id, name, website_url)`)
+        .in('media_id', mediaIds),
+      
+      supabase
+        .from('media_tags')
+        .select(`media_id, tags!inner(id, name, slug)`)
+        .in('media_id', mediaIds),
+      
+      supabase
+        .from('media_judges')
+        .select(`media_id, judges!inner(id, first_name, last_name, job_title)`)
+        .in('media_id', mediaIds)
+    ]);
+
+    // Create lookup maps for O(1) access
+    const eventsMap = new Map<string, any[]>();
+    const categoriesMap = new Map<string, any[]>();
+    const finalistsMap = new Map<string, any[]>();
+    const sponsorsMap = new Map<string, any[]>();
+    const tagsMap = new Map<string, any[]>();
+    const judgesMap = new Map<string, any[]>();
+
+    eventsResult.data?.forEach((item: any) => {
+      if (!eventsMap.has(item.media_id)) eventsMap.set(item.media_id, []);
+      eventsMap.get(item.media_id)!.push(item.event_details);
+    });
+
+    categoriesResult.data?.forEach((item: any) => {
+      if (!categoriesMap.has(item.media_id)) categoriesMap.set(item.media_id, []);
+      categoriesMap.get(item.media_id)!.push(item.categories);
+    });
+
+    finalistsResult.data?.forEach((item: any) => {
+      if (!finalistsMap.has(item.media_id)) finalistsMap.set(item.media_id, []);
+      finalistsMap.get(item.media_id)!.push(item.finalists);
+    });
+
+    sponsorsResult.data?.forEach((item: any) => {
+      if (!sponsorsMap.has(item.media_id)) sponsorsMap.set(item.media_id, []);
+      sponsorsMap.get(item.media_id)!.push(item.sponsors);
+    });
+
+    tagsResult.data?.forEach((item: any) => {
+      if (!tagsMap.has(item.media_id)) tagsMap.set(item.media_id, []);
+      tagsMap.get(item.media_id)!.push(item.tags);
+    });
+
+    judgesResult.data?.forEach((item: any) => {
+      if (!judgesMap.has(item.media_id)) judgesMap.set(item.media_id, []);
+      judgesMap.get(item.media_id)!.push({
+        ...item.judges,
+        name: `${item.judges.first_name} ${item.judges.last_name}`.trim()
+      });
+    });
+
+    // Map media with relationships using the lookup maps
+    const mediaWithRelationships = paginatedData.map((media: any) => ({
+      id: media.media_id,
+      filename: media.filename,
+      original_filename: media.original_filename,
+      file_url: media.file_url,
+      alt_text: media.alt_text,
+      title: media.title,
+      description: media.description,
+      mime_type: media.mime_type,
+      file_size: media.file_size,
+      upload_date: media.upload_date,
+      events: eventsMap.get(media.media_id) || [],
+      categories: categoriesMap.get(media.media_id) || [],
+      finalists: finalistsMap.get(media.media_id) || [],
+      sponsors: sponsorsMap.get(media.media_id) || [],
+      tags: tagsMap.get(media.media_id) || [],
+      judges: judgesMap.get(media.media_id) || [],
+    }));
 
     return {
       success: true,
