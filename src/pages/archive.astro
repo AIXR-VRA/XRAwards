@@ -116,7 +116,7 @@ function formatEventDate(dateStr: string | null): string {
       return (
         <section 
           id={event.event_year.toString()}
-          class={`py-12 md:py-16 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${index >= 3 ? 'lazy-section' : ''}`}
+          class={`py-12 md:py-16 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
           data-index={index}
         >
           <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -141,7 +141,7 @@ function formatEventDate(dateStr: string | null): string {
                       alt={`${event.event_name} ceremony`}
                       width={800}
                       height={450}
-                      class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 grayscale"
                       format="webp"
                     />
                   </div>
@@ -170,7 +170,7 @@ function formatEventDate(dateStr: string | null): string {
                       alt={`${event.event_name} finalists`}
                       width={800}
                       height={450}
-                      class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 grayscale"
                       format="webp"
                     />
                   </div>
@@ -232,44 +232,6 @@ function formatEventDate(dateStr: string | null): string {
       });
     });
 
-    // Lazy loading for sections after the first 3
-    const lazySections = document.querySelectorAll('.lazy-section');
-    
-    if (lazySections.length > 0) {
-      // First, check if any sections are already in viewport (e.g., after back navigation)
-      lazySections.forEach(section => {
-        const rect = section.getBoundingClientRect();
-        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-        if (isVisible) {
-          section.classList.add('section-visible');
-        }
-      });
-
-      // Then set up the observer for remaining sections
-      const observerOptions = {
-        root: null,
-        rootMargin: '200px',
-        threshold: 0.01
-      };
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const section = entry.target as HTMLElement;
-            section.classList.add('section-visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      }, observerOptions);
-
-      lazySections.forEach(section => {
-        // Only observe if not already visible
-        if (!section.classList.contains('section-visible')) {
-          observer.observe(section);
-        }
-      });
-    }
-
     // If page loaded with hash, scroll to it
     if (window.location.hash) {
       setTimeout(() => {
@@ -313,16 +275,9 @@ function formatEventDate(dateStr: string | null): string {
     font-family: "IBM Plex Mono", monospace;
   }
 
-  /* Lazy loading animation */
-  .lazy-section {
-    opacity: 0.3;
-    transform: translateY(30px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-  }
-
-  .lazy-section.section-visible {
-    opacity: 1;
-    transform: translateY(0);
+  /* Black and white images */
+  .grayscale {
+    filter: grayscale(100%);
   }
 
   /* Ensure smooth scrolling on the page */
