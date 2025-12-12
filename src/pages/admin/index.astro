@@ -135,7 +135,21 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    // Initialize Supabase client
+    const supabase = createClient(
+      import.meta.env.PUBLIC_SUPABASE_URL,
+      import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+        },
+      }
+    );
+
     // Publish functionality
     const publishBtn = document.getElementById('publishBtn') as HTMLButtonElement;
     const publishIcon = document.getElementById('publishIcon');
@@ -169,11 +183,21 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
 
     async function loadDeployments() {
       try {
-        const response = await fetch('/api/publish/');
-        if (!response.ok) {
-          throw new Error('Failed to load deployments');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          throw new Error('Not authenticated');
         }
-        const data = await response.json();
+
+        const { data, error } = await supabase.functions.invoke('publish', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (error) {
+          throw error;
+        }
         
         if (data.runs && data.runs.length > 0) {
           deploymentsList!.innerHTML = data.runs.map((run: any) => `
@@ -186,6 +210,7 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
           deploymentsList!.innerHTML = '<p class="text-gray-400">No recent deployments</p>';
         }
       } catch (error) {
+        console.error('Load deployments error:', error);
         deploymentsList!.innerHTML = '<p class="text-gray-400">Could not load deployment history</p>';
       }
     }
@@ -217,19 +242,36 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
       publishStatus!.classList.add('hidden');
 
       try {
-        const response = await fetch('/api/publish/', {
-          method: 'POST'
-        });
-        const data = await response.json();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          showStatus('Not authenticated. Please log in again.', 'error');
+          return;
+        }
 
-        if (response.ok && data.success) {
+        const { data, error } = await supabase.functions.invoke('publish', {
+          method: 'POST',
+          body: {
+            reason: 'Manual publish from admin dashboard'
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (error) {
+          showStatus(error.message || 'Failed to trigger deployment', 'error');
+          return;
+        }
+
+        if (data.success) {
           showStatus(data.message, 'success');
           // Reload deployments after a short delay to show the new run
           setTimeout(loadDeployments, 3000);
         } else {
-          showStatus(data.error || 'Failed to trigger deployment', 'error');
+          showStatus(data.error || data.details || 'Failed to trigger deployment', 'error');
         }
       } catch (error) {
+        console.error('Publish error:', error);
         showStatus('Network error. Please try again.', 'error');
       } finally {
         setLoading(false);
