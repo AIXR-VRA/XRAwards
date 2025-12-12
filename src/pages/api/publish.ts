@@ -22,11 +22,30 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   }
 
   // Get GitHub PAT from environment
-  const githubToken = import.meta.env.GH_PAT;
+  // Try multiple ways to access the environment variable for Cloudflare Pages compatibility
+  const githubToken = 
+    import.meta.env.GH_PAT || 
+    (typeof process !== 'undefined' ? process.env.GH_PAT : undefined);
   
   if (!githubToken) {
+    console.error('GH_PAT environment variable is missing or empty');
+    console.error('Available env vars:', Object.keys(import.meta.env).filter(k => k.includes('GH') || k.includes('GITHUB')));
     return new Response(
-      JSON.stringify({ error: 'GitHub token not configured' }),
+      JSON.stringify({ 
+        error: 'GitHub token not configured',
+        details: 'GH_PAT environment variable is missing or empty. Please ensure it is set in Cloudflare Pages environment variables for the production environment.'
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+  
+  if (githubToken.trim() === '') {
+    console.error('GH_PAT environment variable is empty string');
+    return new Response(
+      JSON.stringify({ 
+        error: 'GitHub token not configured',
+        details: 'GH_PAT environment variable exists but is empty. Please update the secret in Cloudflare Pages settings.'
+      }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
@@ -99,11 +118,30 @@ export const GET: APIRoute = async ({ cookies, request }) => {
     );
   }
 
-  const githubToken = import.meta.env.GH_PAT;
+  // Get GitHub PAT from environment
+  // Try multiple ways to access the environment variable for Cloudflare Pages compatibility
+  const githubToken = 
+    import.meta.env.GH_PAT || 
+    (typeof process !== 'undefined' ? process.env.GH_PAT : undefined);
   
   if (!githubToken) {
+    console.error('GH_PAT environment variable is missing or empty');
     return new Response(
-      JSON.stringify({ error: 'GitHub token not configured' }),
+      JSON.stringify({ 
+        error: 'GitHub token not configured',
+        details: 'GH_PAT environment variable is missing or empty. Please ensure it is set in Cloudflare Pages environment variables for the production environment.'
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+  
+  if (githubToken.trim() === '') {
+    console.error('GH_PAT environment variable is empty string');
+    return new Response(
+      JSON.stringify({ 
+        error: 'GitHub token not configured',
+        details: 'GH_PAT environment variable exists but is empty. Please update the secret in Cloudflare Pages settings.'
+      }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
