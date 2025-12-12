@@ -211,7 +211,7 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
               <div class="mt-8">
                 <p class="text-lg text-gray-600 mb-4">Nominations will open soon for the {eventDetails?.event_year || '2025'} XR Awards Gala.</p>
                 <a 
-                  href="/about-xr-awards"
+                  href="/about-xr-awards/"
                   class="inline-flex items-center px-8 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors"
                 >
                   Learn More
@@ -276,7 +276,7 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
         <!-- Feature Cards Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <!-- View Categories Card -->
-          <a href="/categories" class="group relative">
+          <a href="/categories/" class="group relative">
             <div class="aspect-video overflow-hidden rounded-lg">
               <Image 
                 src={categoriesImage} 
@@ -297,7 +297,7 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
           </a>
 
           <!-- Entry Kit Card -->
-          <a href="/nominate/entry-kit" class="group relative">
+          <a href="/nominate/entry-kit/" class="group relative">
             <div class="aspect-video overflow-hidden rounded-lg">
               <Image 
                 src={entrykitImage} 
@@ -318,7 +318,7 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
           </a>
 
           <!-- FAQ Card -->
-          <a href="/legal/faq" class="group relative">
+          <a href="/legal/faq/" class="group relative">
             <div class="aspect-video overflow-hidden rounded-lg">
               <Image 
                 src={faqImage} 
@@ -432,7 +432,7 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
               <div class="mt-8">
                 <p class="text-lg text-gray-600 mb-4">Nominations will open soon for the {eventDetails?.event_year || '2025'} XR Awards Gala.</p>
                 <a 
-                  href="/about-xr-awards"
+                  href="/about-xr-awards/"
                   class="inline-flex items-center px-8 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors"
                 >
                   Learn More
@@ -718,7 +718,7 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
                 <li>User Experience</li>
                 <li>Visual Experience</li>
               </ul>
-              <p><a href="/categories" class="text-[#4923EB] hover:underline font-medium">View all categories and eligibility criteria →</a></p>
+              <p><a href="/categories/" class="text-[#4923EB] hover:underline font-medium">View all categories and eligibility criteria →</a></p>
             </div>
           </details>
 
@@ -795,7 +795,7 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
                 <li>Investment and venture capital professionals</li>
               </ul>
               <p>Judges evaluate entries based on innovation, execution, impact, user experience, and technical achievement. The judging period runs from {eventDetails?.judging_period_start ? new Date(eventDetails.judging_period_start).toLocaleDateString('en-GB', { day: '2-digit', month: 'long' }) : 'late September'} to {eventDetails?.judging_period_end ? new Date(eventDetails.judging_period_end).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : 'early October'}.</p>
-              <p><a href="/judges" class="text-[#4923EB] hover:underline font-medium">Meet our judging panel →</a></p>
+              <p><a href="/judges/" class="text-[#4923EB] hover:underline font-medium">Meet our judging panel →</a></p>
             </div>
           </details>
 
@@ -811,8 +811,8 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
               <p>We're here to help you succeed with your nomination:</p>
               <ul class="list-disc list-inside space-y-2 ml-4">
                 <li><strong>Nomination Portal:</strong> <a href={nominationUrl} target="_blank" rel="noopener noreferrer" class="text-[#4923EB] hover:underline">Start your nomination and view all details</a></li>
-                <li><strong>Entry Kit:</strong> <a href="/entry-kit" class="text-[#4923EB] hover:underline">View comprehensive submission guidelines</a></li>
-                <li><strong>FAQ Page:</strong> <a href="/legal/faq" class="text-[#4923EB] hover:underline">Visit our detailed FAQ section</a></li>
+                <li><strong>Entry Kit:</strong> <a href="/entry-kit/" class="text-[#4923EB] hover:underline">View comprehensive submission guidelines</a></li>
+                <li><strong>FAQ Page:</strong> <a href="/legal/faq/" class="text-[#4923EB] hover:underline">Visit our detailed FAQ section</a></li>
                 <li><strong>Email Support:</strong> <a href="mailto:awards@aixr.org" class="text-[#4923EB] hover:underline">awards@aixr.org</a></li>
               </ul>
               <p>Nomination briefing webinars are also available - check our key dates for scheduling.</p>
@@ -836,7 +836,7 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
                   Start Your Nomination
                 </a>
                 <a 
-                  href="/categories"
+                  href="/categories/"
                   class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
                 >
                   View All Categories
@@ -866,7 +866,7 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
                   {ctaButton.text}
                 </a>
                 <a 
-                  href="/about-xr-awards"
+                  href="/about-xr-awards/"
                   class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
                 >
                   Learn More
@@ -875,13 +875,13 @@ const nominationUrl = eventDetails?.nomination_portal_url || 'https://app.aixr.o
             ) : (
               <>
                 <a 
-                  href="/about-xr-awards"
+                  href="/about-xr-awards/"
                   class="inline-flex items-center justify-center px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors"
                 >
                   Learn More
                 </a>
                 <a 
-                  href="/categories"
+                  href="/categories/"
                   class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
                 >
                   View Categories

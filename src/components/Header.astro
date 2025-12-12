@@ -32,41 +32,41 @@ const isThirdAfterCeremony = await isAfterCeremonyDate(thirdYear);
 
 // Build dynamic navigation
 const navigation = [
-  { name: 'Judges', href: '/judges' },
+  { name: 'Judges', href: '/judges/' },
   { 
     name: 'Ceremonies', 
     isDropdown: true,
     items: [
-      { name: `${currentYear} Ceremony`, href: `/${yearToSlug[currentYear] || `xr-awards-${currentYear}`}` },
-      ...(previousYear ? [{ name: `${previousYear} Ceremony`, href: `/${yearToSlug[previousYear] || `xr-awards-${previousYear}`}` }] : []),
-      ...(thirdYear ? [{ name: `${thirdYear} Ceremony`, href: `/${yearToSlug[thirdYear] || `xr-awards-${thirdYear}`}` }] : []),
-      { name: 'Ceremony Archive', href: '/archive' }
+      { name: `${currentYear} Ceremony`, href: `/${yearToSlug[currentYear] || `xr-awards-${currentYear}`}/` },
+      ...(previousYear ? [{ name: `${previousYear} Ceremony`, href: `/${yearToSlug[previousYear] || `xr-awards-${previousYear}`}/` }] : []),
+      ...(thirdYear ? [{ name: `${thirdYear} Ceremony`, href: `/${yearToSlug[thirdYear] || `xr-awards-${thirdYear}`}/` }] : []),
+      { name: 'Ceremony Archive', href: '/archive/' }
     ]
   },
   { 
     name: 'Finalists', 
     isDropdown: true,
     items: [
-      { name: `${currentYear} Finalists`, href: `/winners-and-finalists-${currentYear}` },
+      { name: `${currentYear} Finalists`, href: `/winners-and-finalists-${currentYear}/` },
       ...(previousYear ? [{ 
         name: `${previousYear} ${isPreviousAfterCeremony ? 'Winners & ' : ''}Finalists`, 
-        href: `/winners-and-finalists-${previousYear}` 
+        href: `/winners-and-finalists-${previousYear}/` 
       }] : []),
       ...(thirdYear ? [{ 
         name: `${thirdYear} ${isThirdAfterCeremony ? 'Winners & ' : ''}Finalists`, 
-        href: `/winners-and-finalists-${thirdYear}` 
+        href: `/winners-and-finalists-${thirdYear}/` 
       }] : []),
-      { name: 'Finalist Archive', href: '/archive' }
+      { name: 'Finalist Archive', href: '/archive/' }
     ]
   },
-  { name: 'Categories', href: '/categories' },
+  { name: 'Categories', href: '/categories/' },
 ];
 
 const moreItems = [
-  { name: 'Travel & Accommodation', href: '/travel-accommodation' },
-  { name: 'Frequently Asked Questions', href: '/legal/faq' },
-  { name: 'About & History', href: '/about-xr-awards' },
-  { name: 'Sponsors & Partners', href: '/sponsors-and-partners' },
+  { name: 'Travel & Accommodation', href: '/travel-accommodation/' },
+  { name: 'Frequently Asked Questions', href: '/legal/faq/' },
+  { name: 'About & History', href: '/about-xr-awards/' },
+  { name: 'Sponsors & Partners', href: '/sponsors-and-partners/' },
 ];
 ---
 
