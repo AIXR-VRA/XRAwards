@@ -285,11 +285,11 @@ const { data: otherCategories } = await supabase
             {finalists.map((finalist) => (
               <div class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                 {finalist.image_url && (
-                  <div class="aspect-video bg-gray-200">
+                  <div class="aspect-video bg-gray-200 overflow-hidden">
                     <img
                       src={finalist.image_url}
                       alt={finalist.title}
-                      class="w-full h-full object-cover"
+                      class="w-full h-full object-cover transition-transform duration-500 ease-out hover:scale-105"
                     />
                   </div>
                 )}
