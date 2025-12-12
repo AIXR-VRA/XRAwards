@@ -79,7 +79,7 @@ const { data: winners } = await supabase
   .select('*')
   .eq('event_id', event.id)
   .eq('is_winner', true)
-  .order('placement', { ascending: true });
+  .order('created_at', { ascending: false });
 
 // Split winners into featured (first 3) and other winners
 const featuredWinners = winners?.slice(0, 3) || [];

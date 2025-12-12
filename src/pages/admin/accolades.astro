@@ -25,15 +25,19 @@ import Modal from '../../components/admin/Modal.astro';
 
     <!-- Legend -->
     <div class="bg-white border border-gray-200 rounded-lg p-4">
-      <p class="text-sm text-gray-500 mb-3">Main award categories (e.g., "XR Healthcare Solution of the Year") are managed in Categories. This page manages the accolade hierarchy linked to those categories.</p>
+      <p class="text-sm text-gray-500 mb-3">Accolades are grouped by their parent Category (e.g., "XR Healthcare Solution of the Year"). Categories are managed in the Categories page.</p>
       <div class="flex flex-wrap gap-6 text-sm">
         <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded bg-blue-500"></span>
+          <span class="text-gray-600">Category (parent award)</span>
+        </div>
+        <div class="flex items-center gap-2">
           <span class="w-3 h-3 rounded bg-emerald-500"></span>
-          <span class="text-gray-600">Accolade Type (e.g., A-A. Patient Care and Treatment)</span>
+          <span class="text-gray-600">Accolade Type (e.g., A-A. Patient Care)</span>
         </div>
         <div class="flex items-center gap-2">
           <span class="w-3 h-3 rounded bg-amber-500"></span>
-          <span class="text-gray-600">Individual Accolade (e.g., A-A01 Surgical Planning)</span>
+          <span class="text-gray-600">Individual Accolade (e.g., A-A01)</span>
         </div>
       </div>
     </div>
@@ -119,12 +123,33 @@ import Modal from '../../components/admin/Modal.astro';
             <span class="text-sm text-gray-700">Active</span>
           </label>
         </div>
+
+        <div id="categorySelectionContainer" class="hidden">
+          <label for="categoryId" class="block text-sm font-medium text-gray-700 mb-1">
+            Category *
+          </label>
+          <p class="text-xs text-gray-500 mb-2">Select which award category this accolade type belongs to</p>
+          <select
+            id="categoryId"
+            name="category_id"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">-- Select Category --</option>
+          </select>
+        </div>
       </form>
     </Modal>
   </div>
 </AdminLayout>
 
 <script>
+  interface Category {
+    id: string;
+    name: string;
+    slug: string;
+  }
+
   interface Accolade {
     id: string;
     parent_id: string | null;
@@ -134,10 +159,14 @@ import Modal from '../../components/admin/Modal.astro';
     sort_order: number;
     is_active: boolean;
     children?: Accolade[];
+    categories?: Category[];
   }
 
   let accolades: Accolade[] = [];
   let hierarchy: Accolade[] = [];
+  let categories: Category[] = [];
+  let accoladeCategories: Record<string, Category[]> = {};
+  let collapsedSections: Set<string> = new Set();
 
   // Get level based on parent chain
   function getLevel(accolade: Accolade): number {
@@ -172,20 +201,81 @@ import Modal from '../../components/admin/Modal.astro';
     }
   }
 
-  // Render accolades tree
+  // Group accolade types by category
+  function groupByCategory(items: Accolade[]): { category: Category | null; accolades: Accolade[] }[] {
+    const grouped: Map<string, { category: Category | null; accolades: Accolade[] }> = new Map();
+    const uncategorized: Accolade[] = [];
+    
+    for (const item of items) {
+      const itemCategories = item.categories || accoladeCategories[item.id] || [];
+      
+      if (itemCategories.length === 0) {
+        uncategorized.push(item);
+      } else {
+        for (const cat of itemCategories) {
+          if (!grouped.has(cat.id)) {
+            grouped.set(cat.id, { category: cat, accolades: [] });
+          }
+          grouped.get(cat.id)!.accolades.push(item);
+        }
+      }
+    }
+    
+    const result = Array.from(grouped.values()).sort((a, b) => 
+      (a.category?.name || '').localeCompare(b.category?.name || '')
+    );
+    
+    if (uncategorized.length > 0) {
+      result.push({ category: null, accolades: uncategorized });
+    }
+    
+    return result;
+  }
+
+  // Toggle section collapse
+  (window as any).toggleSection = (sectionId: string) => {
+    if (collapsedSections.has(sectionId)) {
+      collapsedSections.delete(sectionId);
+    } else {
+      collapsedSections.add(sectionId);
+    }
+    renderTree();
+  };
+
+  // Render accolades tree grouped by category
   function renderTree() {
     const container = document.getElementById('accoladesTree')!;
     
     if (hierarchy.length === 0) {
       container.innerHTML = `
         <div class="text-center py-12 bg-white border border-gray-200 rounded-lg">
-          <p class="text-gray-500">No accolades yet. Click "+ Add Main Award" to create one.</p>
+          <p class="text-gray-500">No accolades yet. Click "+ Add Accolade Type" to create one.</p>
         </div>
       `;
       return;
     }
 
-    container.innerHTML = hierarchy.map(item => renderAccoladeItem(item, 1)).join('');
+    const grouped = groupByCategory(hierarchy);
+    
+    container.innerHTML = grouped.map(group => {
+      const categoryId = group.category?.id || 'uncategorized';
+      const categoryName = group.category?.name || 'Uncategorized';
+      
+      return `
+        <div class="category-group mb-6">
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded bg-blue-500"></span>
+              <span class="font-semibold text-blue-900 text-sm">${escapeHtml(categoryName)}</span>
+              <span class="text-xs text-blue-600">(${group.accolades.length} type${group.accolades.length !== 1 ? 's' : ''})</span>
+            </div>
+          </div>
+          <div class="pl-4 space-y-2">
+            ${group.accolades.map(item => renderAccoladeItem(item, 1)).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
   }
 
   function renderAccoladeItem(item: Accolade, level: number): string {
@@ -194,29 +284,43 @@ import Modal from '../../components/admin/Modal.astro';
     const levelColor = getLevelColor(level);
     const levelBorder = getLevelBorder(level);
     const levelLabel = getLevelLabel(level);
-    const indent = (level - 1) * 24;
+    const isCollapsed = collapsedSections.has(item.id);
+    const childCount = item.children?.length || 0;
 
     return `
-      <div class="accolade-item" data-id="${item.id}" style="margin-left: ${indent}px;">
-        <div class="bg-white border border-gray-200 rounded-lg p-4 mb-2 border-l-4 ${levelBorder} ${!item.is_active ? 'opacity-50' : ''}">
+      <div class="accolade-item" data-id="${item.id}">
+        <div class="bg-white border border-gray-200 rounded-lg p-3 mb-2 border-l-4 ${levelBorder} ${!item.is_active ? 'opacity-50' : ''}">
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1">
+                ${hasChildren ? `
+                  <button 
+                    type="button"
+                    onclick="toggleSection('${item.id}')"
+                    class="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors p-0 border-0 bg-transparent cursor-pointer"
+                    title="${isCollapsed ? 'Expand' : 'Collapse'}"
+                  >
+                    <svg class="w-3 h-3 transition-transform ${isCollapsed ? '' : 'rotate-90'}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </button>
+                ` : '<span class="w-4"></span>'}
                 <span class="w-2 h-2 rounded ${levelColor}"></span>
                 <span class="text-xs font-medium text-gray-400 uppercase">${levelLabel}</span>
+                ${hasChildren ? `<span class="text-xs text-gray-400">(${childCount})</span>` : ''}
                 ${!item.is_active ? '<span class="text-xs text-red-500">(Inactive)</span>' : ''}
               </div>
-              <div class="flex items-baseline gap-2">
+              <div class="flex items-baseline gap-2 ${hasChildren ? 'ml-6' : 'ml-0'}">
                 <span class="font-mono text-sm text-gray-500">${escapeHtml(item.code)}</span>
-                <span class="font-medium text-gray-900">${escapeHtml(item.name)}</span>
+                <span class="font-medium text-gray-900 text-sm">${escapeHtml(item.name)}</span>
               </div>
-              ${item.description ? `<p class="text-sm text-gray-600 mt-1">${escapeHtml(item.description)}</p>` : ''}
+              ${item.description ? `<p class="text-xs text-gray-600 mt-1 ${hasChildren ? 'ml-6' : 'ml-0'}">${escapeHtml(item.description)}</p>` : ''}
             </div>
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-1 shrink-0">
               ${canAddChild ? `
                 <button
                   onclick="addChild('${item.id}')"
-                  class="px-3 py-1.5 text-xs text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                  class="px-2 py-1 text-xs text-amber-600 hover:bg-amber-50 rounded transition-colors"
                   title="Add Individual Accolade"
                 >
                   + Accolade
@@ -224,20 +328,24 @@ import Modal from '../../components/admin/Modal.astro';
               ` : ''}
               <button
                 onclick="editAccolade('${item.id}')"
-                class="px-3 py-1.5 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                class="px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
               >
                 Edit
               </button>
               <button
                 onclick="deleteAccolade('${item.id}', '${escapeHtml(item.name)}')"
-                class="px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded transition-colors"
+                class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors"
               >
                 Delete
               </button>
             </div>
           </div>
         </div>
-        ${hasChildren ? item.children!.map(child => renderAccoladeItem(child, level + 1)).join('') : ''}
+        ${hasChildren && !isCollapsed ? `
+          <div class="children-container ml-6 pl-4 border-l-2 border-gray-200">
+            ${item.children!.map(child => renderAccoladeItem(child, level + 1)).join('')}
+          </div>
+        ` : ''}
       </div>
     `;
   }
@@ -248,15 +356,47 @@ import Modal from '../../components/admin/Modal.astro';
     return div.innerHTML;
   }
 
+  // Load categories separately if needed
+  async function loadCategories() {
+    try {
+      const response = await fetch('/api/categories/');
+      const data = await response.json();
+      if (response.ok && data.categories) {
+        categories = data.categories.map((cat: any) => ({
+          id: cat.id,
+          name: cat.name,
+          slug: cat.slug
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  }
+
   // Load accolades
   async function loadAccolades() {
     try {
-      const response = await fetch('/api/accolades/');
+      const response = await fetch('/api/accolades/?include_categories=true');
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       
       accolades = data.accolades || [];
       hierarchy = data.hierarchy || [];
+      categories = data.categories || categories || [];
+      accoladeCategories = data.accoladeCategories || {};
+      
+      // If categories weren't returned, load them separately
+      if (categories.length === 0) {
+        await loadCategories();
+      }
+      
+      // Initialize all accolade types as collapsed by default
+      for (const item of hierarchy) {
+        if (item.children && item.children.length > 0) {
+          collapsedSections.add(item.id);
+        }
+      }
+      
       renderTree();
     } catch (error: any) {
       console.error('Error loading accolades:', error);
@@ -286,11 +426,42 @@ import Modal from '../../components/admin/Modal.astro';
     (document.getElementById('accoladeId') as HTMLInputElement).value = '';
     (document.getElementById('parentId') as HTMLInputElement).value = '';
     (document.getElementById('isActive') as HTMLInputElement).checked = true;
+    document.getElementById('categorySelectionContainer')!.classList.add('hidden');
+  }
+
+  // Populate category dropdown
+  function populateCategoryDropdown(selectedCategoryId: string = '') {
+    const select = document.getElementById('categoryId') as HTMLSelectElement;
+    
+    // Clear existing options except the first one
+    while (select.options.length > 1) {
+      select.remove(1);
+    }
+    
+    if (categories.length === 0) {
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'No categories available';
+      select.appendChild(option);
+      return;
+    }
+
+    categories.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat.id;
+      option.textContent = cat.name;
+      if (cat.id === selectedCategoryId) {
+        option.selected = true;
+      }
+      select.appendChild(option);
+    });
   }
 
   // Add root (accolade type)
   document.getElementById('addRootBtn')!.addEventListener('click', () => {
     (document.getElementById('parentId') as HTMLInputElement).value = '';
+    populateCategoryDropdown('');
+    document.getElementById('categorySelectionContainer')!.classList.remove('hidden');
     openModal('Add Accolade Type');
   });
 
@@ -300,6 +471,7 @@ import Modal from '../../components/admin/Modal.astro';
     if (!parent) return;
     
     (document.getElementById('parentId') as HTMLInputElement).value = parentId;
+    document.getElementById('categorySelectionContainer')!.classList.add('hidden');
     openModal(`Add Accolade under ${parent.code}`);
   };
 
@@ -310,6 +482,7 @@ import Modal from '../../components/admin/Modal.astro';
 
     const level = getLevel(accolade);
     const levelLabel = getLevelLabel(level);
+    const isLevel1 = level === 1;
 
     (document.getElementById('accoladeId') as HTMLInputElement).value = accolade.id;
     (document.getElementById('parentId') as HTMLInputElement).value = accolade.parent_id || '';
@@ -318,6 +491,16 @@ import Modal from '../../components/admin/Modal.astro';
     (document.getElementById('accoladeDescription') as HTMLTextAreaElement).value = accolade.description || '';
     (document.getElementById('sortOrder') as HTMLInputElement).value = accolade.sort_order?.toString() || '0';
     (document.getElementById('isActive') as HTMLInputElement).checked = accolade.is_active !== false;
+
+    // Show/hide category selection based on level
+    if (isLevel1) {
+      const selectedCategories = accolade.categories || accoladeCategories[accolade.id] || [];
+      const selectedCategoryId = selectedCategories.length > 0 ? selectedCategories[0].id : '';
+      populateCategoryDropdown(selectedCategoryId);
+      document.getElementById('categorySelectionContainer')!.classList.remove('hidden');
+    } else {
+      document.getElementById('categorySelectionContainer')!.classList.add('hidden');
+    }
 
     openModal(`Edit ${levelLabel}`);
   };
@@ -361,8 +544,20 @@ import Modal from '../../components/admin/Modal.astro';
     const formData = new FormData(form);
     const id = formData.get('id') as string;
     const parentId = formData.get('parent_id') as string;
+    const isLevel1 = !parentId;
     
-    const data = {
+    // Get selected category ID (only for level 1 accolades)
+    let categoryId: string | null = null;
+    if (isLevel1) {
+      categoryId = formData.get('category_id') as string;
+      if (!categoryId || categoryId === '') {
+        modalError.textContent = 'Please select a category';
+        modalError.classList.remove('hidden');
+        return;
+      }
+    }
+    
+    const data: any = {
       id: id || undefined,
       parent_id: parentId || null,
       code: formData.get('code'),
@@ -371,6 +566,11 @@ import Modal from '../../components/admin/Modal.astro';
       sort_order: formData.get('sort_order') ? parseInt(formData.get('sort_order') as string) : 0,
       is_active: (document.getElementById('isActive') as HTMLInputElement).checked,
     };
+
+    // Only include category_id for level 1 accolades
+    if (isLevel1) {
+      data.category_id = categoryId;
+    }
 
     try {
       const response = await fetch('/api/accolades/', {

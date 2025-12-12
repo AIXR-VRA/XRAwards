@@ -87,14 +87,14 @@ const { data: allFinalists } = await supabase
   .select('*')
   .eq('event_id', event.id)
   .order('is_winner', { ascending: false })
-  .order('placement', { ascending: true });
+  .order('created_at', { ascending: false });
 
 // Group finalists by category
 const categoriesWithFinalists = categories.map((category: any) => {
   const categoryFinalists = allFinalists?.filter((f: any) => f.category_id === category.id) || [];
   const winners = categoryFinalists.filter(f => f.is_winner);
   const finalists = categoryFinalists.filter(f => !f.is_winner);
-  const mainWinner = winners.find(w => w.placement === 1) || winners[0];
+  const mainWinner = winners[0]; // First winner by created_at
 
   return {
     ...category,

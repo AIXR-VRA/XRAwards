@@ -18,6 +18,7 @@ export const GET: APIRoute = async ({ url, cookies }) => {
     const level = searchParams.get('level'); // 1, 2, or 3
     const categoryId = searchParams.get('category_id'); // Filter by category's available accolade types
     const flat = searchParams.get('flat') === 'true'; // Return flat list instead of hierarchy
+    const includeCategories = searchParams.get('include_categories') === 'true'; // Include category mappings
 
     let query = supabase
       .from('accolades')
@@ -43,12 +44,51 @@ export const GET: APIRoute = async ({ url, cookies }) => {
       );
     }
 
-    // Build hierarchy
+    // Fetch category mappings if requested
+    let accoladeCategories: Record<string, any[]> = {};
+    let categories: any[] = [];
+    
+    if (includeCategories) {
+      // Get all category_accolades mappings with category details
+      const { data: categoryAccolades } = await supabase
+        .from('category_accolades')
+        .select(`
+          accolade_id,
+          categories (
+            id,
+            name,
+            slug
+          )
+        `);
+      
+      // Build a map of accolade_id -> categories
+      if (categoryAccolades) {
+        for (const ca of categoryAccolades) {
+          if (!accoladeCategories[ca.accolade_id]) {
+            accoladeCategories[ca.accolade_id] = [];
+          }
+          if (ca.categories) {
+            accoladeCategories[ca.accolade_id].push(ca.categories);
+          }
+        }
+      }
+      
+      // Also fetch all categories for grouping
+      const { data: allCategories } = await supabase
+        .from('categories')
+        .select('id, name, slug')
+        .order('name', { ascending: true });
+      
+      categories = allCategories || [];
+    }
+
+    // Build hierarchy with category info
     const buildHierarchy = (items: any[], parentId: string | null = null): any[] => {
       return items
         .filter(item => item.parent_id === parentId)
         .map(item => ({
           ...item,
+          categories: accoladeCategories[item.id] || [],
           children: buildHierarchy(items, item.id)
         }));
     };
@@ -70,7 +110,9 @@ export const GET: APIRoute = async ({ url, cookies }) => {
       JSON.stringify({ 
         accolades: data,
         hierarchy,
-        availableAccoladeIds
+        availableAccoladeIds,
+        categories: includeCategories ? categories : undefined,
+        accoladeCategories: includeCategories ? accoladeCategories : undefined
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
@@ -104,11 +146,20 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { parent_id, code, name, description, sort_order, is_active } = body;
+    const { parent_id, code, name, description, sort_order, is_active, category_id } = body;
 
     if (!code || !name) {
       return new Response(
         JSON.stringify({ error: 'Code and name are required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Only level 1 accolades (parent_id is null) can have category associations
+    const isLevel1 = !parent_id;
+    if (isLevel1 && category_id && typeof category_id !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'category_id must be a string' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -127,6 +178,27 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       .single();
 
     if (error) throw error;
+
+    // Update category association for level 1 accolades
+    if (isLevel1 && category_id !== undefined) {
+      // Delete existing associations
+      await supabase
+        .from('category_accolades')
+        .delete()
+        .eq('accolade_id', data.id);
+
+      // Add new association if category_id is provided
+      if (category_id) {
+        const { error: categoryError } = await supabase
+          .from('category_accolades')
+          .insert({
+            category_id,
+            accolade_id: data.id,
+          });
+
+        if (categoryError) console.error('Error adding category association:', categoryError);
+      }
+    }
 
     return new Response(
       JSON.stringify({ accolade: data, message: 'Accolade created successfully' }),
@@ -162,11 +234,20 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { id, parent_id, code, name, description, sort_order, is_active } = body;
+    const { id, parent_id, code, name, description, sort_order, is_active, category_id } = body;
 
     if (!id) {
       return new Response(
         JSON.stringify({ error: 'ID is required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Only level 1 accolades (parent_id is null) can have category associations
+    const isLevel1 = !parent_id;
+    if (isLevel1 && category_id !== undefined && category_id !== null && typeof category_id !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'category_id must be a string' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -186,6 +267,27 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
       .single();
 
     if (error) throw error;
+
+    // Update category association for level 1 accolades
+    if (isLevel1 && category_id !== undefined) {
+      // Delete existing associations
+      await supabase
+        .from('category_accolades')
+        .delete()
+        .eq('accolade_id', id);
+
+      // Add new association if category_id is provided
+      if (category_id) {
+        const { error: categoryError } = await supabase
+          .from('category_accolades')
+          .insert({
+            category_id,
+            accolade_id: id,
+          });
+
+        if (categoryError) console.error('Error updating category association:', categoryError);
+      }
+    }
 
     return new Response(
       JSON.stringify({ accolade: data, message: 'Accolade updated successfully' }),
