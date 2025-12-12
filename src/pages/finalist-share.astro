@@ -64,6 +64,10 @@ if (eventDetails?.id) {
 // Get the overlay frame image
 const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist_frame_2024_1760450572001.png');
 
+// Get the base crest images
+const crestBaseBlack = getR2ImageUrl('/images/2025/12/2025-crest-black_1765575914969.png');
+const crestBaseWhite = getR2ImageUrl('/images/2025/12/2025-crest-white_1765575931976.png');
+
 // Ensure we have valid data - if not, provide empty defaults
 const safeEventDetails = eventDetails || null;
 const safeFinalists = finalists || [];
@@ -114,7 +118,7 @@ const safeFinalists = finalists || [];
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <!-- Left: Selection Panel -->
+          <!-- Left: Selection Panel + Preview Images -->
           <div class="space-y-6">
             <!-- Search Input -->
             <div>
@@ -145,6 +149,53 @@ const safeFinalists = finalists || [];
               </div>
             </div>
 
+            <!-- Preview Section -->
+            <div class="space-y-6 pt-6 border-t border-gray-200">
+              <h3 class="text-xl font-semibold text-gray-900">Preview</h3>
+              
+              <!-- Image Preview -->
+              <div class="relative bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div id="finalist-preview" class="relative aspect-square bg-gray-100">
+                  <!-- Placeholder when no finalist selected -->
+                  <div id="preview-placeholder" class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-center">
+                      <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <p class="text-gray-500">Select a finalist to see preview</p>
+                    </div>
+                  </div>
+                  
+                  <!-- Finalist image container -->
+                  <div id="finalist-image-container" class="absolute inset-0 hidden">
+                    <!-- Finalist image will be loaded here -->
+                  </div>
+                  
+                </div>
+              </div>
+              
+              <!-- Download Button -->
+              <button 
+                id="download-btn"
+                class="w-full px-6 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled
+              >
+                Download Image
+              </button>
+
+              <!-- Accolade Crests Section -->
+              <div id="accolade-crests-section" class="hidden">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Accolade Crests</h3>
+                <div id="accolade-crests-container" class="space-y-4">
+                  <!-- Accolade crests will be generated here -->
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right: Selected Finalist Info + Social Media Copy -->
+          <div class="space-y-6">
             <!-- Selected Finalist Info -->
             <div id="selected-finalist-info" class="bg-gray-50 rounded-lg p-4 hidden">
               <h3 class="font-semibold text-gray-900 mb-2">Selected Finalist</h3>
@@ -227,50 +278,6 @@ const safeFinalists = finalists || [];
                     </button>
                   </div>
                 </div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Right: Preview Panel -->
-          <div class="space-y-6">
-            <h3 class="text-xl font-semibold text-gray-900">Preview</h3>
-            
-            <!-- Image Preview -->
-            <div class="relative bg-white rounded-2xl shadow-lg overflow-hidden">
-              <div id="finalist-preview" class="relative aspect-square bg-gray-100">
-                <!-- Placeholder when no finalist selected -->
-                <div id="preview-placeholder" class="absolute inset-0 flex items-center justify-center">
-                  <div class="text-center">
-                    <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <p class="text-gray-500">Select a finalist to see preview</p>
-                  </div>
-                </div>
-                
-                <!-- Finalist image container -->
-                <div id="finalist-image-container" class="absolute inset-0 hidden">
-                  <!-- Finalist image will be loaded here -->
-                </div>
-                
-              </div>
-            </div>
-            
-            <!-- Download Button -->
-            <button 
-              id="download-btn"
-              class="w-full px-6 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled
-            >
-              Download Image
-            </button>
-
-            <!-- Accolade Crests Section -->
-            <div id="accolade-crests-section" class="hidden">
-              <h3 class="text-xl font-semibold text-gray-900 mb-4">Accolade Crests</h3>
-              <div id="accolade-crests-container" class="space-y-4">
-                <!-- Accolade crests will be generated here -->
               </div>
             </div>
 
@@ -430,7 +437,7 @@ const safeFinalists = finalists || [];
   <Footer />
 </Layout>
 
-<script define:vars={{ finalists: safeFinalists, overlayFrame, eventDetails: safeEventDetails }}>
+<script define:vars={{ finalists: safeFinalists, overlayFrame, eventDetails: safeEventDetails, crestBaseBlack, crestBaseWhite }}>
   document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('finalist-search');
     const finalistsList = document.getElementById('finalists-list');
@@ -1167,7 +1174,7 @@ const safeFinalists = finalists || [];
     });
 
     // Accolade crest generation
-    async function generateAccoladeCrest(accolade, projectName, year) {
+    async function generateAccoladeCrest(accolade, projectName, year, variant = 'black') {
       return new Promise((resolve, reject) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -1180,136 +1187,78 @@ const safeFinalists = finalists || [];
         canvas.width = size;
         canvas.height = size;
 
-        // Background - transparent
-        ctx.clearRect(0, 0, size, size);
+        // Determine base image URL based on variant
+        const baseImageUrl = variant === 'white' ? crestBaseWhite : crestBaseBlack;
 
-        // Draw laurel wreath
-        ctx.strokeStyle = '#000000';
-        ctx.fillStyle = '#000000';
-        ctx.lineWidth = 6;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        // Draw left branch of wreath
-        ctx.beginPath();
-        ctx.moveTo(size * 0.25, size * 0.75);
-        // Curved branch going up and inward
-        ctx.bezierCurveTo(
-          size * 0.15, size * 0.5,
-          size * 0.2, size * 0.25,
-          size * 0.4, size * 0.2
-        );
-        ctx.stroke();
-
-        // Draw right branch of wreath
-        ctx.beginPath();
-        ctx.moveTo(size * 0.75, size * 0.75);
-        ctx.bezierCurveTo(
-          size * 0.85, size * 0.5,
-          size * 0.8, size * 0.25,
-          size * 0.6, size * 0.2
-        );
-        ctx.stroke();
-
-        // Add leaves along the branches
-        const addLeaves = (startX, startY, endX, endY, count) => {
-          for (let i = 0; i <= count; i++) {
-            const t = i / count;
-            const x = startX + (endX - startX) * t;
-            const y = startY + (endY - startY) * t;
-            const angle = Math.atan2(endY - startY, endX - startX);
-            
-            // Draw leaf
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate(angle);
-            ctx.beginPath();
-            ctx.ellipse(0, 0, 6, 12, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-          }
+        // Load base image
+        const baseImg = new Image();
+        baseImg.crossOrigin = 'anonymous';
+        
+        baseImg.onerror = () => {
+          reject(new Error('Failed to load base image'));
         };
 
-        // Add leaves to left branch
-        addLeaves(size * 0.25, size * 0.75, size * 0.4, size * 0.2, 8);
-        // Add leaves to right branch
-        addLeaves(size * 0.75, size * 0.75, size * 0.6, size * 0.2, 8);
+        baseImg.onload = () => {
+          // Use actual image dimensions instead of forcing square
+          const imgWidth = baseImg.width;
+          const imgHeight = baseImg.height;
+          canvas.width = imgWidth;
+          canvas.height = imgHeight;
 
-        // Text: "XR ACCOLADE" at top (centered above wreath opening)
-        ctx.fillStyle = '#000000';
-        ctx.font = 'bold 28px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.fillText('XR ACCOLADE', size * 0.5, size * 0.08);
+          // Draw the base image at its natural size
+          ctx.drawImage(baseImg, 0, 0, imgWidth, imgHeight);
 
-        // XR AWARDS logo area - stylized XR with AWARDS text
-        // Stylized "XR" (geometric, faceted design)
-        ctx.save();
-        ctx.translate(size * 0.35, size * 0.32);
-        ctx.fillStyle = '#999999';
-        ctx.strokeStyle = '#333333';
-        ctx.lineWidth = 2;
-        
-        // Draw stylized XR (simplified geometric design)
-        ctx.beginPath();
-        // X shape
-        ctx.moveTo(-15, -20);
-        ctx.lineTo(5, 0);
-        ctx.lineTo(-15, 20);
-        ctx.moveTo(15, -20);
-        ctx.lineTo(-5, 0);
-        ctx.lineTo(15, 20);
-        ctx.stroke();
-        
-        // R shape (simplified)
-        ctx.beginPath();
-        ctx.moveTo(25, -20);
-        ctx.lineTo(25, 20);
-        ctx.moveTo(25, 0);
-        ctx.arc(35, 0, 10, Math.PI / 2, -Math.PI / 2, false);
-        ctx.moveTo(35, 0);
-        ctx.lineTo(45, 20);
-        ctx.stroke();
-        
-        ctx.restore();
+          // Set text color based on variant (black text on black background, white text on white background)
+          // Black variant = black background → black text
+          // White variant = white background → white text
+          const textColor = variant === 'black' ? '#000000' : '#FFFFFF';
+          ctx.fillStyle = textColor;
+          ctx.textAlign = 'center';
+          
+          // Scale font sizes based on image dimensions
+          const scaleFactor = imgWidth / 800;
 
-        // "AWARDS" text
-        ctx.font = 'bold 32px sans-serif';
-        ctx.fillStyle = '#333333';
-        ctx.fillText('AWARDS', size * 0.6, size * 0.35);
+          // "XR Accolade" text at top (centered above wreath opening)
+          ctx.font = `bold ${28 * scaleFactor}px sans-serif`;
+          ctx.textBaseline = 'top';
+          ctx.fillText('XR Accolade', imgWidth * 0.5, imgHeight * 0.08);
 
-        // Accolade name (centered, can wrap)
-        ctx.font = 'bold 26px sans-serif';
-        ctx.fillStyle = '#000000';
-        const accoladeName = accolade.name || '';
-        const accoladeLines = wrapText(ctx, accoladeName, size * 0.75);
-        accoladeLines.forEach((line, index) => {
-          ctx.fillText(line, size * 0.5, size * 0.48 + (index * 32));
-        });
+          // Accolade name (centered, can wrap) - positioned below logo area where "ACCOLADE TYPE" was
+          ctx.font = `bold ${26 * scaleFactor}px sans-serif`;
+          ctx.textBaseline = 'top';
+          const accoladeName = accolade.name || '';
+          const accoladeLines = wrapText(ctx, accoladeName, imgWidth * 0.75);
+          accoladeLines.forEach((line, index) => {
+            ctx.fillText(line, imgWidth * 0.5, imgHeight * 0.48 + (index * 32 * scaleFactor));
+          });
 
-        // Project name (below accolade name)
-        ctx.font = '22px sans-serif';
-        ctx.fillStyle = '#000000';
-        const projectLines = wrapText(ctx, projectName, size * 0.8);
-        const accoladeHeight = accoladeLines.length * 32;
-        projectLines.forEach((line, index) => {
-          ctx.fillText(line, size * 0.5, size * 0.48 + accoladeHeight + 20 + (index * 28));
-        });
+          // Project name (below accolade name) - where "AWARD PROJECT NAME GOES HERE" was
+          ctx.font = `${22 * scaleFactor}px sans-serif`;
+          const projectLines = wrapText(ctx, projectName, imgWidth * 0.8);
+          const accoladeHeight = accoladeLines.length * 32 * scaleFactor;
+          projectLines.forEach((line, index) => {
+            ctx.fillText(line, imgWidth * 0.5, imgHeight * 0.48 + accoladeHeight + (20 * scaleFactor) + (index * 28 * scaleFactor));
+          });
 
-        // Year at bottom (within wreath base)
-        ctx.font = 'bold 26px sans-serif';
-        ctx.fillStyle = '#000000';
-        ctx.fillText(year, size * 0.5, size * 0.82);
+          // Year at bottom (within wreath base) - where "2025" was
+          ctx.font = `bold ${26 * scaleFactor}px sans-serif`;
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(year, imgWidth * 0.5, imgHeight * 0.82);
 
-        // Convert to blob URL
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            resolve(url);
-          } else {
-            reject(new Error('Failed to create blob'));
-          }
-        }, 'image/png');
+          // Convert to blob URL
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const url = URL.createObjectURL(blob);
+              resolve(url);
+            } else {
+              reject(new Error('Failed to create blob'));
+            }
+          }, 'image/png');
+        };
+
+        // Use proxy for base image to handle CORS
+        const proxyUrl = `/api/proxy-image/?url=${encodeURIComponent(baseImageUrl)}`;
+        baseImg.src = proxyUrl;
       });
     }
 
@@ -1354,38 +1303,78 @@ const safeFinalists = finalists || [];
       const eventYear = eventDetails?.event_year || '2025';
       const projectName = selectedFinalist.title || '';
 
-      // Generate crests for each accolade
-      const crestPromises = accolades.map(async (accolade) => {
+      // Generate crests for each accolade (both black and white versions)
+      const crestPromises = accolades.flatMap(async (accolade) => {
         try {
-          const crestUrl = await generateAccoladeCrest(accolade, projectName, eventYear);
-          return { accolade, crestUrl };
+          const [blackCrest, whiteCrest] = await Promise.all([
+            generateAccoladeCrest(accolade, projectName, eventYear, 'black'),
+            generateAccoladeCrest(accolade, projectName, eventYear, 'white')
+          ]);
+          return [
+            { accolade, crestUrl: blackCrest, variant: 'black' },
+            { accolade, crestUrl: whiteCrest, variant: 'white' }
+          ];
         } catch (error) {
           console.error('Error generating crest for accolade:', accolade, error);
-          return null;
+          return [];
         }
       });
 
-      const crests = await Promise.all(crestPromises);
-      const validCrests = crests.filter(Boolean);
+      const allCrests = await Promise.all(crestPromises);
+      const validCrests = allCrests.flat().filter(Boolean);
 
       if (validCrests.length === 0) {
         container.innerHTML = '<p class="text-sm text-gray-500">No accolade crests available</p>';
         return;
       }
 
-      container.innerHTML = validCrests.map((item) => `
+      // Group by accolade
+      const groupedCrests = {};
+      validCrests.forEach(item => {
+        const key = item.accolade.id || item.accolade.name;
+        if (!groupedCrests[key]) {
+          groupedCrests[key] = { accolade: item.accolade, variants: {} };
+        }
+        groupedCrests[key].variants[item.variant] = item.crestUrl;
+      });
+
+      container.innerHTML = Object.values(groupedCrests).map((group) => `
         <div class="bg-white rounded-lg border border-gray-200 p-4">
-          <h4 class="text-sm font-medium text-gray-700 mb-2">${item.accolade.name}</h4>
-          <div class="relative aspect-square bg-gray-50 rounded-lg overflow-hidden mb-3">
-            <img src="${item.crestUrl}" alt="${item.accolade.name} Crest" class="w-full h-full object-contain" />
+          <h4 class="text-sm font-medium text-gray-700 mb-3">${group.accolade.name}</h4>
+          
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <!-- Black Version -->
+            <div>
+              <p class="text-xs text-gray-500 mb-1 text-center">Black Version</p>
+              <div class="relative bg-gray-50 rounded-lg overflow-hidden mb-2 flex items-center justify-center p-2">
+                <img src="${group.variants.black}" alt="${group.accolade.name} Crest (Black)" class="max-w-full h-auto object-contain" />
+              </div>
+              <button 
+                class="w-full px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-lg hover:bg-gray-900 transition-colors download-crest-btn"
+                data-crest-url="${group.variants.black}"
+                data-accolade-name="${group.accolade.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}"
+                data-variant="black"
+              >
+                Download Black
+              </button>
+            </div>
+            
+            <!-- White Version -->
+            <div>
+              <p class="text-xs text-gray-500 mb-1 text-center">White Version</p>
+              <div class="relative bg-gray-900 rounded-lg overflow-hidden mb-2 flex items-center justify-center p-2">
+                <img src="${group.variants.white}" alt="${group.accolade.name} Crest (White)" class="max-w-full h-auto object-contain" />
+              </div>
+              <button 
+                class="w-full px-3 py-1.5 bg-gray-100 text-gray-800 text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors download-crest-btn border border-gray-300"
+                data-crest-url="${group.variants.white}"
+                data-accolade-name="${group.accolade.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}"
+                data-variant="white"
+              >
+                Download White
+              </button>
+            </div>
           </div>
-          <button 
-            class="w-full px-4 py-2 bg-[#4923EB] text-white text-sm font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors download-crest-btn"
-            data-crest-url="${item.crestUrl}"
-            data-accolade-name="${item.accolade.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}"
-          >
-            Download Crest
-          </button>
         </div>
       `).join('');
 
@@ -1394,10 +1383,11 @@ const safeFinalists = finalists || [];
         btn.addEventListener('click', () => {
           const url = btn.getAttribute('data-crest-url');
           const name = btn.getAttribute('data-accolade-name');
+          const variant = btn.getAttribute('data-variant');
           if (url) {
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${name}_accolade_crest_${eventYear}.png`;
+            a.download = `${name}_accolade_crest_${variant}_${eventYear}.png`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
