@@ -57,14 +57,13 @@ const { data: eventDetails } = await supabase
 const eventPhase = await getEventPhase();
 const ctaButton = await getCTAButton('header');
 
-// Fetch finalists for this category
+// Fetch finalists for this category (ordered alphabetically by title)
 const { data: finalists } = await supabase
   .from('finalists')
   .select('*')
   .eq('category_id', category.id)
   .order('is_winner', { ascending: false })
-  .order('placement', { ascending: true })
-  .order('created_at', { ascending: false });
+  .order('title', { ascending: true });
 
 // Fetch other categories for "Explore Other Categories" section
 const { data: otherCategories } = await supabase
@@ -286,11 +285,11 @@ const { data: otherCategories } = await supabase
             {finalists.map((finalist) => (
               <div class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                 {finalist.image_url && (
-                  <div class="aspect-video bg-gray-200">
+                  <div class="aspect-video bg-gray-200 overflow-hidden">
                     <img
                       src={finalist.image_url}
                       alt={finalist.title}
-                      class="w-full h-full object-cover"
+                      class="w-full h-full object-cover transition-transform duration-500 ease-out hover:scale-105"
                     />
                   </div>
                 )}

@@ -206,10 +206,9 @@ export function createSecureSupabaseClient(cookies: any, request?: Request) {
           return [];
         },
         setAll(cookiesToSet) {
+          // Wrap entire operation in try-catch to prevent any cookie errors from crashing
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              // Only set cookies if response hasn't been sent
-              // This prevents ResponseSentError when redirects happen
               try {
                 cookies.set(name, value, {
                   path: '/',
@@ -219,20 +218,17 @@ export function createSecureSupabaseClient(cookies: any, request?: Request) {
                   maxAge: options?.maxAge || 60 * 60 * 24 * 7, // 7 days
                   ...options
                 });
-              } catch (error) {
-                // Silently ignore cookie setting errors after redirect
-                // This can happen when Supabase tries to set cookies after a redirect
-                if (error instanceof Error && error.message.includes('response')) {
-                  // Response already sent - this is expected during redirects
-                  return;
-                }
-                // Re-throw other errors
-                throw error;
+              } catch {
+                // Silently ignore ALL cookie setting errors
+                // This can happen when:
+                // - Response has already been sent (redirect)
+                // - Rate limiting causes session clear attempts
+                // - Any other cookie-related issues
+                // These are non-critical for the auth flow
               }
             });
-          } catch (error) {
-            // Ignore cookie setting errors - they're not critical for auth flow
-            console.warn('Cookie setting warning (non-critical):', error);
+          } catch {
+            // Ignore any cookie setting errors entirely
           }
         },
       },

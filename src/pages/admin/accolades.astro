@@ -1,0 +1,596 @@
+---
+/**
+ * Admin Accolades Management Page
+ * Manage hierarchical accolades: Main Award → Type → Accolade
+ */
+import AdminLayout from '../../components/admin/AdminLayout.astro';
+import Modal from '../../components/admin/Modal.astro';
+---
+
+<AdminLayout title="Accolades" activePage="accolades">
+  <div class="space-y-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Accolades</h1>
+        <p class="mt-2 text-gray-600">Manage award accolades hierarchy</p>
+      </div>
+      <button
+        id="addRootBtn"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+      >
+        + Add Accolade Type
+      </button>
+    </div>
+
+    <!-- Legend -->
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <p class="text-sm text-gray-500 mb-3">Accolades are grouped by their parent Category (e.g., "XR Healthcare Solution of the Year"). Categories are managed in the Categories page.</p>
+      <div class="flex flex-wrap gap-6 text-sm">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded bg-blue-500"></span>
+          <span class="text-gray-600">Category (parent award)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded bg-emerald-500"></span>
+          <span class="text-gray-600">Accolade Type (e.g., A-A. Patient Care)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded bg-amber-500"></span>
+          <span class="text-gray-600">Individual Accolade (e.g., A-A01)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accolades Tree -->
+    <div id="accoladesTree" class="space-y-4">
+      <div class="text-center py-12">
+        <p class="text-gray-500">Loading accolades...</p>
+      </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <Modal id="accoladeModal" title="Add Accolade">
+      <form id="accoladeModalForm" class="space-y-4">
+        <input type="hidden" id="accoladeId" name="id" />
+        <input type="hidden" id="parentId" name="parent_id" />
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="code" class="block text-sm font-medium text-gray-700 mb-1">
+              Code *
+            </label>
+            <input
+              type="text"
+              id="code"
+              name="code"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., A, A-A, A-A01"
+            />
+          </div>
+
+          <div>
+            <label for="sortOrder" class="block text-sm font-medium text-gray-700 mb-1">
+              Sort Order
+            </label>
+            <input
+              type="number"
+              id="sortOrder"
+              name="sort_order"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              placeholder="0"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="accoladeName" class="block text-sm font-medium text-gray-700 mb-1">
+            Name *
+          </label>
+          <input
+            type="text"
+            id="accoladeName"
+            name="name"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+            placeholder="e.g., XR Healthcare Solution of the Year"
+          />
+        </div>
+
+        <div>
+          <label for="accoladeDescription" class="block text-sm font-medium text-gray-700 mb-1">
+            Description
+          </label>
+          <textarea
+            id="accoladeDescription"
+            name="description"
+            rows="2"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+            placeholder="Optional description..."
+          ></textarea>
+        </div>
+
+        <div>
+          <label class="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="isActive"
+              name="is_active"
+              checked
+              class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <span class="text-sm text-gray-700">Active</span>
+          </label>
+        </div>
+
+        <div id="categorySelectionContainer" class="hidden">
+          <label for="categoryId" class="block text-sm font-medium text-gray-700 mb-1">
+            Category *
+          </label>
+          <p class="text-xs text-gray-500 mb-2">Select which award category this accolade type belongs to</p>
+          <select
+            id="categoryId"
+            name="category_id"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">-- Select Category --</option>
+          </select>
+        </div>
+      </form>
+    </Modal>
+  </div>
+</AdminLayout>
+
+<script>
+  interface Category {
+    id: string;
+    name: string;
+    slug: string;
+  }
+
+  interface Accolade {
+    id: string;
+    parent_id: string | null;
+    code: string;
+    name: string;
+    description: string | null;
+    sort_order: number;
+    is_active: boolean;
+    children?: Accolade[];
+    categories?: Category[];
+  }
+
+  let accolades: Accolade[] = [];
+  let hierarchy: Accolade[] = [];
+  let categories: Category[] = [];
+  let accoladeCategories: Record<string, Category[]> = {};
+  let collapsedSections: Set<string> = new Set();
+
+  // Get level based on parent chain
+  function getLevel(accolade: Accolade): number {
+    if (!accolade.parent_id) return 1;
+    const parent = accolades.find(a => a.id === accolade.parent_id);
+    if (!parent) return 1;
+    return getLevel(parent) + 1;
+  }
+
+  // Get level color (2 levels only: Type and Individual Accolade)
+  function getLevelColor(level: number): string {
+    switch (level) {
+      case 1: return 'bg-emerald-500';
+      case 2: return 'bg-amber-500';
+      default: return 'bg-gray-500';
+    }
+  }
+
+  function getLevelBorder(level: number): string {
+    switch (level) {
+      case 1: return 'border-l-emerald-500';
+      case 2: return 'border-l-amber-500';
+      default: return 'border-l-gray-500';
+    }
+  }
+
+  function getLevelLabel(level: number): string {
+    switch (level) {
+      case 1: return 'Accolade Type';
+      case 2: return 'Individual Accolade';
+      default: return '';
+    }
+  }
+
+  // Group accolade types by category
+  function groupByCategory(items: Accolade[]): { category: Category | null; accolades: Accolade[] }[] {
+    const grouped: Map<string, { category: Category | null; accolades: Accolade[] }> = new Map();
+    const uncategorized: Accolade[] = [];
+    
+    for (const item of items) {
+      const itemCategories = item.categories || accoladeCategories[item.id] || [];
+      
+      if (itemCategories.length === 0) {
+        uncategorized.push(item);
+      } else {
+        for (const cat of itemCategories) {
+          if (!grouped.has(cat.id)) {
+            grouped.set(cat.id, { category: cat, accolades: [] });
+          }
+          grouped.get(cat.id)!.accolades.push(item);
+        }
+      }
+    }
+    
+    const result = Array.from(grouped.values()).sort((a, b) => 
+      (a.category?.name || '').localeCompare(b.category?.name || '')
+    );
+    
+    if (uncategorized.length > 0) {
+      result.push({ category: null, accolades: uncategorized });
+    }
+    
+    return result;
+  }
+
+  // Toggle section collapse
+  (window as any).toggleSection = (sectionId: string) => {
+    if (collapsedSections.has(sectionId)) {
+      collapsedSections.delete(sectionId);
+    } else {
+      collapsedSections.add(sectionId);
+    }
+    renderTree();
+  };
+
+  // Render accolades tree grouped by category
+  function renderTree() {
+    const container = document.getElementById('accoladesTree')!;
+    
+    if (hierarchy.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-12 bg-white border border-gray-200 rounded-lg">
+          <p class="text-gray-500">No accolades yet. Click "+ Add Accolade Type" to create one.</p>
+        </div>
+      `;
+      return;
+    }
+
+    const grouped = groupByCategory(hierarchy);
+    
+    container.innerHTML = grouped.map(group => {
+      const categoryId = group.category?.id || 'uncategorized';
+      const categoryName = group.category?.name || 'Uncategorized';
+      
+      return `
+        <div class="category-group mb-6">
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded bg-blue-500"></span>
+              <span class="font-semibold text-blue-900 text-sm">${escapeHtml(categoryName)}</span>
+              <span class="text-xs text-blue-600">(${group.accolades.length} type${group.accolades.length !== 1 ? 's' : ''})</span>
+            </div>
+          </div>
+          <div class="pl-4 space-y-2">
+            ${group.accolades.map(item => renderAccoladeItem(item, 1)).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderAccoladeItem(item: Accolade, level: number): string {
+    const hasChildren = item.children && item.children.length > 0;
+    const canAddChild = level < 2; // Only types (level 1) can have children
+    const levelColor = getLevelColor(level);
+    const levelBorder = getLevelBorder(level);
+    const levelLabel = getLevelLabel(level);
+    const isCollapsed = collapsedSections.has(item.id);
+    const childCount = item.children?.length || 0;
+
+    return `
+      <div class="accolade-item" data-id="${item.id}">
+        <div class="bg-white border border-gray-200 rounded-lg p-3 mb-2 border-l-4 ${levelBorder} ${!item.is_active ? 'opacity-50' : ''}">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                ${hasChildren ? `
+                  <button 
+                    type="button"
+                    onclick="toggleSection('${item.id}')"
+                    class="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors p-0 border-0 bg-transparent cursor-pointer"
+                    title="${isCollapsed ? 'Expand' : 'Collapse'}"
+                  >
+                    <svg class="w-3 h-3 transition-transform ${isCollapsed ? '' : 'rotate-90'}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </button>
+                ` : '<span class="w-4"></span>'}
+                <span class="w-2 h-2 rounded ${levelColor}"></span>
+                <span class="text-xs font-medium text-gray-400 uppercase">${levelLabel}</span>
+                ${hasChildren ? `<span class="text-xs text-gray-400">(${childCount})</span>` : ''}
+                ${!item.is_active ? '<span class="text-xs text-red-500">(Inactive)</span>' : ''}
+              </div>
+              <div class="flex items-baseline gap-2 ${hasChildren ? 'ml-6' : 'ml-0'}">
+                <span class="font-mono text-sm text-gray-500">${escapeHtml(item.code)}</span>
+                <span class="font-medium text-gray-900 text-sm">${escapeHtml(item.name)}</span>
+              </div>
+              ${item.description ? `<p class="text-xs text-gray-600 mt-1 ${hasChildren ? 'ml-6' : 'ml-0'}">${escapeHtml(item.description)}</p>` : ''}
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              ${canAddChild ? `
+                <button
+                  onclick="addChild('${item.id}')"
+                  class="px-2 py-1 text-xs text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                  title="Add Individual Accolade"
+                >
+                  + Accolade
+                </button>
+              ` : ''}
+              <button
+                onclick="editAccolade('${item.id}')"
+                class="px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
+              >
+                Edit
+              </button>
+              <button
+                onclick="deleteAccolade('${item.id}', '${escapeHtml(item.name)}')"
+                class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+        ${hasChildren && !isCollapsed ? `
+          <div class="children-container ml-6 pl-4 border-l-2 border-gray-200">
+            ${item.children!.map(child => renderAccoladeItem(child, level + 1)).join('')}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Load categories separately if needed
+  async function loadCategories() {
+    try {
+      const response = await fetch('/api/categories/');
+      const data = await response.json();
+      if (response.ok && data.categories) {
+        categories = data.categories.map((cat: any) => ({
+          id: cat.id,
+          name: cat.name,
+          slug: cat.slug
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  }
+
+  // Load accolades
+  async function loadAccolades() {
+    try {
+      const response = await fetch('/api/accolades/?include_categories=true');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      
+      accolades = data.accolades || [];
+      hierarchy = data.hierarchy || [];
+      categories = data.categories || categories || [];
+      accoladeCategories = data.accoladeCategories || {};
+      
+      // If categories weren't returned, load them separately
+      if (categories.length === 0) {
+        await loadCategories();
+      }
+      
+      // Initialize all accolade types as collapsed by default
+      for (const item of hierarchy) {
+        if (item.children && item.children.length > 0) {
+          collapsedSections.add(item.id);
+        }
+      }
+      
+      renderTree();
+    } catch (error: any) {
+      console.error('Error loading accolades:', error);
+      document.getElementById('accoladesTree')!.innerHTML = `
+        <div class="text-center py-12 bg-white border border-gray-200 rounded-lg">
+          <p class="text-red-500">Error loading accolades: ${error.message}</p>
+        </div>
+      `;
+    }
+  }
+
+  // Modal controls
+  const modal = document.getElementById('accoladeModal')!;
+  const modalTitle = document.getElementById('accoladeModalTitle')!;
+  const form = document.getElementById('accoladeModalForm') as HTMLFormElement;
+  const modalError = document.getElementById('accoladeModalError')!;
+
+  function openModal(title: string) {
+    modalTitle.textContent = title;
+    modalError.classList.add('hidden');
+    modal.classList.remove('hidden');
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    form.reset();
+    (document.getElementById('accoladeId') as HTMLInputElement).value = '';
+    (document.getElementById('parentId') as HTMLInputElement).value = '';
+    (document.getElementById('isActive') as HTMLInputElement).checked = true;
+    document.getElementById('categorySelectionContainer')!.classList.add('hidden');
+  }
+
+  // Populate category dropdown
+  function populateCategoryDropdown(selectedCategoryId: string = '') {
+    const select = document.getElementById('categoryId') as HTMLSelectElement;
+    
+    // Clear existing options except the first one
+    while (select.options.length > 1) {
+      select.remove(1);
+    }
+    
+    if (categories.length === 0) {
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'No categories available';
+      select.appendChild(option);
+      return;
+    }
+
+    categories.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat.id;
+      option.textContent = cat.name;
+      if (cat.id === selectedCategoryId) {
+        option.selected = true;
+      }
+      select.appendChild(option);
+    });
+  }
+
+  // Add root (accolade type)
+  document.getElementById('addRootBtn')!.addEventListener('click', () => {
+    (document.getElementById('parentId') as HTMLInputElement).value = '';
+    populateCategoryDropdown('');
+    document.getElementById('categorySelectionContainer')!.classList.remove('hidden');
+    openModal('Add Accolade Type');
+  });
+
+  // Add child (individual accolade under a type)
+  (window as any).addChild = (parentId: string) => {
+    const parent = accolades.find(a => a.id === parentId);
+    if (!parent) return;
+    
+    (document.getElementById('parentId') as HTMLInputElement).value = parentId;
+    document.getElementById('categorySelectionContainer')!.classList.add('hidden');
+    openModal(`Add Accolade under ${parent.code}`);
+  };
+
+  // Edit accolade
+  (window as any).editAccolade = (id: string) => {
+    const accolade = accolades.find(a => a.id === id);
+    if (!accolade) return;
+
+    const level = getLevel(accolade);
+    const levelLabel = getLevelLabel(level);
+    const isLevel1 = level === 1;
+
+    (document.getElementById('accoladeId') as HTMLInputElement).value = accolade.id;
+    (document.getElementById('parentId') as HTMLInputElement).value = accolade.parent_id || '';
+    (document.getElementById('code') as HTMLInputElement).value = accolade.code;
+    (document.getElementById('accoladeName') as HTMLInputElement).value = accolade.name;
+    (document.getElementById('accoladeDescription') as HTMLTextAreaElement).value = accolade.description || '';
+    (document.getElementById('sortOrder') as HTMLInputElement).value = accolade.sort_order?.toString() || '0';
+    (document.getElementById('isActive') as HTMLInputElement).checked = accolade.is_active !== false;
+
+    // Show/hide category selection based on level
+    if (isLevel1) {
+      const selectedCategories = accolade.categories || accoladeCategories[accolade.id] || [];
+      const selectedCategoryId = selectedCategories.length > 0 ? selectedCategories[0].id : '';
+      populateCategoryDropdown(selectedCategoryId);
+      document.getElementById('categorySelectionContainer')!.classList.remove('hidden');
+    } else {
+      document.getElementById('categorySelectionContainer')!.classList.add('hidden');
+    }
+
+    openModal(`Edit ${levelLabel}`);
+  };
+
+  // Delete accolade
+  (window as any).deleteAccolade = async (id: string, name: string) => {
+    const accolade = accolades.find(a => a.id === id);
+    const hasChildren = accolades.some(a => a.parent_id === id);
+    
+    let message = `Are you sure you want to delete "${name}"?`;
+    if (hasChildren) {
+      message += '\n\nWARNING: This will also delete all children (types and accolades).';
+    }
+    
+    if (!confirm(message)) return;
+
+    try {
+      const response = await fetch('/api/accolades/', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      await loadAccolades();
+    } catch (error: any) {
+      alert('Error deleting accolade: ' + error.message);
+    }
+  };
+
+  document.getElementById('accoladeModalCloseBtn')!.addEventListener('click', closeModal);
+  document.getElementById('accoladeModalCancelBtn')!.addEventListener('click', closeModal);
+
+  // Form submit
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    modalError.classList.add('hidden');
+
+    const formData = new FormData(form);
+    const id = formData.get('id') as string;
+    const parentId = formData.get('parent_id') as string;
+    const isLevel1 = !parentId;
+    
+    // Get selected category ID (only for level 1 accolades)
+    let categoryId: string | null = null;
+    if (isLevel1) {
+      categoryId = formData.get('category_id') as string;
+      if (!categoryId || categoryId === '') {
+        modalError.textContent = 'Please select a category';
+        modalError.classList.remove('hidden');
+        return;
+      }
+    }
+    
+    const data: any = {
+      id: id || undefined,
+      parent_id: parentId || null,
+      code: formData.get('code'),
+      name: formData.get('name'),
+      description: formData.get('description') || null,
+      sort_order: formData.get('sort_order') ? parseInt(formData.get('sort_order') as string) : 0,
+      is_active: (document.getElementById('isActive') as HTMLInputElement).checked,
+    };
+
+    // Only include category_id for level 1 accolades
+    if (isLevel1) {
+      data.category_id = categoryId;
+    }
+
+    try {
+      const response = await fetch('/api/accolades/', {
+        method: id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+
+      closeModal();
+      await loadAccolades();
+    } catch (error: any) {
+      modalError.textContent = error.message;
+      modalError.classList.remove('hidden');
+    }
+  });
+
+  // Initial load
+  loadAccolades();
+</script>
+

@@ -9,7 +9,7 @@ import { requireAdminAuth } from '../../utils/supabase';
 
 interface Props {
   title: string;
-  activePage?: 'dashboard' | 'media-library' | 'categories' | 'finalists' | 'tags' | 'events' | 'sponsors' | 'judges';
+  activePage?: 'dashboard' | 'media-library' | 'categories' | 'finalists' | 'tags' | 'events' | 'sponsors' | 'judges' | 'accolades';
 }
 
 const { title, activePage } = Astro.props;
@@ -33,6 +33,7 @@ const navItems = [
   { id: 'events', label: 'Event Details', href: '/admin/events/' },
   { id: 'media-library', label: 'Media Library', href: '/admin/media-library/' },
   { id: 'categories', label: 'Categories', href: '/admin/categories/' },
+  { id: 'accolades', label: 'Accolades', href: '/admin/accolades/' },
   { id: 'finalists', label: 'Finalists', href: '/admin/finalists/' },
   { id: 'sponsors', label: 'Sponsors', href: '/admin/sponsors/' },
   { id: 'judges', label: 'Judges', href: '/admin/judges/' },

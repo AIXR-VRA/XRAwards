@@ -84,14 +84,32 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
                 <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">
                   Category *
                 </label>
-                <select
-                  id="category_id"
-                  name="category_id"
-                  required
-                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-               >
-                  <option value="">Select a category...</option>
-                </select>
+                <div class="searchable-dropdown" data-select-id="category_id">
+                  <button
+                    type="button"
+                    id="category_id_btn"
+                    class="w-full px-2.5 py-2 border border-gray-300 rounded-lg bg-white text-left flex items-center justify-between focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  >
+                    <span id="category_id_text" class="text-gray-400">Select a category...</span>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <input type="hidden" id="category_id" name="category_id" required />
+                  <div id="category_id_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-300 max-h-60 overflow-hidden">
+                    <div class="px-2 py-1 border-b border-gray-200">
+                      <input
+                        type="text"
+                        id="category_id_search"
+                        placeholder="Search..."
+                        class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div id="category_id_options" class="max-h-48 overflow-y-auto">
+                      <!-- Options will be populated here -->
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div class="min-w-0">
@@ -151,35 +169,37 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
           <div class="space-y-4">
             <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Award Details</h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div class="min-w-0">
                 <label for="event_id" class="block text-sm font-medium text-gray-700 mb-1">
                   Event *
                 </label>
-                <select
-                  id="event_id"
-                  name="event_id"
-                  required
-                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-               >
-                  <option value="">Select event...</option>
-                </select>
-              </div>
-
-              <div class="min-w-0">
-                <label for="placement" class="block text-sm font-medium text-gray-700 mb-1">
-                  Placement
-                </label>
-                <input
-                  type="number"
-                  id="placement"
-                  name="placement"
-                  min="1"
-                  max="10"
-                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                  placeholder="1, 2, 3..."
-                />
-                <p class="text-xs text-gray-500 mt-1">1st, 2nd, 3rd, etc.</p>
+                <div class="searchable-dropdown relative" data-select-id="event_id">
+                  <button
+                    type="button"
+                    id="event_id_btn"
+                    class="w-full px-2.5 py-2 border border-gray-300 rounded-lg bg-white text-left flex items-center justify-between focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  >
+                    <span id="event_id_text" class="text-gray-400">Select event...</span>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <input type="hidden" id="event_id" name="event_id" required />
+                  <div id="event_id_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-300 max-h-60 overflow-hidden">
+                    <div class="px-2 py-1 border-b border-gray-200">
+                      <input
+                        type="text"
+                        id="event_id_search"
+                        placeholder="Search..."
+                        class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div id="event_id_options" class="max-h-48 overflow-y-auto">
+                      <!-- Options will be populated here -->
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div class="min-w-0">
@@ -197,6 +217,44 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
                 </label>
               </div>
             </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Awarded Accolades
+              </label>
+              <div class="border border-gray-300 rounded-lg p-3 min-h-[80px]">
+                <!-- Selected accolades display -->
+                <div id="selectedFinalistAccolades" class="flex flex-wrap gap-2 mb-2"></div>
+                
+                <!-- Accolade selector -->
+                <div class="searchable-dropdown relative" data-select-id="finalistAccoladeSelector">
+                  <button
+                    type="button"
+                    id="finalistAccoladeSelector_btn"
+                    class="w-full px-3 py-2 border border-gray-200 rounded text-sm bg-white text-left flex items-center justify-between focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  >
+                    <span id="finalistAccoladeSelector_text" class="text-gray-400">+ Add an accolade</span>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div id="finalistAccoladeSelector_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-300 max-h-60 overflow-hidden">
+                    <div class="px-2 py-1 border-b border-gray-200">
+                      <input
+                        type="text"
+                        id="finalistAccoladeSelector_search"
+                        placeholder="Search..."
+                        class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div id="finalistAccoladeSelector_options" class="max-h-48 overflow-y-auto">
+                      <!-- Options will be populated here -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Select accolades awarded to this finalist (filtered by category)</p>
+            </div>
           </div>
 
           <!-- Tags Section -->
@@ -212,13 +270,31 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
                 <div id="selectedFinalistTags" class="flex flex-wrap gap-2 mb-2"></div>
                 
                 <!-- Tag selector -->
-                <select
-                  id="finalistTagSelector"
-                  class="w-full px-3 py-2 border border-gray-200 rounded text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-               >
-                  <option value="">+ Add a tag</option>
-                  <!-- Tags will be loaded dynamically -->
-                </select>
+                <div class="searchable-dropdown relative" data-select-id="finalistTagSelector">
+                  <button
+                    type="button"
+                    id="finalistTagSelector_btn"
+                    class="w-full px-3 py-2 border border-gray-200 rounded text-sm bg-white text-left flex items-center justify-between focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  >
+                    <span id="finalistTagSelector_text" class="text-gray-400">+ Add a tag</span>
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div id="finalistTagSelector_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-300 max-h-60 overflow-hidden">
+                    <div class="px-2 py-1 border-b border-gray-200">
+                      <input
+                        type="text"
+                        id="finalistTagSelector_search"
+                        placeholder="Search..."
+                        class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div id="finalistTagSelector_options" class="max-h-48 overflow-y-auto">
+                      <!-- Options will be populated here -->
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -232,7 +308,10 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   let categories: any[] = [];
   let events: any[] = [];
   let availableTags: any[] = [];
+  let allAccolades: any[] = []; // All accolades (flat)
+  let availableAccolades: any[] = []; // Accolades available for selected category
   let selectedFinalistTags: any[] = [];
+  let selectedFinalistAccolades: any[] = [];
   let mediaSelectorId: string = '';
   let filters = { category: '', event: '', winner: '', search: '' };
   let pagination = { page: 1, limit: 50, total: 0, totalPages: 0 };
@@ -254,14 +333,161 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
 
   // Update tag selector dropdown
   function updateFinalistTagSelector() {
-    const tagSelector = document.getElementById('finalistTagSelector') as HTMLSelectElement;
     const selectedIds = selectedFinalistTags.map(t => t.id);
+    const options = availableTags
+      .filter(tag => !selectedIds.includes(tag.id))
+      .map(tag => ({ id: tag.id, text: tag.name }));
     
-    tagSelector.innerHTML = '<option value="">+ Add a tag</option>' + 
-      availableTags
-        .filter(tag => !selectedIds.includes(tag.id))
-        .map(tag => `<option value="${tag.id}">${tag.name}</option>`)
-        .join('');
+    if ((window as any).updateDropdown_finalistTagSelector) {
+      (window as any).updateDropdown_finalistTagSelector(options);
+    }
+  }
+
+  // Custom searchable dropdown functions
+  function initSearchableDropdown(dropdownId: string) {
+    const container = document.querySelector(`[data-select-id="${dropdownId}"]`) as HTMLElement;
+    if (!container) return;
+    
+    const button = document.getElementById(`${dropdownId}_btn`) as HTMLButtonElement;
+    const dropdown = document.getElementById(`${dropdownId}_dropdown`) as HTMLElement;
+    const searchInput = document.getElementById(`${dropdownId}_search`) as HTMLInputElement;
+    const optionsContainer = document.getElementById(`${dropdownId}_options`) as HTMLElement;
+    const hiddenInput = document.getElementById(dropdownId) as HTMLInputElement;
+    const textSpan = document.getElementById(`${dropdownId}_text`) as HTMLElement;
+    
+    if (!button || !dropdown || !optionsContainer) return;
+    
+    let isOpen = false;
+    let allOptions: { id: string; text: string }[] = [];
+    let filteredOptions: { id: string; text: string }[] = [];
+    
+    // Toggle dropdown
+    const toggleDropdown = () => {
+      isOpen = !isOpen;
+      if (isOpen) {
+        dropdown.classList.remove('hidden');
+        if (searchInput) {
+          setTimeout(() => searchInput.focus(), 0);
+        }
+      } else {
+        dropdown.classList.add('hidden');
+        if (searchInput) {
+          searchInput.value = '';
+          filteredOptions = [...allOptions];
+          renderOptions();
+        }
+      }
+    };
+    
+    // Render options
+    const renderOptions = () => {
+      if (filteredOptions.length === 0) {
+        optionsContainer.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">No options found</div>';
+        return;
+      }
+      
+      optionsContainer.innerHTML = filteredOptions.map(opt => `
+        <div
+          class="px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+          data-value="${opt.id}"
+        >
+          ${escapeHtml(opt.text)}
+        </div>
+      `).join('');
+      
+      // Add click handlers
+      optionsContainer.querySelectorAll('[data-value]').forEach(el => {
+        el.addEventListener('click', (e) => {
+          const value = (e.currentTarget as HTMLElement).dataset.value || '';
+          const option = allOptions.find(o => o.id === value);
+          if (option) {
+            selectOption(option);
+          }
+        });
+      });
+    };
+    
+    // Select an option
+    const selectOption = (option: { id: string; text: string }) => {
+      if (hiddenInput) {
+        hiddenInput.value = option.id;
+      }
+      if (textSpan) {
+        textSpan.textContent = option.text;
+        textSpan.classList.remove('text-gray-400');
+        textSpan.classList.add('text-gray-900');
+      }
+      toggleDropdown();
+      
+      // Trigger change event for existing handlers
+      if (dropdownId === 'category_id') {
+        const event = new Event('change', { bubbles: true });
+        if (hiddenInput) hiddenInput.dispatchEvent(event);
+      } else if (dropdownId === 'event_id') {
+        const event = new Event('change', { bubbles: true });
+        if (hiddenInput) hiddenInput.dispatchEvent(event);
+      } else if (dropdownId === 'finalistAccoladeSelector') {
+        (window as any).addFinalistAccolade(option.id);
+      } else if (dropdownId === 'finalistTagSelector') {
+        (window as any).addFinalistTag(option.id);
+      }
+    };
+    
+    // Update options
+    const updateOptions = (options: { id: string; text: string }[]) => {
+      allOptions = options;
+      filteredOptions = [...allOptions];
+      renderOptions();
+    };
+    
+    // Search filter
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const term = (e.target as HTMLInputElement).value.toLowerCase().trim();
+        filteredOptions = allOptions.filter(opt => 
+          opt.text.toLowerCase().includes(term)
+        );
+        renderOptions();
+      });
+    }
+    
+    // Button click
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleDropdown();
+    });
+    
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+      if (!container.contains(e.target as Node)) {
+        if (isOpen) {
+          toggleDropdown();
+        }
+      }
+    });
+    
+    // Store update function
+    (window as any)[`updateDropdown_${dropdownId}`] = updateOptions;
+    (window as any)[`setDropdownValue_${dropdownId}`] = (value: string, text: string) => {
+      if (hiddenInput) hiddenInput.value = value;
+      if (textSpan) {
+        textSpan.textContent = text;
+        textSpan.classList.remove('text-gray-400');
+        textSpan.classList.add('text-gray-900');
+      }
+    };
+    (window as any)[`clearDropdown_${dropdownId}`] = () => {
+      if (hiddenInput) hiddenInput.value = '';
+      if (textSpan) {
+        const placeholder = dropdownId === 'category_id' ? 'Select a category...' :
+                          dropdownId === 'event_id' ? 'Select event...' :
+                          dropdownId === 'finalistAccoladeSelector' ? '+ Add an accolade' :
+                          '+ Add a tag';
+        textSpan.textContent = placeholder;
+        textSpan.classList.remove('text-gray-900');
+        textSpan.classList.add('text-gray-400');
+      }
+    };
   }
 
   // Render selected tags as badges
@@ -310,6 +536,113 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     updateFinalistTagSelector();
   };
 
+  // Load all accolades
+  async function loadAccolades() {
+    try {
+      const response = await fetch('/api/accolades/?flat=true');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      
+      allAccolades = data.accolades || [];
+    } catch (error) {
+      console.error('Error loading accolades:', error);
+    }
+  }
+
+  // Update available accolades based on selected category
+  function updateAvailableAccolades(categoryId: string) {
+    if (!categoryId) {
+      availableAccolades = [];
+      updateFinalistAccoladeSelector();
+      return;
+    }
+
+    // Find the category and its associated accolade types (level 1 - no parent)
+    const category = categories.find(c => c.id === categoryId);
+    if (!category || !category.accolades || category.accolades.length === 0) {
+      availableAccolades = [];
+      updateFinalistAccoladeSelector();
+      return;
+    }
+
+    // Get the level 1 accolade type IDs for this category
+    const typeIds = category.accolades.map((a: any) => a.id);
+
+    // Find all level 2 accolades (individual accolades - children of the category's accolade types)
+    availableAccolades = allAccolades.filter(acc => 
+      acc.parent_id && typeIds.includes(acc.parent_id)
+    );
+
+    updateFinalistAccoladeSelector();
+  }
+
+  // Update accolade selector dropdown
+  function updateFinalistAccoladeSelector() {
+    const selectedIds = selectedFinalistAccolades.map(a => a.id);
+    
+    if (availableAccolades.length === 0) {
+      if ((window as any).updateDropdown_finalistAccoladeSelector) {
+        (window as any).updateDropdown_finalistAccoladeSelector([]);
+      }
+      return;
+    }
+    
+    const options = availableAccolades
+      .filter(acc => !selectedIds.includes(acc.id))
+      .map(acc => ({ id: acc.id, text: `${acc.code} - ${acc.name}` }));
+    
+    if ((window as any).updateDropdown_finalistAccoladeSelector) {
+      (window as any).updateDropdown_finalistAccoladeSelector(options);
+    }
+  }
+
+  // Render selected accolades as badges
+  function renderSelectedFinalistAccolades() {
+    const container = document.getElementById('selectedFinalistAccolades')!;
+    if (!container) return;
+    
+    if (selectedFinalistAccolades.length === 0) {
+      container.innerHTML = '<p class="text-sm text-gray-400 italic">No accolades awarded</p>';
+      return;
+    }
+    
+    container.innerHTML = selectedFinalistAccolades.map(acc => `
+      <span class="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm">
+        ${acc.code} - ${acc.name}
+        <button
+          type="button"
+          onclick="removeFinalistAccolade('${acc.id}')"
+          class="hover:bg-amber-200 rounded-full p-0.5 transition-colors"
+       >
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </span>
+    `).join('');
+  }
+
+  // Add accolade
+  (window as any).addFinalistAccolade = (accoladeId: string) => {
+    if (!accoladeId) return;
+    
+    const accolade = availableAccolades.find(a => a.id === accoladeId);
+    if (!accolade) return;
+    
+    if (!selectedFinalistAccolades.find(a => a.id === accoladeId)) {
+      selectedFinalistAccolades.push(accolade);
+      renderSelectedFinalistAccolades();
+      updateFinalistAccoladeSelector();
+    }
+  };
+
+  // Remove accolade
+  (window as any).removeFinalistAccolade = (accoladeId: string) => {
+    selectedFinalistAccolades = selectedFinalistAccolades.filter(a => a.id !== accoladeId);
+    renderSelectedFinalistAccolades();
+    updateFinalistAccoladeSelector();
+  };
+
   // Handle tag selector change
   document.addEventListener('DOMContentLoaded', () => {
     const tagSelector = document.getElementById('finalistTagSelector') as HTMLSelectElement;
@@ -319,11 +652,43 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
       target.value = '';
     });
 
+    const accoladeSelector = document.getElementById('finalistAccoladeSelector') as HTMLSelectElement;
+    accoladeSelector?.addEventListener('change', (e) => {
+      const target = e.target as HTMLSelectElement;
+      (window as any).addFinalistAccolade(target.value);
+      target.value = '';
+    });
+
+    // Update accolades when category changes
+    const categorySelect = document.getElementById('category_id') as HTMLSelectElement;
+    categorySelect?.addEventListener('change', (e) => {
+      const target = e.target as HTMLSelectElement;
+      // Clear selected accolades when category changes
+      selectedFinalistAccolades = [];
+      renderSelectedFinalistAccolades();
+      updateAvailableAccolades(target.value);
+    });
+
     // Get MediaSelector ID
     const selectorElement = document.querySelector('.media-selector-component') as HTMLElement;
     if (selectorElement) {
       mediaSelectorId = selectorElement.dataset.selectorId || '';
     }
+    
+    // Initialize custom searchable dropdowns
+    initSearchableDropdown('category_id');
+    initSearchableDropdown('event_id');
+    initSearchableDropdown('finalistAccoladeSelector');
+    initSearchableDropdown('finalistTagSelector');
+    
+    // Handle category change for accolades
+    const categoryInput = document.getElementById('category_id') as HTMLInputElement;
+    categoryInput?.addEventListener('change', (e) => {
+      const target = e.target as HTMLInputElement;
+      selectedFinalistAccolades = [];
+      renderSelectedFinalistAccolades();
+      updateAvailableAccolades(target.value);
+    });
   });
 
   // Load events
@@ -337,19 +702,22 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
 
       // Populate event filter
       const eventFilter = document.getElementById('eventFilter')!;
-      const eventSelect = document.getElementById('event_id')!;
 
       events.forEach(evt => {
         const option1 = document.createElement('option');
         option1.value = evt.id;
         option1.textContent = `${evt.event_name} (${evt.event_year})`;
         eventFilter.appendChild(option1);
-
-        const option2 = document.createElement('option');
-        option2.value = evt.id;
-        option2.textContent = `${evt.event_name} (${evt.event_year})`;
-        eventSelect.appendChild(option2);
       });
+      
+      // Update custom dropdown
+      const eventOptions = events.map(evt => ({
+        id: evt.id,
+        text: `${evt.event_name} (${evt.event_year})`
+      }));
+      if ((window as any).updateDropdown_event_id) {
+        (window as any).updateDropdown_event_id(eventOptions);
+      }
     } catch (error) {
       console.error('Error loading events:', error);
     }
@@ -373,12 +741,16 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
         option1.value = cat.id;
         option1.textContent = cat.name;
         categoryFilter.appendChild(option1);
-
-        const option2 = document.createElement('option');
-        option2.value = cat.id;
-        option2.textContent = cat.name;
-        categorySelect.appendChild(option2);
       });
+      
+      // Update custom dropdown
+      const categoryOptions = categories.map(cat => ({
+        id: cat.id,
+        text: cat.name
+      }));
+      if ((window as any).updateDropdown_category_id) {
+        (window as any).updateDropdown_category_id(categoryOptions);
+      }
     } catch (error) {
       console.error('Error loading categories:', error);
     }
@@ -483,9 +855,13 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
               <p class="text-sm text-gray-600 mt-1">
                 ${finalist.categories?.name ? escapeHtml(finalist.categories.name) : 'Uncategorized'}
                 ${finalist.event_details ? ` • ${finalist.event_details.event_year}` : ''}
-                ${finalist.placement ? ` • ${finalist.placement}${finalist.placement === 1 ? 'st' : finalist.placement === 2 ? 'nd' : finalist.placement === 3 ? 'rd' : 'th'} Place` : ''}
                 ${finalist.is_winner ? ' • <span class="text-yellow-600 font-medium">Winner</span>' : ''}
               </p>
+              ${finalist.accolades && finalist.accolades.length > 0 ? `
+                <div class="flex flex-wrap gap-1 mt-2">
+                  ${finalist.accolades.map((acc: any) => `<span class="inline-flex px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs">${escapeHtml(acc.code)}</span>`).join('')}
+                </div>
+              ` : ''}
               <p class="text-xs text-gray-400 mt-1 font-mono">ID: ${finalist.id}</p>
               ${finalist.description ? `<div class="text-sm text-gray-600 mt-2">${nl2br(finalist.description)}</div>` : ''}
               ${finalist.website_url ? `<a href="${escapeHtml(finalist.website_url)}" target="_blank" class="text-xs text-blue-600 hover:underline mt-1 inline-block">${escapeHtml(finalist.website_url)}</a>` : ''}
@@ -589,8 +965,19 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     form.reset();
     (document.getElementById('finalistId') as HTMLInputElement).value = '';
     selectedFinalistTags = [];
+    selectedFinalistAccolades = [];
+    availableAccolades = [];
     renderSelectedFinalistTags();
+    renderSelectedFinalistAccolades();
     updateFinalistTagSelector();
+    updateFinalistAccoladeSelector();
+    
+    // Clear custom dropdowns
+    ['category_id', 'event_id', 'finalistAccoladeSelector', 'finalistTagSelector'].forEach(id => {
+      if ((window as any)[`clearDropdown_${id}`]) {
+        (window as any)[`clearDropdown_${id}`]();
+      }
+    });
     
     // Clear media selector
     if (mediaSelectorId && (window as any)[`clearSelectedMedia_${mediaSelectorId}`]) {
@@ -600,8 +987,12 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
 
   document.getElementById('addFinalistBtn')!.addEventListener('click', () => {
     selectedFinalistTags = [];
+    selectedFinalistAccolades = [];
+    availableAccolades = [];
     renderSelectedFinalistTags();
+    renderSelectedFinalistAccolades();
     updateFinalistTagSelector();
+    updateFinalistAccoladeSelector();
     
     // Clear media selector
     if (mediaSelectorId && (window as any)[`clearSelectedMedia_${mediaSelectorId}`]) {
@@ -626,13 +1017,18 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     (document.getElementById('finalistDescription') as HTMLTextAreaElement).value = finalist.description || '';
     (document.getElementById('website_url') as HTMLInputElement).value = finalist.website_url || '';
     (document.getElementById('event_id') as HTMLSelectElement).value = finalist.event_id || '';
-    (document.getElementById('placement') as HTMLInputElement).value = finalist.placement || '';
     (document.getElementById('is_winner') as HTMLInputElement).checked = finalist.is_winner || false;
     
     // Set selected tags
     selectedFinalistTags = finalist.tags || [];
     renderSelectedFinalistTags();
     updateFinalistTagSelector();
+
+    // Update available accolades based on category and set selected
+    updateAvailableAccolades(finalist.category_id);
+    selectedFinalistAccolades = finalist.accolades || [];
+    renderSelectedFinalistAccolades();
+    updateFinalistAccoladeSelector();
 
     // Load media for this finalist
     try {
@@ -701,10 +1097,10 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
       event_id: formData.get('event_id'),
       image_url: selectedMedia.length> 0 ? selectedMedia[0].file_url : null,
       website_url: formData.get('website_url') || null,
-      placement: formData.get('placement') ? parseInt(formData.get('placement') as string) : null,
       is_winner: (document.getElementById('is_winner') as HTMLInputElement).checked,
       tag_ids: selectedFinalistTags.map(t => t.id),
       media_ids: selectedMedia.map((m: any) => m.id),
+      accolade_ids: selectedFinalistAccolades.map(a => a.id),
     };
 
     try {
@@ -729,6 +1125,6 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   (window as any).loadFinalists = loadFinalists;
 
   // Initial load
-  Promise.all([loadCategories(), loadEvents(), loadTags()]).then(() => loadFinalists(1));
+  Promise.all([loadCategories(), loadEvents(), loadTags(), loadAccolades()]).then(() => loadFinalists(1));
 </script>
 

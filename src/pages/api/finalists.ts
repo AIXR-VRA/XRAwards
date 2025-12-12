@@ -37,6 +37,10 @@ export const GET: APIRoute = async ({ url, cookies }) => {
         finalist_tags (
           tag_id,
           tags (*)
+        ),
+        finalist_accolades (
+          accolade_id,
+          accolades (*)
         )
       `, { count: 'exact' });
 
@@ -69,10 +73,11 @@ export const GET: APIRoute = async ({ url, cookies }) => {
 
     if (error) throw error;
 
-    // Transform the data to include tags array
+    // Transform the data to include tags and accolades arrays
     const finalistsWithTags = data?.map(finalist => ({
       ...finalist,
-      tags: finalist.finalist_tags?.map((ft: any) => ft.tags) || []
+      tags: finalist.finalist_tags?.map((ft: any) => ft.tags) || [],
+      accolades: finalist.finalist_accolades?.map((fa: any) => fa.accolades) || []
     }));
 
     return new Response(
@@ -118,7 +123,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { title, organization, description, category_id, event_id, image_url, website_url, is_winner, placement, tag_ids, media_ids } = body;
+    const { title, organization, description, category_id, event_id, image_url, website_url, is_winner, tag_ids, media_ids, accolade_ids } = body;
 
     if (!title || !category_id || !event_id) {
       return new Response(
@@ -129,7 +134,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     const { data, error } = await supabase
       .from('finalists')
-      .insert({ title, organization, description, category_id, event_id, image_url, website_url, is_winner, placement })
+      .insert({ title, organization, description, category_id, event_id, image_url, website_url, is_winner })
       .select('*, categories(*), event_details(*)')
       .single();
 
@@ -161,6 +166,20 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         .insert(mediaInserts);
 
       if (mediaError) console.error('Error adding media:', mediaError);
+    }
+
+    // Add accolades if provided
+    if (accolade_ids && accolade_ids.length > 0) {
+      const accoladeInserts = accolade_ids.map((accolade_id: string) => ({
+        finalist_id: data.id,
+        accolade_id,
+      }));
+
+      const { error: accoladeError } = await supabase
+        .from('finalist_accolades')
+        .insert(accoladeInserts);
+
+      if (accoladeError) console.error('Error adding accolades:', accoladeError);
     }
 
     return new Response(
@@ -198,7 +217,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { id, title, organization, description, category_id, event_id, image_url, website_url, is_winner, placement, tag_ids, media_ids } = body;
+    const { id, title, organization, description, category_id, event_id, image_url, website_url, is_winner, tag_ids, media_ids, accolade_ids } = body;
 
     if (!id) {
       return new Response(
@@ -209,7 +228,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
 
     const { data, error } = await supabase
       .from('finalists')
-      .update({ title, organization, description, category_id, event_id, image_url, website_url, is_winner, placement })
+      .update({ title, organization, description, category_id, event_id, image_url, website_url, is_winner })
       .eq('id', id)
       .select('*, categories(*), event_details(*)')
       .single();
@@ -259,6 +278,29 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
           .insert(mediaInserts);
 
         if (mediaError) console.error('Error updating media:', mediaError);
+      }
+    }
+
+    // Update accolades if provided
+    if (accolade_ids !== undefined) {
+      // Delete existing accolades
+      await supabase
+        .from('finalist_accolades')
+        .delete()
+        .eq('finalist_id', id);
+
+      // Add new accolades
+      if (accolade_ids.length > 0) {
+        const accoladeInserts = accolade_ids.map((accolade_id: string) => ({
+          finalist_id: id,
+          accolade_id,
+        }));
+
+        const { error: accoladeError } = await supabase
+          .from('finalist_accolades')
+          .insert(accoladeInserts);
+
+        if (accoladeError) console.error('Error updating accolades:', accoladeError);
       }
     }
 

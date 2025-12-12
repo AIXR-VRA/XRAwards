@@ -15,7 +15,7 @@ export const GET: APIRoute = async ({ cookies }) => {
     // GET doesn't require authentication for public data
     const supabase = createSecureSupabaseClient(cookies);
 
-    // Fetch categories with their tags and events
+    // Fetch categories with their tags, events, and accolade types
     const { data, error } = await supabase
       .from('categories')
       .select(`
@@ -27,17 +27,22 @@ export const GET: APIRoute = async ({ cookies }) => {
         category_events (
           event_id,
           event_details (*)
+        ),
+        category_accolades (
+          accolade_id,
+          accolades (*)
         )
       `)
       .order('name', { ascending: true });
 
     if (error) throw error;
 
-    // Transform the data to include tags and events arrays
+    // Transform the data to include tags, events, and accolades arrays
     const categoriesWithTags = data?.map(cat => ({
       ...cat,
       tags: cat.category_tags?.map((ct: any) => ct.tags) || [],
-      events: cat.category_events?.map((ce: any) => ce.event_details) || []
+      events: cat.category_events?.map((ce: any) => ce.event_details) || [],
+      accolades: cat.category_accolades?.map((ca: any) => ca.accolades) || []
     }));
 
     return new Response(
@@ -75,7 +80,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { name, slug, description, is_visible, sort_order, additional_info, tag_ids, event_ids } = body;
+    const { name, slug, description, is_visible, sort_order, additional_info, tag_ids, event_ids, accolade_ids } = body;
 
     if (!name) {
       return new Response(
@@ -127,6 +132,20 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       if (tagError) console.error('Error adding tags:', tagError);
     }
 
+    // Add accolade types if provided
+    if (accolade_ids && accolade_ids.length > 0) {
+      const accoladeInserts = accolade_ids.map((accolade_id: string) => ({
+        category_id: data.id,
+        accolade_id,
+      }));
+
+      const { error: accoladeError } = await supabase
+        .from('category_accolades')
+        .insert(accoladeInserts);
+
+      if (accoladeError) console.error('Error adding accolades:', accoladeError);
+    }
+
     return new Response(
       JSON.stringify({ category: data, message: 'Category created successfully' }),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
@@ -162,7 +181,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { id, name, slug, description, is_visible, sort_order, additional_info, tag_ids, event_ids } = body;
+    const { id, name, slug, description, is_visible, sort_order, additional_info, tag_ids, event_ids, accolade_ids } = body;
 
     if (!id) {
       return new Response(
@@ -230,6 +249,29 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
           .insert(tagInserts);
 
         if (tagError) console.error('Error updating tags:', tagError);
+      }
+    }
+
+    // Update accolade types if provided
+    if (accolade_ids !== undefined) {
+      // Delete existing accolade associations
+      await supabase
+        .from('category_accolades')
+        .delete()
+        .eq('category_id', id);
+
+      // Add new accolades
+      if (accolade_ids.length > 0) {
+        const accoladeInserts = accolade_ids.map((accolade_id: string) => ({
+          category_id: id,
+          accolade_id,
+        }));
+
+        const { error: accoladeError } = await supabase
+          .from('category_accolades')
+          .insert(accoladeInserts);
+
+        if (accoladeError) console.error('Error updating accolades:', accoladeError);
       }
     }
 
