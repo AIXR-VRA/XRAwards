@@ -2,7 +2,7 @@
 /**
  * Admin Finalists Management Page
  */
-import AdminLayout from '../../components/admin/AdminLayout.astro';
+ import AdminLayout from '../../components/admin/AdminLayout.astro';
 import Modal from '../../components/admin/Modal.astro';
 import MediaSelector from '../../components/admin/MediaSelector.astro';
 
@@ -1013,11 +1013,31 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     (document.getElementById('finalistId') as HTMLInputElement).value = finalist.id;
     (document.getElementById('title') as HTMLInputElement).value = finalist.title;
     (document.getElementById('organization') as HTMLInputElement).value = finalist.organization || '';
-    (document.getElementById('category_id') as HTMLSelectElement).value = finalist.category_id;
     (document.getElementById('finalistDescription') as HTMLTextAreaElement).value = finalist.description || '';
     (document.getElementById('website_url') as HTMLInputElement).value = finalist.website_url || '';
-    (document.getElementById('event_id') as HTMLSelectElement).value = finalist.event_id || '';
     (document.getElementById('is_winner') as HTMLInputElement).checked = finalist.is_winner || false;
+    
+    // Set category dropdown
+    if (finalist.category_id && finalist.categories?.name) {
+      if ((window as any).setDropdownValue_category_id) {
+        (window as any).setDropdownValue_category_id(finalist.category_id, finalist.categories.name);
+      }
+    } else if ((window as any).clearDropdown_category_id) {
+      (window as any).clearDropdown_category_id();
+    }
+    
+    // Set event dropdown
+    if (finalist.event_id) {
+      const event = events.find(e => e.id === finalist.event_id);
+      if (event && (window as any).setDropdownValue_event_id) {
+        const eventText = `${event.event_name} (${event.event_year})`;
+        (window as any).setDropdownValue_event_id(finalist.event_id, eventText);
+      } else if ((window as any).clearDropdown_event_id) {
+        (window as any).clearDropdown_event_id();
+      }
+    } else if ((window as any).clearDropdown_event_id) {
+      (window as any).clearDropdown_event_id();
+    }
     
     // Set selected tags
     selectedFinalistTags = finalist.tags || [];

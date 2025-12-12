@@ -56,14 +56,35 @@ const { data: eventDetails } = await supabase
 // Get current event phase and CTA button
 const eventPhase = await getEventPhase();
 const ctaButton = await getCTAButton('header');
+// For post-ceremony, use footer context which shows Register Interest
+const postCeremonyCTA = eventPhase.phase === 'post-ceremony' 
+  ? await getCTAButton('footer')
+  : ctaButton;
 
 // Fetch finalists for this category (ordered alphabetically by title)
-const { data: finalists } = await supabase
+const { data: allFinalists } = await supabase
   .from('finalists')
-  .select('*')
+  .select(`
+    *,
+    event_details (
+      event_year
+    )
+  `)
   .eq('category_id', category.id)
   .order('is_winner', { ascending: false })
   .order('title', { ascending: true });
+
+// Filter to only winners, sort by year descending, and limit to last 3
+const winners = (allFinalists || [])
+  .filter((f: any) => f.is_winner)
+  .sort((a: any, b: any) => {
+    const yearA = a.event_details?.event_year || 0;
+    const yearB = b.event_details?.event_year || 0;
+    return yearB - yearA; // Descending order (most recent first)
+  })
+  .slice(0, 3);
+
+const finalists = winners;
 
 // Fetch other categories for "Explore Other Categories" section
 const { data: otherCategories } = await supabase
@@ -73,6 +94,56 @@ const { data: otherCategories } = await supabase
   .neq('id', category.id)
   .order('sort_order', { ascending: true })
   .limit(3);
+
+// Fetch accolades for this category
+// Get accolade types (level 1) linked to this category via category_accolades
+const { data: categoryAccolades } = await supabase
+  .from('category_accolades')
+  .select(`
+    accolade_id,
+    accolades (
+      id,
+      code,
+      name,
+      description,
+      sort_order
+    )
+  `)
+  .eq('category_id', category.id);
+
+// Get all individual accolades (level 2) that are children of the category's accolade types
+const accoladeTypeIds = categoryAccolades?.map((ca: any) => ca.accolades?.id).filter(Boolean) || [];
+let allAccolades: any[] = [];
+if (accoladeTypeIds.length > 0) {
+  const { data } = await supabase
+    .from('accolades')
+    .select('*')
+    .in('parent_id', accoladeTypeIds)
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+    .order('code', { ascending: true });
+  allAccolades = data || [];
+}
+
+// Group individual accolades by their parent type
+const accoladesByType = (categoryAccolades || [])
+  .map((ca: any) => {
+    const type = ca.accolades;
+    if (!type) return null;
+    
+    const children = (allAccolades || []).filter((a: any) => a.parent_id === type.id);
+    
+    return {
+      type,
+      children: children.sort((a: any, b: any) => 
+        (a.code || '').localeCompare(b.code || '')
+      )
+    };
+  })
+  .filter(Boolean)
+  .sort((a: any, b: any) => 
+    (a.type.code || '').localeCompare(b.type.code || '')
+  );
 ---
 
 <Layout
@@ -143,6 +214,77 @@ const { data: otherCategories } = await supabase
                 </p>
               )}
             </div>
+
+            <!-- XR Accolades Accordion -->
+            {accoladesByType && accoladesByType.length > 0 && (
+              <div class="mb-12">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">
+                  XR Accolades
+                </h2>
+                <div class="category-description-text prose prose-sm max-w-none mb-6">
+                  <p>
+                    When you nominate for this category, you submit your work for the entire category. 
+                    Our judges evaluate all submissions and may award XR Accolades for standout work in specialized areas.
+                  </p>
+                  <p>
+                    These accolades recognize excellence in specific types of work within the category and can be awarded 
+                    in addition to winning the main category award. You cannot apply directly for accolades, they are 
+                    awarded at the judges' discretion based on the quality and specialization of your submission.
+                  </p>
+                </div>
+                <div class="space-y-2">
+                  {accoladesByType.map((group: any) => (
+                    <div class="border border-gray-200 rounded-lg overflow-hidden">
+                      <button
+                        class="accordion-button w-full px-6 py-4 text-left bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between group"
+                        type="button"
+                      >
+                        <div class="flex-1">
+                          <h3 class="font-semibold text-gray-900">
+                            {group.type.code} - {group.type.name}
+                          </h3>
+                          {group.type.description && (
+                            <p class="text-sm text-gray-600 mt-1">{group.type.description}</p>
+                          )}
+                        </div>
+                        <svg 
+                          class="accordion-icon w-5 h-5 text-gray-500 transition-transform duration-200 flex-shrink-0 ml-4"
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      <div 
+                        class="accordion-content overflow-hidden transition-all duration-200"
+                        style="max-height: 0;"
+                      >
+                        <div class="px-6 py-4 bg-white border-t border-gray-200">
+                          {group.children && group.children.length > 0 ? (
+                            <ul class="space-y-3">
+                              {group.children.map((accolade: any) => (
+                                <li class="flex items-start">
+                                  <span class="text-[#4923EB] font-mono text-sm mr-3 flex-shrink-0">{accolade.code}</span>
+                                  <div class="flex-1">
+                                    <span class="font-medium text-gray-900">{accolade.name}</span>
+                                    {accolade.description && (
+                                      <p class="text-sm text-gray-600 mt-1">{accolade.description}</p>
+                                    )}
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p class="text-sm text-gray-500">No individual accolades available for this type.</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div class="mb-8">
               <a
@@ -233,17 +375,17 @@ const { data: otherCategories } = await supabase
                     Awards Ceremony Complete
                   </h3>
                   <p class="text-gray-300 mb-6">
-                    The {eventDetails?.event_year || '2025'} awards ceremony has concluded. View the winners and celebrate the achievements of the XR community.
+                    The {eventDetails?.event_year || '2025'} awards ceremony has concluded. Register your interest for next year's awards and stay updated on upcoming opportunities.
                   </p>
                   <div class="space-y-4">
                     <a
-                      href={ctaButton.href}
+                      href={postCeremonyCTA.href}
                       class="block w-full text-center text-white px-6 py-3 rounded-lg font-semibold transition-colors"
                       style="background-color: #FF7733; color: #ffffff;"
                       onmouseover="this.style.backgroundColor='#ff6620'; this.style.color='#ffffff';"
                       onmouseout="this.style.backgroundColor='#FF7733'; this.style.color='#ffffff';"
                     >
-                      {ctaButton.text}
+                      {postCeremonyCTA.text}
                     </a>
                   </div>
                 </>
@@ -279,24 +421,30 @@ const { data: otherCategories } = await supabase
       <section class="py-16 bg-gray-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">
-            Previous Winners & Finalists
+            {finalists.length === 1 ? 'Previous Winner' : 'Previous Winners'}
           </h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class={`grid gap-8 ${
+            finalists.length === 1 
+              ? 'grid-cols-1 max-w-4xl mx-auto' 
+              : finalists.length === 2 
+              ? 'grid-cols-1 md:grid-cols-2' 
+              : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+          }`}>
             {finalists.map((finalist) => (
               <div class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                 {finalist.image_url && (
-                  <div class="aspect-video bg-gray-200 overflow-hidden">
+                  <div class="h-48 bg-gray-200 overflow-hidden">
                     <img
                       src={finalist.image_url}
                       alt={finalist.title}
-                      class="w-full h-full object-cover transition-transform duration-500 ease-out hover:scale-105"
+                      class="w-full h-full object-cover object-center transition-transform duration-500 ease-out hover:scale-105"
                     />
                   </div>
                 )}
                 <div class="p-6">
                   {finalist.is_winner && (
                     <span class="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full mb-3">
-                      Winner {finalist.year || ''}
+                      Winner {finalist.event_details?.event_year || ''}
                     </span>
                   )}
                   <h3 class="text-xl font-bold text-gray-900 mb-2">
@@ -445,4 +593,29 @@ const { data: otherCategories } = await supabase
   .category-card-item:hover .flex.items-center.justify-center {
     transform: rotate(45deg);
   }
+
+  .accordion-icon {
+    transition: transform 0.2s ease;
+  }
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const accordionButtons = document.querySelectorAll('.accordion-button');
+    
+    accordionButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const content = button.nextElementSibling as HTMLElement;
+        const icon = button.querySelector('.accordion-icon') as HTMLElement;
+        
+        if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+          content.style.maxHeight = '0';
+          icon.style.transform = 'rotate(0deg)';
+        } else {
+          content.style.maxHeight = content.scrollHeight + 'px';
+          icon.style.transform = 'rotate(180deg)';
+        }
+      });
+    });
+  });
+</script>
