@@ -37,6 +37,7 @@ if (eventDetails?.id) {
       image_url,
       description,
       category_id,
+      is_winner,
       categories!category_id (
         name,
         slug
@@ -64,9 +65,13 @@ if (eventDetails?.id) {
 // Get the overlay frame image
 const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist_frame_2024_1760450572001.png');
 
-// Get the base crest images
+// Get the base crest images for accolades
 const crestBaseBlack = getR2ImageUrl('/images/2025/12/xra-winner_crests-252_1765577014221.png');
 const crestBaseWhite = getR2ImageUrl('/images/2025/12/xra-winner_crests-253_1765577030174.png');
+
+// Get the base crest images for winners (using same images for now - can be replaced)
+const winnerCrestBaseBlack = getR2ImageUrl('/images/2025/12/xra-winner_crests-252_1765577014221.png');
+const winnerCrestBaseWhite = getR2ImageUrl('/images/2025/12/xra-winner_crests-253_1765577030174.png');
 
 // Ensure we have valid data - if not, provide empty defaults
 const safeEventDetails = eventDetails || null;
@@ -188,6 +193,14 @@ const safeFinalists = finalists || [];
                 <h3 class="text-xl font-semibold text-gray-900 mb-4">Accolade Crests</h3>
                 <div id="accolade-crests-container" class="space-y-4">
                   <!-- Accolade crests will be generated here -->
+                </div>
+              </div>
+
+              <!-- Winner Crests Section -->
+              <div id="winner-crests-section" class="hidden">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Winner Crest</h3>
+                <div id="winner-crests-container" class="space-y-4">
+                  <!-- Winner crests will be generated here -->
                 </div>
               </div>
             </div>
@@ -437,7 +450,25 @@ const safeFinalists = finalists || [];
   <Footer />
 </Layout>
 
-<script define:vars={{ finalists: safeFinalists, overlayFrame, eventDetails: safeEventDetails, crestBaseBlack, crestBaseWhite }}>
+<!-- Import crest generator utilities -->
+<script>
+  import { 
+    generateAccoladeCrest, 
+    generateWinnerCrest, 
+    wrapText, 
+    cleanupBlobUrls 
+  } from '../utils/crest-generator';
+  
+  // Expose to window for use by the main script
+  (window as any).CrestGenerator = {
+    generateAccoladeCrest,
+    generateWinnerCrest,
+    wrapText,
+    cleanupBlobUrls
+  };
+</script>
+
+<script define:vars={{ finalists: safeFinalists, overlayFrame, eventDetails: safeEventDetails, crestBaseBlack, crestBaseWhite, winnerCrestBaseBlack, winnerCrestBaseWhite }}>
   document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('finalist-search');
     const finalistsList = document.getElementById('finalists-list');
@@ -481,7 +512,8 @@ const safeFinalists = finalists || [];
         image: finalist.image_url ? `/api/proxy-image/?url=${encodeURIComponent(finalist.image_url)}` : '',
         description: finalist.description || '',
         category: finalist.categories ? finalist.categories.name : '',
-        accolades: (finalist.finalist_accolades || []).map((fa) => fa.accolades).filter(Boolean)
+        accolades: (finalist.finalist_accolades || []).map((fa) => fa.accolades).filter(Boolean),
+        isWinner: finalist.is_winner || false
       })) || [];
     }
 
@@ -562,7 +594,8 @@ const safeFinalists = finalists || [];
         image: finalist.image,
         description: finalist.description,
         category: finalist.category,
-        accolades: finalist.accolades || []
+        accolades: finalist.accolades || [],
+        isWinner: finalist.isWinner || false
       };
 
       // Update search input
@@ -574,6 +607,7 @@ const safeFinalists = finalists || [];
       enableDownload();
       updateThumbnailPreview();
       updateAccoladeCrests();
+      updateWinnerCrests();
     }
 
     function resetSelection() {
@@ -583,15 +617,10 @@ const safeFinalists = finalists || [];
         finalistImageContainer.currentBlobUrl = null;
       }
       
-      // Clean up accolade crest blob URLs
-      const accoladeCrestsContainer = document.getElementById('accolade-crests-container');
-      if (accoladeCrestsContainer) {
-        accoladeCrestsContainer.querySelectorAll('img').forEach(img => {
-          if (img.src.startsWith('blob:')) {
-            URL.revokeObjectURL(img.src);
-          }
-        });
-      }
+      // Clean up crest blob URLs using utility
+      const CrestGenerator = window.CrestGenerator;
+      CrestGenerator?.cleanupBlobUrls(document.getElementById('accolade-crests-container'));
+      CrestGenerator?.cleanupBlobUrls(document.getElementById('winner-crests-container'));
       
       selectedFinalist = null;
       customThumbnailFile = null;
@@ -604,6 +633,9 @@ const safeFinalists = finalists || [];
       
       const accoladeSection = document.getElementById('accolade-crests-section');
       accoladeSection?.classList.add('hidden');
+      
+      const winnerSection = document.getElementById('winner-crests-section');
+      winnerSection?.classList.add('hidden');
     }
 
     function updatePreview() {
@@ -1173,127 +1205,16 @@ const safeFinalists = finalists || [];
       }
     });
 
-    // Accolade crest generation
-    async function generateAccoladeCrest(accolade, projectName, year, variant = 'black') {
-      // Ensure Jura font is loaded before rendering
-      try {
-        await document.fonts.load('bold 72px Jura');
-      } catch (e) {
-        console.warn('Could not preload Jura font:', e);
-      }
+    // Crest config for generators
+    const accoladeConfig = {
+      baseImageBlack: crestBaseBlack,
+      baseImageWhite: crestBaseWhite
+    };
 
-      return new Promise((resolve, reject) => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Could not get canvas context'));
-          return;
-        }
-
-        const size = 800;
-        canvas.width = size;
-        canvas.height = size;
-
-        // Determine base image URL based on variant
-        const baseImageUrl = variant === 'white' ? crestBaseWhite : crestBaseBlack;
-
-        // Load base image
-        const baseImg = new Image();
-        baseImg.crossOrigin = 'anonymous';
-        
-        baseImg.onerror = () => {
-          reject(new Error('Failed to load base image'));
-        };
-
-        baseImg.onload = () => {
-          // Use actual image dimensions instead of forcing square
-          const imgWidth = baseImg.width;
-          const imgHeight = baseImg.height;
-          canvas.width = imgWidth;
-          canvas.height = imgHeight;
-
-          // Draw the base image at its natural size
-          ctx.drawImage(baseImg, 0, 0, imgWidth, imgHeight);
-
-          // Set text color based on variant (black text on black background, white text on white background)
-          // Black variant = black background → black text
-          // White variant = white background → white text
-          const textColor = variant === 'black' ? '#000000' : '#FFFFFF';
-          ctx.fillStyle = textColor;
-          ctx.textAlign = 'center';
-          
-          // Scale font sizes based on image dimensions
-          const scaleFactor = imgWidth / 800;
-
-          // "XR ACCOLADE" text at top (centered above wreath opening) - uppercase to match template
-          ctx.font = `bold ${32 * scaleFactor}px sans-serif`;
-          ctx.textBaseline = 'top';
-          ctx.fillText('XR ACCOLADE', imgWidth * 0.5, imgHeight * 0.05);
-
-          // Accolade name (centered, can wrap) - positioned below logo area where "ACCOLADE TYPE" was
-          // Uppercase and larger to match template
-          ctx.font = `bold ${36 * scaleFactor}px sans-serif`;
-          ctx.textBaseline = 'top';
-          const accoladeName = (accolade.name || '').toUpperCase();
-          const accoladeLines = wrapText(ctx, accoladeName, imgWidth * 0.75);
-          accoladeLines.forEach((line, index) => {
-            ctx.fillText(line, imgWidth * 0.5, imgHeight * 0.50 + (index * 40 * scaleFactor));
-          });
-
-          // Project name (below accolade name) - where "AWARD PROJECT NAME GOES HERE" was
-          // Uppercase and smaller to match template
-          // Reduce font size for longer names (over 33 characters)
-          const projectNameUpper = projectName.toUpperCase();
-          const projectFontSize = projectNameUpper.length > 33 ? 20 : 24;
-          ctx.font = `${projectFontSize * scaleFactor}px sans-serif`;
-          const projectLines = wrapText(ctx, projectNameUpper, imgWidth * 0.8);
-          const accoladeHeight = accoladeLines.length * 40 * scaleFactor;
-          const projectLineHeight = projectNameUpper.length > 33 ? 24 : 28;
-          projectLines.forEach((line, index) => {
-            ctx.fillText(line, imgWidth * 0.5, imgHeight * 0.50 + accoladeHeight + (15 * scaleFactor) + (index * projectLineHeight * scaleFactor));
-          });
-
-          // Year at bottom (within wreath base) - where "2025" was
-          // Using Jura font, larger size
-          ctx.font = `bold ${72 * scaleFactor}px Jura, sans-serif`;
-          ctx.textBaseline = 'middle';
-          ctx.fillText(year, imgWidth * 0.5, imgHeight * 0.86);
-
-          // Convert to blob URL
-          canvas.toBlob((blob) => {
-            if (blob) {
-              const url = URL.createObjectURL(blob);
-              resolve(url);
-            } else {
-              reject(new Error('Failed to create blob'));
-            }
-          }, 'image/png');
-        };
-
-        // Use proxy for base image to handle CORS
-        const proxyUrl = `/api/proxy-image/?url=${encodeURIComponent(baseImageUrl)}`;
-        baseImg.src = proxyUrl;
-      });
-    }
-
-    function wrapText(ctx, text, maxWidth) {
-      const words = text.split(' ');
-      const lines = [];
-      let currentLine = words[0];
-
-      for (let i = 1; i < words.length; i++) {
-        const word = words[i];
-        const width = ctx.measureText(currentLine + ' ' + word).width;
-        if (width < maxWidth) {
-          currentLine += ' ' + word;
-        } else {
-          lines.push(currentLine);
-          currentLine = word;
-        }
-      }
-      lines.push(currentLine);
-      return lines;
-    }
+    const winnerConfig = {
+      baseImageBlack: winnerCrestBaseBlack,
+      baseImageWhite: winnerCrestBaseWhite
+    };
 
     async function updateAccoladeCrests() {
       const container = document.getElementById('accolade-crests-container');
@@ -1318,11 +1239,12 @@ const safeFinalists = finalists || [];
       const projectName = selectedFinalist.title || '';
 
       // Generate crests for each accolade (both black and white versions)
+      const CrestGenerator = window.CrestGenerator;
       const crestPromises = accolades.flatMap(async (accolade) => {
         try {
           const [blackCrest, whiteCrest] = await Promise.all([
-            generateAccoladeCrest(accolade, projectName, eventYear, 'black'),
-            generateAccoladeCrest(accolade, projectName, eventYear, 'white')
+            CrestGenerator.generateAccoladeCrest(accolade, projectName, eventYear, 'black', accoladeConfig),
+            CrestGenerator.generateAccoladeCrest(accolade, projectName, eventYear, 'white', accoladeConfig)
           ]);
           return [
             { accolade, crestUrl: blackCrest, variant: 'black' },
@@ -1408,6 +1330,96 @@ const safeFinalists = finalists || [];
           }
         });
       });
+    }
+
+    async function updateWinnerCrests() {
+      const container = document.getElementById('winner-crests-container');
+      const section = document.getElementById('winner-crests-section');
+      
+      if (!container || !selectedFinalist) {
+        if (section) section.classList.add('hidden');
+        return;
+      }
+
+      // Only show winner crests if the finalist is a winner
+      if (!selectedFinalist.isWinner) {
+        section?.classList.add('hidden');
+        return;
+      }
+
+      section?.classList.remove('hidden');
+      container.innerHTML = '<p class="text-sm text-gray-500 mb-4">Generating winner crest...</p>';
+
+      const eventYear = eventDetails?.event_year || '2025';
+      const projectName = selectedFinalist.title || '';
+      const categoryName = selectedFinalist.category || '';
+
+      // Generate winner crests (both black and white versions)
+      const CrestGenerator = window.CrestGenerator;
+      try {
+        const [blackCrest, whiteCrest] = await Promise.all([
+          CrestGenerator.generateWinnerCrest(categoryName, projectName, eventYear, 'black', winnerConfig),
+          CrestGenerator.generateWinnerCrest(categoryName, projectName, eventYear, 'white', winnerConfig)
+        ]);
+
+        container.innerHTML = `
+          <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <h4 class="text-sm font-medium text-gray-700 mb-3">${categoryName} Winner</h4>
+            
+            <div class="grid grid-cols-2 gap-3 mb-3">
+              <!-- Black Version -->
+              <div>
+                <p class="text-xs text-gray-500 mb-1 text-center">Black Version</p>
+                <div class="relative bg-gray-50 rounded-lg overflow-hidden mb-2 flex items-center justify-center p-2">
+                  <img src="${blackCrest}" alt="Winner Crest (Black)" class="max-w-full h-auto object-contain" />
+                </div>
+                <button 
+                  class="w-full px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-lg hover:bg-gray-900 transition-colors download-winner-crest-btn"
+                  data-crest-url="${blackCrest}"
+                  data-variant="black"
+                >
+                  Download Black
+                </button>
+              </div>
+              
+              <!-- White Version -->
+              <div>
+                <p class="text-xs text-gray-500 mb-1 text-center">White Version</p>
+                <div class="relative bg-gray-900 rounded-lg overflow-hidden mb-2 flex items-center justify-center p-2">
+                  <img src="${whiteCrest}" alt="Winner Crest (White)" class="max-w-full h-auto object-contain" />
+                </div>
+                <button 
+                  class="w-full px-3 py-1.5 bg-gray-100 text-gray-800 text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors download-winner-crest-btn border border-gray-300"
+                  data-crest-url="${whiteCrest}"
+                  data-variant="white"
+                >
+                  Download White
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Add download handlers
+        container.querySelectorAll('.download-winner-crest-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const url = btn.getAttribute('data-crest-url');
+            const variant = btn.getAttribute('data-variant');
+            if (url) {
+              const projectSlug = projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `${projectSlug}_winner_crest_${variant}_${eventYear}.png`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            }
+          });
+        });
+      } catch (error) {
+        console.error('Error generating winner crest:', error);
+        container.innerHTML = '<p class="text-sm text-red-500">Error generating winner crest</p>';
+      }
     }
 
     // Initialize
