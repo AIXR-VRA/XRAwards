@@ -639,7 +639,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
 
     // Load media for this sponsor
     try {
-      const response = await fetch(`/api/media?sponsorIds=${id}`);
+      const response = await fetch(`/api/media/?sponsorIds=${id}`);
       const data = await response.json();
       if (response.ok && data.media && data.media.length> 0) {
         if (mediaSelectorId && (window as any)[`setSelectedMedia_${mediaSelectorId}`]) {

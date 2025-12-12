@@ -360,7 +360,7 @@ import Modal from '../../components/admin/Modal.astro';
         params.append('searchTerm', filters.search);
       }
       
-      const mediaRes = await fetch(`/api/media?${params.toString()}`);
+      const mediaRes = await fetch(`/api/media/?${params.toString()}`);
       const mediaData = await mediaRes.json();
 
       const newMedia = (mediaData.media || []).map((item: any) => ({
