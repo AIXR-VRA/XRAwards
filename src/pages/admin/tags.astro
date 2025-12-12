@@ -80,7 +80,7 @@ import Modal from '../../components/admin/Modal.astro';
   // Load tags
   async function loadTags() {
     try {
-      const response = await fetch('/api/tags');
+      const response = await fetch('/api/tags/');
       const data = await response.json();
       
       if (!response.ok) throw new Error(data.error);
@@ -201,7 +201,7 @@ import Modal from '../../components/admin/Modal.astro';
     if (!confirm(`Are you sure you want to delete "${name}"? This will remove it from all categories and finalists.`)) return;
 
     try {
-      const response = await fetch('/api/tags', {
+      const response = await fetch('/api/tags/', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
@@ -230,7 +230,7 @@ import Modal from '../../components/admin/Modal.astro';
     };
 
     try {
-      const response = await fetch('/api/tags', {
+      const response = await fetch('/api/tags/', {
         method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

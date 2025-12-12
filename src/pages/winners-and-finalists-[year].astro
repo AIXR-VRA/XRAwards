@@ -49,7 +49,7 @@ const { data: event } = await supabase
   .single();
 
 if (!event) {
-  return Astro.redirect('/404');
+  return Astro.redirect('/404/');
 }
 
 // Get categories for this event with their tags
@@ -222,8 +222,8 @@ const categoriesWithFinalists = categories.map((category: any) => {
                        )}
                      </div>
                      
-                     <!-- CTA Button - only show for active events -->
-                     {event.is_active && event.tickets_portal_url && (
+                     <!-- CTA Button - only show for active events before the event date -->
+                     {event.is_active && event.tickets_portal_url && event.awards_ceremony && new Date(event.awards_ceremony) > new Date() && (
                        <div class="flex-shrink-0">
                          <a
                            href={event.tickets_portal_url}
@@ -390,6 +390,7 @@ const categoriesWithFinalists = categories.map((category: any) => {
           <!-- All Finalists Grid -->
           {category.finalists.length > 0 && (
             <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-6">Finalists</h3>
               <div class="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
                 {category.finalists.map((finalist: any) => (
                   <div class="finalist-card">

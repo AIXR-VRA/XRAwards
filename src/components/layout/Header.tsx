@@ -9,12 +9,12 @@ export const Header: React.FC<HeaderProps> = ({ className = '' }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigation = [
-    { name: 'Categories', href: '/categories' },
-    { name: 'Judges', href: '/judges' },
-    { name: 'About', href: '/about-xr-awards' },
-    { name: 'Tickets', href: '/tickets' },
-    { name: 'Sponsors', href: '/sponsors-and-partners' },
-    { name: 'Archive', href: '/archive' },
+    { name: 'Categories', href: '/categories/' },
+    { name: 'Judges', href: '/judges/' },
+    { name: 'About', href: '/about-xr-awards/' },
+    { name: 'Tickets', href: '/tickets/' },
+    { name: 'Sponsors', href: '/sponsors-and-partners/' },
+    { name: 'Archive', href: '/archive/' },
   ];
 
   return (

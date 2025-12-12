@@ -24,6 +24,9 @@ interface ImportMetaEnv {
   readonly R2_SECRET_ACCESS_KEY?: string;
   readonly R2_BUCKET_NAME?: string;
 
+  // GitHub API (Server-side only - for triggering deployments)
+  readonly GH_PAT?: string;
+
   // Site Configuration
   readonly PUBLIC_SITE_URL?: string;
   readonly PUBLIC_SITE_NAME?: string;

@@ -13,11 +13,39 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
       <p class="mt-2 text-gray-600">Manage your XR Awards website</p>
     </div>
 
+    <!-- Publish Section -->
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900">Publish Changes</h2>
+          <p class="text-sm text-gray-600">Deploy your changes to the live site</p>
+        </div>
+        <button
+          id="publishBtn"
+          class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+        >
+          <span id="publishIcon">🚀</span>
+          <span id="publishText">Publish Changes</span>
+        </button>
+      </div>
+      
+      <!-- Status Message -->
+      <div id="publishStatus" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
+      
+      <!-- Recent Deployments -->
+      <div id="recentDeployments" class="mt-4 border-t border-gray-100 pt-4">
+        <h3 class="text-sm font-medium text-gray-700 mb-2">Recent Deployments</h3>
+        <div id="deploymentsList" class="space-y-2 text-sm text-gray-600">
+          <p class="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Quick Stats -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <!-- Media Upload Card -->
       <a
-        href="/admin/upload"
+        href="/admin/upload/"
         class="bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all"
      >
         <div class="flex items-center justify-between mb-4">
@@ -31,7 +59,7 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
 
       <!-- Categories Card -->
       <a
-        href="/admin/categories"
+        href="/admin/categories/"
         class="bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all"
      >
         <div class="flex items-center justify-between mb-4">
@@ -45,7 +73,7 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
 
       <!-- Finalists Card -->
       <a
-        href="/admin/finalists"
+        href="/admin/finalists/"
         class="bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all"
      >
         <div class="flex items-center justify-between mb-4">
@@ -63,7 +91,7 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
       <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
       <div class="space-y-3">
         <a
-          href="/admin/upload"
+          href="/admin/upload/"
           class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
        >
           <div class="flex items-center space-x-3">
@@ -73,7 +101,7 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
           <span class="text-gray-400">→</span>
         </a>
         <a
-          href="/admin/categories"
+          href="/admin/categories/"
           class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
        >
           <div class="flex items-center space-x-3">
@@ -83,7 +111,7 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
           <span class="text-gray-400">→</span>
         </a>
         <a
-          href="/admin/finalists"
+          href="/admin/finalists/"
           class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
        >
           <div class="flex items-center space-x-3">
@@ -102,9 +130,114 @@ import AdminLayout from '../../components/admin/AdminLayout.astro';
         <li>• Upload images to R2 storage for use on the website</li>
         <li>• Create and manage award categories</li>
         <li>• Add finalists and winners to showcase</li>
-        <li>• All changes are reflected immediately on the live site</li>
+        <li>• Click "Publish Changes" to deploy updates to the live site</li>
       </ul>
     </div>
   </div>
+
+  <script>
+    // Publish functionality
+    const publishBtn = document.getElementById('publishBtn') as HTMLButtonElement;
+    const publishIcon = document.getElementById('publishIcon');
+    const publishText = document.getElementById('publishText');
+    const publishStatus = document.getElementById('publishStatus');
+    const deploymentsList = document.getElementById('deploymentsList');
+
+    function formatDate(dateString: string): string {
+      const date = new Date(dateString);
+      return date.toLocaleString('en-GB', { 
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function getStatusBadge(status: string, conclusion: string | null): string {
+      if (status === 'completed') {
+        if (conclusion === 'success') {
+          return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">✓ Success</span>';
+        } else if (conclusion === 'failure') {
+          return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">✗ Failed</span>';
+        }
+        return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">' + conclusion + '</span>';
+      } else if (status === 'in_progress' || status === 'queued') {
+        return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">⏳ ' + status + '</span>';
+      }
+      return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">' + status + '</span>';
+    }
+
+    async function loadDeployments() {
+      try {
+        const response = await fetch('/api/publish/');
+        if (!response.ok) {
+          throw new Error('Failed to load deployments');
+        }
+        const data = await response.json();
+        
+        if (data.runs && data.runs.length > 0) {
+          deploymentsList!.innerHTML = data.runs.map((run: any) => `
+            <div class="flex items-center justify-between py-1">
+              <span>${formatDate(run.created_at)}</span>
+              ${getStatusBadge(run.status, run.conclusion)}
+            </div>
+          `).join('');
+        } else {
+          deploymentsList!.innerHTML = '<p class="text-gray-400">No recent deployments</p>';
+        }
+      } catch (error) {
+        deploymentsList!.innerHTML = '<p class="text-gray-400">Could not load deployment history</p>';
+      }
+    }
+
+    function showStatus(message: string, type: 'success' | 'error' | 'info') {
+      const colors = {
+        success: 'bg-green-50 text-green-800 border border-green-200',
+        error: 'bg-red-50 text-red-800 border border-red-200',
+        info: 'bg-blue-50 text-blue-800 border border-blue-200'
+      };
+      publishStatus!.className = `mt-4 p-3 rounded-lg text-sm ${colors[type]}`;
+      publishStatus!.textContent = message;
+      publishStatus!.classList.remove('hidden');
+    }
+
+    function setLoading(loading: boolean) {
+      publishBtn.disabled = loading;
+      if (loading) {
+        publishIcon!.textContent = '⏳';
+        publishText!.textContent = 'Publishing...';
+      } else {
+        publishIcon!.textContent = '🚀';
+        publishText!.textContent = 'Publish Changes';
+      }
+    }
+
+    publishBtn?.addEventListener('click', async () => {
+      setLoading(true);
+      publishStatus!.classList.add('hidden');
+
+      try {
+        const response = await fetch('/api/publish/', {
+          method: 'POST'
+        });
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          showStatus(data.message, 'success');
+          // Reload deployments after a short delay to show the new run
+          setTimeout(loadDeployments, 3000);
+        } else {
+          showStatus(data.error || 'Failed to trigger deployment', 'error');
+        }
+      } catch (error) {
+        showStatus('Network error. Please try again.', 'error');
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // Load deployments on page load
+    loadDeployments();
+  </script>
 </AdminLayout>
 
