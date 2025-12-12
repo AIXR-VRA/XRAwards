@@ -40,6 +40,15 @@ if (eventDetails?.id) {
       categories!category_id (
         name,
         slug
+      ),
+      finalist_accolades!finalist_id (
+        accolade_id,
+        accolades!accolade_id (
+          id,
+          code,
+          name,
+          description
+        )
       )
     `)
     .eq('event_id', eventDetails.id)
@@ -257,6 +266,14 @@ const safeFinalists = finalists || [];
               Download Image
             </button>
 
+            <!-- Accolade Crests Section -->
+            <div id="accolade-crests-section" class="hidden">
+              <h3 class="text-xl font-semibold text-gray-900 mb-4">Accolade Crests</h3>
+              <div id="accolade-crests-container" class="space-y-4">
+                <!-- Accolade crests will be generated here -->
+              </div>
+            </div>
+
             <!-- Social Media Copy -->
             <div id="social-copy" class="hidden">
               <h4 class="text-lg font-semibold text-gray-900 mb-3">Social Media Copy</h4>
@@ -456,7 +473,8 @@ const safeFinalists = finalists || [];
         organization: finalist.organization || '',
         image: finalist.image_url ? `/api/proxy-image/?url=${encodeURIComponent(finalist.image_url)}` : '',
         description: finalist.description || '',
-        category: finalist.categories ? finalist.categories.name : ''
+        category: finalist.categories ? finalist.categories.name : '',
+        accolades: (finalist.finalist_accolades || []).map((fa) => fa.accolades).filter(Boolean)
       })) || [];
     }
 
@@ -536,7 +554,8 @@ const safeFinalists = finalists || [];
         organization: finalist.organization,
         image: finalist.image,
         description: finalist.description,
-        category: finalist.category
+        category: finalist.category,
+        accolades: finalist.accolades || []
       };
 
       // Update search input
@@ -547,6 +566,7 @@ const safeFinalists = finalists || [];
       updateSocialCopy();
       enableDownload();
       updateThumbnailPreview();
+      updateAccoladeCrests();
     }
 
     function resetSelection() {
@@ -554,6 +574,16 @@ const safeFinalists = finalists || [];
       if (finalistImageContainer.currentBlobUrl) {
         URL.revokeObjectURL(finalistImageContainer.currentBlobUrl);
         finalistImageContainer.currentBlobUrl = null;
+      }
+      
+      // Clean up accolade crest blob URLs
+      const accoladeCrestsContainer = document.getElementById('accolade-crests-container');
+      if (accoladeCrestsContainer) {
+        accoladeCrestsContainer.querySelectorAll('img').forEach(img => {
+          if (img.src.startsWith('blob:')) {
+            URL.revokeObjectURL(img.src);
+          }
+        });
       }
       
       selectedFinalist = null;
@@ -564,6 +594,9 @@ const safeFinalists = finalists || [];
       hideSocialCopy();
       disableDownload();
       hideThumbnailSelection();
+      
+      const accoladeSection = document.getElementById('accolade-crests-section');
+      accoladeSection?.classList.add('hidden');
     }
 
     function updatePreview() {
@@ -1132,6 +1165,246 @@ const safeFinalists = finalists || [];
         handleFileUpload(files[0]);
       }
     });
+
+    // Accolade crest generation
+    async function generateAccoladeCrest(accolade, projectName, year) {
+      return new Promise((resolve, reject) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+
+        const size = 800;
+        canvas.width = size;
+        canvas.height = size;
+
+        // Background - transparent
+        ctx.clearRect(0, 0, size, size);
+
+        // Draw laurel wreath
+        ctx.strokeStyle = '#000000';
+        ctx.fillStyle = '#000000';
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // Draw left branch of wreath
+        ctx.beginPath();
+        ctx.moveTo(size * 0.25, size * 0.75);
+        // Curved branch going up and inward
+        ctx.bezierCurveTo(
+          size * 0.15, size * 0.5,
+          size * 0.2, size * 0.25,
+          size * 0.4, size * 0.2
+        );
+        ctx.stroke();
+
+        // Draw right branch of wreath
+        ctx.beginPath();
+        ctx.moveTo(size * 0.75, size * 0.75);
+        ctx.bezierCurveTo(
+          size * 0.85, size * 0.5,
+          size * 0.8, size * 0.25,
+          size * 0.6, size * 0.2
+        );
+        ctx.stroke();
+
+        // Add leaves along the branches
+        const addLeaves = (startX, startY, endX, endY, count) => {
+          for (let i = 0; i <= count; i++) {
+            const t = i / count;
+            const x = startX + (endX - startX) * t;
+            const y = startY + (endY - startY) * t;
+            const angle = Math.atan2(endY - startY, endX - startX);
+            
+            // Draw leaf
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 6, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          }
+        };
+
+        // Add leaves to left branch
+        addLeaves(size * 0.25, size * 0.75, size * 0.4, size * 0.2, 8);
+        // Add leaves to right branch
+        addLeaves(size * 0.75, size * 0.75, size * 0.6, size * 0.2, 8);
+
+        // Text: "XR ACCOLADE" at top (centered above wreath opening)
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 28px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText('XR ACCOLADE', size * 0.5, size * 0.08);
+
+        // XR AWARDS logo area - stylized XR with AWARDS text
+        // Stylized "XR" (geometric, faceted design)
+        ctx.save();
+        ctx.translate(size * 0.35, size * 0.32);
+        ctx.fillStyle = '#999999';
+        ctx.strokeStyle = '#333333';
+        ctx.lineWidth = 2;
+        
+        // Draw stylized XR (simplified geometric design)
+        ctx.beginPath();
+        // X shape
+        ctx.moveTo(-15, -20);
+        ctx.lineTo(5, 0);
+        ctx.lineTo(-15, 20);
+        ctx.moveTo(15, -20);
+        ctx.lineTo(-5, 0);
+        ctx.lineTo(15, 20);
+        ctx.stroke();
+        
+        // R shape (simplified)
+        ctx.beginPath();
+        ctx.moveTo(25, -20);
+        ctx.lineTo(25, 20);
+        ctx.moveTo(25, 0);
+        ctx.arc(35, 0, 10, Math.PI / 2, -Math.PI / 2, false);
+        ctx.moveTo(35, 0);
+        ctx.lineTo(45, 20);
+        ctx.stroke();
+        
+        ctx.restore();
+
+        // "AWARDS" text
+        ctx.font = 'bold 32px sans-serif';
+        ctx.fillStyle = '#333333';
+        ctx.fillText('AWARDS', size * 0.6, size * 0.35);
+
+        // Accolade name (centered, can wrap)
+        ctx.font = 'bold 26px sans-serif';
+        ctx.fillStyle = '#000000';
+        const accoladeName = accolade.name || '';
+        const accoladeLines = wrapText(ctx, accoladeName, size * 0.75);
+        accoladeLines.forEach((line, index) => {
+          ctx.fillText(line, size * 0.5, size * 0.48 + (index * 32));
+        });
+
+        // Project name (below accolade name)
+        ctx.font = '22px sans-serif';
+        ctx.fillStyle = '#000000';
+        const projectLines = wrapText(ctx, projectName, size * 0.8);
+        const accoladeHeight = accoladeLines.length * 32;
+        projectLines.forEach((line, index) => {
+          ctx.fillText(line, size * 0.5, size * 0.48 + accoladeHeight + 20 + (index * 28));
+        });
+
+        // Year at bottom (within wreath base)
+        ctx.font = 'bold 26px sans-serif';
+        ctx.fillStyle = '#000000';
+        ctx.fillText(year, size * 0.5, size * 0.82);
+
+        // Convert to blob URL
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            resolve(url);
+          } else {
+            reject(new Error('Failed to create blob'));
+          }
+        }, 'image/png');
+      });
+    }
+
+    function wrapText(ctx, text, maxWidth) {
+      const words = text.split(' ');
+      const lines = [];
+      let currentLine = words[0];
+
+      for (let i = 1; i < words.length; i++) {
+        const word = words[i];
+        const width = ctx.measureText(currentLine + ' ' + word).width;
+        if (width < maxWidth) {
+          currentLine += ' ' + word;
+        } else {
+          lines.push(currentLine);
+          currentLine = word;
+        }
+      }
+      lines.push(currentLine);
+      return lines;
+    }
+
+    async function updateAccoladeCrests() {
+      const container = document.getElementById('accolade-crests-container');
+      const section = document.getElementById('accolade-crests-section');
+      
+      if (!container || !selectedFinalist) {
+        if (section) section.classList.add('hidden');
+        return;
+      }
+
+      const accolades = selectedFinalist.accolades || [];
+      
+      if (accolades.length === 0) {
+        section?.classList.add('hidden');
+        return;
+      }
+
+      section?.classList.remove('hidden');
+      container.innerHTML = '<p class="text-sm text-gray-500 mb-4">Generating accolade crests...</p>';
+
+      const eventYear = eventDetails?.event_year || '2025';
+      const projectName = selectedFinalist.title || '';
+
+      // Generate crests for each accolade
+      const crestPromises = accolades.map(async (accolade) => {
+        try {
+          const crestUrl = await generateAccoladeCrest(accolade, projectName, eventYear);
+          return { accolade, crestUrl };
+        } catch (error) {
+          console.error('Error generating crest for accolade:', accolade, error);
+          return null;
+        }
+      });
+
+      const crests = await Promise.all(crestPromises);
+      const validCrests = crests.filter(Boolean);
+
+      if (validCrests.length === 0) {
+        container.innerHTML = '<p class="text-sm text-gray-500">No accolade crests available</p>';
+        return;
+      }
+
+      container.innerHTML = validCrests.map((item) => `
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+          <h4 class="text-sm font-medium text-gray-700 mb-2">${item.accolade.name}</h4>
+          <div class="relative aspect-square bg-gray-50 rounded-lg overflow-hidden mb-3">
+            <img src="${item.crestUrl}" alt="${item.accolade.name} Crest" class="w-full h-full object-contain" />
+          </div>
+          <button 
+            class="w-full px-4 py-2 bg-[#4923EB] text-white text-sm font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors download-crest-btn"
+            data-crest-url="${item.crestUrl}"
+            data-accolade-name="${item.accolade.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}"
+          >
+            Download Crest
+          </button>
+        </div>
+      `).join('');
+
+      // Add download handlers
+      container.querySelectorAll('.download-crest-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const url = btn.getAttribute('data-crest-url');
+          const name = btn.getAttribute('data-accolade-name');
+          if (url) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${name}_accolade_crest_${eventYear}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          }
+        });
+      });
+    }
 
     // Initialize
     initializeFinalists();
