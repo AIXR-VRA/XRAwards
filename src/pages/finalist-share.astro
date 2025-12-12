@@ -16,7 +16,7 @@ import { supabase } from '../utils/supabase';
 import { getEventPhase } from '../utils/date-checker';
 
 // Fetch active event details
-const { data: eventDetails } = await supabase
+const { data: eventDetails, error: eventError } = await supabase
   .from('event_details')
   .select('*')
   .eq('is_active', true)
@@ -25,26 +25,39 @@ const { data: eventDetails } = await supabase
 // Get current event phase
 const eventPhase = await getEventPhase();
 
-// Get finalists for the active event
-const { data: finalists } = await supabase
-  .from('finalists')
-  .select(`
-    id,
-    title,
-    organization,
-    image_url,
-    description,
-    category_id,
-    categories!category_id (
-      name,
-      slug
-    )
-  `)
-  .eq('event_id', eventDetails?.id)
-  .order('title', { ascending: true });
+// Get finalists for the active event (only if eventDetails exists)
+let finalists = [];
+if (eventDetails?.id) {
+  const { data: finalistsData, error: finalistsError } = await supabase
+    .from('finalists')
+    .select(`
+      id,
+      title,
+      organization,
+      image_url,
+      description,
+      category_id,
+      categories!category_id (
+        name,
+        slug
+      )
+    `)
+    .eq('event_id', eventDetails.id)
+    .order('title', { ascending: true });
+  
+  if (finalistsError) {
+    console.error('Error fetching finalists:', finalistsError);
+  } else {
+    finalists = finalistsData || [];
+  }
+}
 
 // Get the overlay frame image
 const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist_frame_2024_1760450572001.png');
+
+// Ensure we have valid data - if not, provide empty defaults
+const safeEventDetails = eventDetails || null;
+const safeFinalists = finalists || [];
 ---
 
 <Layout
@@ -116,7 +129,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
             <!-- Finalists List -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Finalists ({finalists?.length || 0} total)
+                Finalists ({safeFinalists?.length || 0} total)
               </label>
               <div id="finalists-list" class="border border-gray-300 rounded-lg max-h-80 overflow-y-auto">
                 <!-- Finalists will be populated here -->
@@ -400,7 +413,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
   <Footer />
 </Layout>
 
-<script define:vars={{ finalists, overlayFrame, eventDetails }}>
+<script define:vars={{ finalists: safeFinalists, overlayFrame, eventDetails: safeEventDetails }}>
   document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('finalist-search');
     const finalistsList = document.getElementById('finalists-list');
@@ -441,7 +454,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
         id: finalist.id,
         title: finalist.title || 'Untitled',
         organization: finalist.organization || '',
-        image: finalist.image_url ? `/api/proxy-image?url=${encodeURIComponent(finalist.image_url)}` : '',
+        image: finalist.image_url ? `/api/proxy-image/?url=${encodeURIComponent(finalist.image_url)}` : '',
         description: finalist.description || '',
         category: finalist.categories ? finalist.categories.name : ''
       })) || [];
@@ -628,7 +641,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
           };
           
           // Use proxy for overlay frame
-          const overlayProxyUrl = `/api/proxy-image?url=${encodeURIComponent(overlayFrame)}`;
+          const overlayProxyUrl = `/api/proxy-image/?url=${encodeURIComponent(overlayFrame)}`;
           overlayImg.src = overlayProxyUrl;
         };
         
