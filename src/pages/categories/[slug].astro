@@ -49,7 +49,7 @@ if (categoryError || !category) {
 // Fetch active event details for nomination URL and deadline
 const { data: eventDetails } = await supabase
   .from('event_details')
-  .select('nomination_portal_url, nominations_close, event_year')
+  .select('id, nomination_portal_url, nominations_close, event_year')
   .eq('is_active', true)
   .single();
 
@@ -87,10 +87,21 @@ const winners = (allFinalists || [])
 const finalists = winners;
 
 // Fetch other categories for "Explore Other Categories" section
+// Only show categories from the active event
 const { data: otherCategories } = await supabase
   .from('categories')
-  .select('*')
+  .select(`
+    *,
+    category_events!inner (
+      event_id,
+      event_details!inner (
+        id,
+        is_active
+      )
+    )
+  `)
   .eq('is_visible', true)
+  .eq('category_events.event_details.is_active', true)
   .neq('id', category.id)
   .order('sort_order', { ascending: true })
   .limit(3);
