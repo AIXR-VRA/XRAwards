@@ -578,6 +578,10 @@ const safeFinalists = finalists || [];
       
       // Trigger filter when year changes
       yearSelect.addEventListener('change', () => {
+        // Update URL with year
+        const finalistId = selectedFinalist ? selectedFinalist.id : null;
+        updateURL(finalistId, yearSelect.value);
+        
         if (searchInput.value.length >= 3) {
           filterFinalists(searchInput.value.toLowerCase());
         } else {
@@ -688,6 +692,19 @@ const safeFinalists = finalists || [];
       if (item) selectFinalist(item);
     });
 
+    function updateURL(finalistId, year) {
+      const url = new URL(window.location.href);
+      if (finalistId) {
+        url.searchParams.set('finalist', finalistId);
+      } else {
+        url.searchParams.delete('finalist');
+      }
+      if (year) {
+        url.searchParams.set('year', year);
+      }
+      window.history.pushState({}, '', url);
+    }
+
     function selectFinalist(element) {
       const finalistId = element.getAttribute('data-finalist-id');
       const finalist = allFinalists.find(f => f.id === finalistId);
@@ -695,6 +712,10 @@ const safeFinalists = finalists || [];
       
       selectedFinalist = { ...finalist };
       searchInput.value = selectedFinalist.title || '';
+      
+      // Update URL
+      const selectedYear = yearSelect ? yearSelect.value : null;
+      updateURL(finalistId, selectedYear);
       
       // Close the dropdown
       if (finalistsList) {
@@ -709,6 +730,44 @@ const safeFinalists = finalists || [];
       updateFinalistCrests();
       updateAccoladeCrests();
       updateWinnerCrests();
+    }
+
+    function selectFinalistById(finalistId) {
+      const finalist = allFinalists.find(f => f.id === finalistId);
+      if (!finalist) return;
+      
+      // Set the year dropdown to match the finalist's year
+      if (finalist.eventYear && yearSelect) {
+        yearSelect.value = finalist.eventYear.toString();
+      }
+      
+      selectedFinalist = { ...finalist };
+      searchInput.value = selectedFinalist.title || '';
+      
+      updatePreview();
+      updateSelectedInfo();
+      updateSocialCopy();
+      enableDownload();
+      updateThumbnailPreview();
+      updateFinalistCrests();
+      updateAccoladeCrests();
+      updateWinnerCrests();
+    }
+
+    function loadFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const yearParam = urlParams.get('year');
+      const finalistId = urlParams.get('finalist');
+      
+      // Set year if provided
+      if (yearParam && yearSelect) {
+        yearSelect.value = yearParam;
+      }
+      
+      // Load finalist if provided
+      if (finalistId && allFinalists.length > 0) {
+        selectFinalistById(finalistId);
+      }
     }
 
     function resetSelection() {
@@ -1208,6 +1267,9 @@ const safeFinalists = finalists || [];
     initializeFinalists();
     filteredFinalists = [];
     // Don't render initial list - wait for user to type 3+ characters
+    
+    // Load finalist from URL if present
+    loadFromURL();
   });
 </script>
 
