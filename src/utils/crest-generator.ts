@@ -148,6 +148,106 @@ export async function generateAccoladeCrest(
 }
 
 /**
+ * Generate a finalist crest image
+ */
+export async function generateFinalistCrest(
+  categoryName: string,
+  projectName: string,
+  year: string,
+  variant: 'black' | 'white',
+  config: CrestConfig
+): Promise<string> {
+  await ensureFontLoaded();
+
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      reject(new Error('Could not get canvas context'));
+      return;
+    }
+
+    const size = 800;
+    canvas.width = size;
+    canvas.height = size;
+
+    // Determine base image URL based on variant
+    const baseImageUrl = variant === 'white' ? config.baseImageWhite : config.baseImageBlack;
+
+    // Load base image
+    const baseImg = new Image();
+    baseImg.crossOrigin = 'anonymous';
+    
+    baseImg.onerror = () => {
+      reject(new Error('Failed to load base image'));
+    };
+
+    baseImg.onload = () => {
+      // Use actual image dimensions instead of forcing square
+      const imgWidth = baseImg.width;
+      const imgHeight = baseImg.height;
+      canvas.width = imgWidth;
+      canvas.height = imgHeight;
+
+      // Draw the base image at its natural size
+      ctx.drawImage(baseImg, 0, 0, imgWidth, imgHeight);
+
+      // Set text color based on variant
+      const textColor = variant === 'black' ? '#000000' : '#FFFFFF';
+      ctx.fillStyle = textColor;
+      ctx.textAlign = 'center';
+      
+      // Scale font sizes based on image dimensions
+      const scaleFactor = imgWidth / 800;
+
+      // "FINALIST" text at top
+      ctx.font = `bold ${32 * scaleFactor}px sans-serif`;
+      ctx.textBaseline = 'top';
+      ctx.fillText('FINALIST', imgWidth * 0.5, imgHeight * 0.05);
+
+      // Category name (centered, can wrap)
+      ctx.font = `bold ${36 * scaleFactor}px sans-serif`;
+      ctx.textBaseline = 'top';
+      const categoryUpper = (categoryName || '').toUpperCase();
+      const categoryLines = wrapText(ctx, categoryUpper, imgWidth * 0.75);
+      categoryLines.forEach((line, index) => {
+        ctx.fillText(line, imgWidth * 0.5, imgHeight * 0.50 + (index * 40 * scaleFactor));
+      });
+
+      // Project name (below category name)
+      const projectNameUpper = projectName.toUpperCase();
+      const projectFontSize = projectNameUpper.length > 33 ? 20 : 24;
+      ctx.font = `${projectFontSize * scaleFactor}px sans-serif`;
+      const projectLines = wrapText(ctx, projectNameUpper, imgWidth * 0.8);
+      const categoryHeight = categoryLines.length * 40 * scaleFactor;
+      const projectLineHeight = projectNameUpper.length > 33 ? 24 : 28;
+      projectLines.forEach((line, index) => {
+        ctx.fillText(line, imgWidth * 0.5, imgHeight * 0.50 + categoryHeight + (15 * scaleFactor) + (index * projectLineHeight * scaleFactor));
+      });
+
+      // Year at bottom (using Jura font)
+      ctx.font = `bold ${72 * scaleFactor}px Jura, sans-serif`;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(year, imgWidth * 0.5, imgHeight * 0.86);
+
+      // Convert to blob URL
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          resolve(url);
+        } else {
+          reject(new Error('Failed to create blob'));
+        }
+      }, 'image/png');
+    };
+
+    // Use proxy for base image to handle CORS
+    const proxyUrl = `/api/proxy-image/?url=${encodeURIComponent(baseImageUrl)}`;
+    baseImg.src = proxyUrl;
+  });
+}
+
+/**
  * Generate a winner crest image
  */
 export async function generateWinnerCrest(
@@ -200,10 +300,10 @@ export async function generateWinnerCrest(
       // Scale font sizes based on image dimensions
       const scaleFactor = imgWidth / 800;
 
-      // "XR WINNER" text at top
+      // "WINNER" text at top
       ctx.font = `bold ${32 * scaleFactor}px sans-serif`;
       ctx.textBaseline = 'top';
-      ctx.fillText('XR WINNER', imgWidth * 0.5, imgHeight * 0.05);
+      ctx.fillText('WINNER', imgWidth * 0.5, imgHeight * 0.05);
 
       // Category name (centered, can wrap)
       ctx.font = `bold ${36 * scaleFactor}px sans-serif`;
@@ -259,6 +359,22 @@ export async function generateAccoladeCrests(
   const [black, white] = await Promise.all([
     generateAccoladeCrest(accolade, projectName, year, 'black', config),
     generateAccoladeCrest(accolade, projectName, year, 'white', config)
+  ]);
+  return { black, white };
+}
+
+/**
+ * Generate both black and white versions of a finalist crest
+ */
+export async function generateFinalistCrests(
+  categoryName: string,
+  projectName: string,
+  year: string,
+  config: CrestConfig
+): Promise<{ black: string; white: string }> {
+  const [black, white] = await Promise.all([
+    generateFinalistCrest(categoryName, projectName, year, 'black', config),
+    generateFinalistCrest(categoryName, projectName, year, 'white', config)
   ]);
   return { black, white };
 }
