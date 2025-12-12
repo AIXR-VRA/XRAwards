@@ -1218,32 +1218,34 @@ const safeFinalists = finalists || [];
           // Scale font sizes based on image dimensions
           const scaleFactor = imgWidth / 800;
 
-          // "XR Accolade" text at top (centered above wreath opening)
-          ctx.font = `bold ${28 * scaleFactor}px sans-serif`;
+          // "XR ACCOLADE" text at top (centered above wreath opening) - uppercase to match template
+          ctx.font = `bold ${32 * scaleFactor}px sans-serif`;
           ctx.textBaseline = 'top';
-          ctx.fillText('XR Accolade', imgWidth * 0.5, imgHeight * 0.08);
+          ctx.fillText('XR ACCOLADE', imgWidth * 0.5, imgHeight * 0.05);
 
           // Accolade name (centered, can wrap) - positioned below logo area where "ACCOLADE TYPE" was
-          ctx.font = `bold ${26 * scaleFactor}px sans-serif`;
+          // Uppercase and larger to match template
+          ctx.font = `bold ${36 * scaleFactor}px sans-serif`;
           ctx.textBaseline = 'top';
-          const accoladeName = accolade.name || '';
+          const accoladeName = (accolade.name || '').toUpperCase();
           const accoladeLines = wrapText(ctx, accoladeName, imgWidth * 0.75);
           accoladeLines.forEach((line, index) => {
-            ctx.fillText(line, imgWidth * 0.5, imgHeight * 0.48 + (index * 32 * scaleFactor));
+            ctx.fillText(line, imgWidth * 0.5, imgHeight * 0.50 + (index * 40 * scaleFactor));
           });
 
           // Project name (below accolade name) - where "AWARD PROJECT NAME GOES HERE" was
-          ctx.font = `${22 * scaleFactor}px sans-serif`;
-          const projectLines = wrapText(ctx, projectName, imgWidth * 0.8);
-          const accoladeHeight = accoladeLines.length * 32 * scaleFactor;
+          // Uppercase and smaller to match template
+          ctx.font = `${24 * scaleFactor}px sans-serif`;
+          const projectLines = wrapText(ctx, projectName.toUpperCase(), imgWidth * 0.8);
+          const accoladeHeight = accoladeLines.length * 40 * scaleFactor;
           projectLines.forEach((line, index) => {
-            ctx.fillText(line, imgWidth * 0.5, imgHeight * 0.48 + accoladeHeight + (20 * scaleFactor) + (index * 28 * scaleFactor));
+            ctx.fillText(line, imgWidth * 0.5, imgHeight * 0.50 + accoladeHeight + (15 * scaleFactor) + (index * 28 * scaleFactor));
           });
 
           // Year at bottom (within wreath base) - where "2025" was
-          ctx.font = `bold ${26 * scaleFactor}px sans-serif`;
-          ctx.textBaseline = 'bottom';
-          ctx.fillText(year, imgWidth * 0.5, imgHeight * 0.82);
+          ctx.font = `bold ${48 * scaleFactor}px sans-serif`;
+          ctx.textBaseline = 'middle';
+          ctx.fillText(year, imgWidth * 0.5, imgHeight * 0.83);
 
           // Convert to blob URL
           canvas.toBlob((blob) => {
