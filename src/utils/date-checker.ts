@@ -312,9 +312,9 @@ export async function getCTAButton(context: 'header' | 'hero' | 'footer' | 'trav
       // Footer might be more generic
       if (eventPhase.phase === 'post-ceremony') {
         return {
-          text: 'View Archive',
-          href: '/archive/',
-          variant: 'outline' as const
+          text: 'Register Interest Now',
+          href: '/register-interest/',
+          variant: 'primary' as const
         };
       }
       return eventPhase.ctaButton;
