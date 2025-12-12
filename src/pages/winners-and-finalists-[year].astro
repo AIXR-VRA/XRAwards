@@ -81,27 +81,75 @@ const categories = categoryEvents
   .filter((cat: any) => cat?.is_visible)
   .sort((a: any, b: any) => (a?.sort_order || 0) - (b?.sort_order || 0)) || [];
 
-// Fetch finalists for this event
+// Fetch finalists for this event with their accolades
 const { data: allFinalists } = await supabase
   .from('finalists')
-  .select('*')
+  .select(`
+    *,
+    finalist_accolades (
+      accolade_id,
+      accolades (
+        id,
+        code,
+        name,
+        parent_id
+      )
+    )
+  `)
   .eq('event_id', event.id)
   .order('is_winner', { ascending: false })
-  .order('created_at', { ascending: false });
+  .order('title', { ascending: true });
+
+// Fetch all accolades for grouping (level 1 = types, level 2 = individual)
+const { data: allAccolades } = await supabase
+  .from('accolades')
+  .select('*')
+  .order('sort_order', { ascending: true })
+  .order('code', { ascending: true });
 
 // Group finalists by category
 const categoriesWithFinalists = categories.map((category: any) => {
   const categoryFinalists = allFinalists?.filter((f: any) => f.category_id === category.id) || [];
-  const winners = categoryFinalists.filter(f => f.is_winner);
-  const finalists = categoryFinalists.filter(f => !f.is_winner);
-  const mainWinner = winners[0]; // First winner by created_at
+  // Sort alphabetically by title
+  const sortedFinalists = [...categoryFinalists].sort((a, b) => 
+    (a.title || '').localeCompare(b.title || '')
+  );
+  const winners = sortedFinalists.filter(f => f.is_winner);
+  const finalists = sortedFinalists.filter(f => !f.is_winner);
+  const mainWinner = winners[0];
+
+  // Group accolades by their parent (level 1 type)
+  const accoladesByType: Record<string, { type: any; finalists: any[] }> = {};
+  
+  sortedFinalists.forEach(finalist => {
+    const finalistAccolades = finalist.finalist_accolades || [];
+    finalistAccolades.forEach((fa: any) => {
+      const accolade = fa.accolades;
+      if (accolade && accolade.parent_id) {
+        // This is a level 2 accolade, group by parent
+        const parentType = allAccolades?.find(a => a.id === accolade.parent_id);
+        if (parentType) {
+          if (!accoladesByType[parentType.id]) {
+            accoladesByType[parentType.id] = { type: parentType, finalists: [] };
+          }
+          accoladesByType[parentType.id].finalists.push({
+            finalist,
+            accolade
+          });
+        }
+      }
+    });
+  });
 
   return {
     ...category,
-    finalists: categoryFinalists,
+    finalists: sortedFinalists,
     winners,
     nonWinners: finalists,
-    mainWinner
+    mainWinner,
+    accoladesByType: Object.values(accoladesByType).sort((a, b) => 
+      (a.type.code || '').localeCompare(b.type.code || '')
+    )
   };
 }).filter(cat => cat.finalists.length > 0);
 
@@ -382,6 +430,42 @@ const categoriesWithFinalists = categories.map((category: any) => {
                        </a>
                     </div>
                   </div>
+                </div>
+              )}
+              
+              <!-- XR Accolades Section -->
+              {category.accoladesByType && category.accoladesByType.length > 0 && (
+                <div class="mt-6 bg-white border-2 border-gray-300 rounded-2xl p-6">
+                  <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    XR Accolades:
+                    <div class="relative inline-flex items-center group">
+                      <svg class="w-4 h-4 cursor-help" viewBox="0 0 24 24" aria-label="What are XR Accolades?">
+                        <circle cx="12" cy="12" r="10" fill="black"/>
+                        <path d="M12 8v1m0 4v4" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="12" cy="7" r="1.5" fill="white"/>
+                      </svg>
+                      <div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
+                        <p>Digital-only recognitions awarded by judges for standout work in specialized fields. You cannot apply directly. You can earn both a main award and accolades.</p>
+                        <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
+                  </h4>
+                  <ul class="space-y-3">
+                    {category.accoladesByType.map((group: any) => (
+                      group.finalists.map((item: any) => (
+                        <li class="flex items-start">
+                          <span class="text-gray-400 mr-2">•</span>
+                          <span class="text-gray-900">
+                            <span class="font-medium">{item.finalist.organization}</span>
+                            <span class="text-gray-600"> – </span>
+                            <span class="font-medium">{item.finalist.title}</span>
+                            <span class="text-gray-400"> | </span>
+                            <span class="text-[#4923EB]">{item.accolade.code} {item.accolade.name}</span>
+                          </span>
+                        </li>
+                      ))
+                    ))}
+                  </ul>
                 </div>
               )}
             </div>

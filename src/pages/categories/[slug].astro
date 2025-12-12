@@ -57,13 +57,13 @@ const { data: eventDetails } = await supabase
 const eventPhase = await getEventPhase();
 const ctaButton = await getCTAButton('header');
 
-// Fetch finalists for this category
+// Fetch finalists for this category (ordered alphabetically by title)
 const { data: finalists } = await supabase
   .from('finalists')
   .select('*')
   .eq('category_id', category.id)
   .order('is_winner', { ascending: false })
-  .order('created_at', { ascending: false });
+  .order('title', { ascending: true });
 
 // Fetch other categories for "Explore Other Categories" section
 const { data: otherCategories } = await supabase
