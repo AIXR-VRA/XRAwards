@@ -596,6 +596,7 @@ const accoladesByType = (categoryAccolades || [])
 
   .accordion-icon {
     transition: transform 0.2s ease;
+    transform: rotate(-90deg);
   }
 </style>
 
@@ -610,10 +611,10 @@ const accoladesByType = (categoryAccolades || [])
         
         if (content.style.maxHeight && content.style.maxHeight !== '0px') {
           content.style.maxHeight = '0';
-          icon.style.transform = 'rotate(0deg)';
+          icon.style.transform = 'rotate(-90deg)';
         } else {
           content.style.maxHeight = content.scrollHeight + 'px';
-          icon.style.transform = 'rotate(180deg)';
+          icon.style.transform = 'rotate(0deg)';
         }
       });
     });
