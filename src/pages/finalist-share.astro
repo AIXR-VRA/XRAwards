@@ -856,7 +856,7 @@ const safeFinalists = finalists || [];
     function updateSocialCopy() {
       if (!selectedFinalist) return;
 
-      const eventYear = eventDetails?.event_year || '2025';
+      const eventYear = selectedFinalist.eventYear || eventDetails?.event_year || '2025';
       const config = {
         eventYear,
         finalistName: selectedFinalist.title,
@@ -971,7 +971,7 @@ const safeFinalists = finalists || [];
     function shareToSocial(platform) {
       if (!selectedFinalist) return;
 
-      const eventYear = eventDetails?.event_year || '2025';
+      const eventYear = selectedFinalist.eventYear || eventDetails?.event_year || '2025';
       const config = { eventYear, finalistName: selectedFinalist.title, category: selectedFinalist.category };
       
       if (platform === 'instagram') {
@@ -1039,7 +1039,7 @@ const safeFinalists = finalists || [];
       section?.classList.remove('hidden');
       container.innerHTML = '<p class="text-sm text-gray-500 mb-4">Generating finalist crest...</p>';
 
-      const eventYear = eventDetails?.event_year || '2025';
+      const eventYear = selectedFinalist.eventYear || eventDetails?.event_year || '2025';
       const projectName = selectedFinalist.title || '';
       const categoryName = selectedFinalist.category || '';
 
@@ -1104,7 +1104,7 @@ const safeFinalists = finalists || [];
       section?.classList.remove('hidden');
       container.innerHTML = '<p class="text-sm text-gray-500 mb-4">Generating accolade crests...</p>';
 
-      const eventYear = eventDetails?.event_year || '2025';
+      const eventYear = selectedFinalist.eventYear || eventDetails?.event_year || '2025';
       const projectName = selectedFinalist.title || '';
 
       const crestPromises = accolades.flatMap(async (accolade) => {
@@ -1187,7 +1187,7 @@ const safeFinalists = finalists || [];
       section?.classList.remove('hidden');
       container.innerHTML = '<p class="text-sm text-gray-500 mb-4">Generating winner crest...</p>';
 
-      const eventYear = eventDetails?.event_year || '2025';
+      const eventYear = selectedFinalist.eventYear || eventDetails?.event_year || '2025';
       const projectName = selectedFinalist.title || '';
       const categoryName = selectedFinalist.category || '';
 
