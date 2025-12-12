@@ -136,7 +136,7 @@ serve(async (req: Request) => {
             'X-GitHub-Api-Version': '2022-11-28'
           },
           body: JSON.stringify({
-            ref: 'main',
+            ref: 'master',
             inputs: {
               reason: reason
             }
