@@ -25,14 +25,14 @@ if (!authResult.authenticated) {
 const { user } = authResult;
 
 const navItems = [
-  { id: 'dashboard', label: 'Dashboard', href: '/admin' },
-  { id: 'events', label: 'Event Details', href: '/admin/events' },
-  { id: 'media-library', label: 'Media Library', href: '/admin/media-library' },
-  { id: 'categories', label: 'Categories', href: '/admin/categories' },
-  { id: 'finalists', label: 'Finalists', href: '/admin/finalists' },
-  { id: 'sponsors', label: 'Sponsors', href: '/admin/sponsors' },
-  { id: 'judges', label: 'Judges', href: '/admin/judges' },
-  { id: 'tags', label: 'Tags', href: '/admin/tags' },
+  { id: 'dashboard', label: 'Dashboard', href: '/admin/' },
+  { id: 'events', label: 'Event Details', href: '/admin/events/' },
+  { id: 'media-library', label: 'Media Library', href: '/admin/media-library/' },
+  { id: 'categories', label: 'Categories', href: '/admin/categories/' },
+  { id: 'finalists', label: 'Finalists', href: '/admin/finalists/' },
+  { id: 'sponsors', label: 'Sponsors', href: '/admin/sponsors/' },
+  { id: 'judges', label: 'Judges', href: '/admin/judges/' },
+  { id: 'tags', label: 'Tags', href: '/admin/tags/' },
 ];
 ---
 
@@ -100,14 +100,14 @@ const navItems = [
       if (signOutBtn) {
         signOutBtn.addEventListener('click', async () => {
           try {
-            await fetch('/api/auth/logout', {
+            await fetch('/api/auth/logout/', {
               method: 'POST',
             });
-            window.location.href = '/admin/login';
+            window.location.href = '/admin/login/';
           } catch (error) {
             console.error('Logout error:', error);
             // Still redirect even if logout fails
-            window.location.href = '/admin/login';
+            window.location.href = '/admin/login/';
           }
         });
       }

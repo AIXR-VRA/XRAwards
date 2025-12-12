@@ -39,7 +39,7 @@ const faqLinks = [
   {
     title: `What's new for ${eventDetails?.event_year || '2025'}`,
     image: whatsNewImage,
-    href: eventDetails?.slug ? `/${eventDetails.slug}` : '#',
+    href: eventDetails?.slug ? `/${eventDetails.slug}/` : '#',
   },
   {
     title: "Dates & Fees",
@@ -49,22 +49,22 @@ const faqLinks = [
   {
     title: "Entry kit",
     image: entryKitImage,
-    href: '/nominate/entry-kit',
+    href: '/nominate/entry-kit/',
   },
   {
     title: "Jury & Judging",
     image: juryJudgingImage,
-    href: '/judges',
+    href: '/judges/',
   },
   {
     title: "Duplicate Trophies",
     image: trophiesImage,
-    href: '/store',
+    href: '/store/',
   },
   {
     title: "Attendee Guide",
     image: attendeeGuideImage,
-    href: '/travel-accommodation',
+    href: '/travel-accommodation/',
   },
 ];
 ---
@@ -164,7 +164,7 @@ const faqLinks = [
                 {ctaButton.text}
               </a>
               <a 
-                href="/about-xr-awards"
+                href="/about-xr-awards/"
                 class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 font-medium rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
               >
                 Learn More

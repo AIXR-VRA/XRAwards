@@ -104,7 +104,7 @@ export async function getEventPhase(): Promise<EventPhase> {
       nextMilestone: 'Event details coming soon',
       ctaButton: {
         text: 'Learn More',
-        href: '/about-xr-awards',
+        href: '/about-xr-awards/',
         variant: 'secondary'
       },
       statusMessage: 'Event details are being finalized',
@@ -166,7 +166,7 @@ export async function getEventPhase(): Promise<EventPhase> {
       nextMilestone: `Nominations open ${formatDate(nominationsOpen)}`,
       ctaButton: {
         text: 'Learn More',
-        href: '/about-xr-awards',
+        href: '/about-xr-awards/',
         variant: 'secondary'
       },
       statusMessage: `Nominations open in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`,
@@ -261,7 +261,7 @@ export async function getEventPhase(): Promise<EventPhase> {
       nextMilestone: 'Event completed',
       ctaButton: {
         text: 'View Winners',
-        href: `/winners-and-finalists-${eventDetails.event_year}`,
+        href: `/winners-and-finalists-${eventDetails.event_year}/`,
         variant: 'primary'
       },
       statusMessage: 'Event completed - view the winners',
@@ -276,7 +276,7 @@ export async function getEventPhase(): Promise<EventPhase> {
       nextMilestone: 'Event details coming soon',
       ctaButton: {
         text: 'Learn More',
-        href: '/about-xr-awards',
+        href: '/about-xr-awards/',
         variant: 'secondary'
       },
       statusMessage: 'Event details are being finalized',
@@ -313,7 +313,7 @@ export async function getCTAButton(context: 'header' | 'hero' | 'footer' | 'trav
       if (eventPhase.phase === 'post-ceremony') {
         return {
           text: 'View Archive',
-          href: '/archive',
+          href: '/archive/',
           variant: 'outline' as const
         };
       }

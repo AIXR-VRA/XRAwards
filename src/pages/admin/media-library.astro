@@ -304,12 +304,12 @@ import Modal from '../../components/admin/Modal.astro';
   async function loadAllData() {
     try {
       const [eventsRes, categoriesRes, finalistsRes, sponsorsRes, judgesRes, tagsRes] = await Promise.all([
-        fetch('/api/events'),
-        fetch('/api/categories'),
-        fetch('/api/finalists'),
-        fetch('/api/sponsors'),
-        fetch('/api/judges'),
-        fetch('/api/tags')
+        fetch('/api/events/'),
+        fetch('/api/categories/'),
+        fetch('/api/finalists/'),
+        fetch('/api/sponsors/'),
+        fetch('/api/judges/'),
+        fetch('/api/tags/')
       ]);
 
       const [eventsData, categoriesData, finalistsData, sponsorsData, judgesData, tagsData] = await Promise.all([
@@ -360,7 +360,7 @@ import Modal from '../../components/admin/Modal.astro';
         params.append('searchTerm', filters.search);
       }
       
-      const mediaRes = await fetch(`/api/media?${params.toString()}`);
+      const mediaRes = await fetch(`/api/media/?${params.toString()}`);
       const mediaData = await mediaRes.json();
 
       const newMedia = (mediaData.media || []).map((item: any) => ({
@@ -950,7 +950,7 @@ import Modal from '../../components/admin/Modal.astro';
       try {
         if (isEdit) {
           // Update existing media
-          const response = await fetch('/api/media', {
+          const response = await fetch('/api/media/', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -978,7 +978,7 @@ import Modal from '../../components/admin/Modal.astro';
         } else {
           // Upload new media
           const file = formData.get('file') as File;
-          const response = await fetch('/api/media', {
+          const response = await fetch('/api/media/', {
             method: 'POST',
             body: JSON.stringify({
               file: await fileToBase64(file),
@@ -1114,7 +1114,7 @@ import Modal from '../../components/admin/Modal.astro';
 
     try {
       console.log('Deleting media:', id);
-      const response = await fetch('/api/media', {
+      const response = await fetch('/api/media/', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })

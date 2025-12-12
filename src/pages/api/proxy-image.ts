@@ -1,10 +1,31 @@
 import type { APIRoute } from 'astro';
 
+// Allowed domains for image proxying (prevent SSRF attacks)
+const ALLOWED_DOMAINS = [
+  'pub-', // R2 public bucket URLs start with pub-
+  '.r2.dev',
+  '.cloudflarestorage.com',
+];
+
+function isAllowedUrl(urlString: string): boolean {
+  try {
+    const url = new URL(urlString);
+    return ALLOWED_DOMAINS.some(domain => url.hostname.includes(domain));
+  } catch {
+    return false;
+  }
+}
+
 export const GET: APIRoute = async ({ url }) => {
   const imageUrl = url.searchParams.get('url');
   
   if (!imageUrl) {
     return new Response('Missing image URL', { status: 400 });
+  }
+
+  // Security: Only allow proxying from approved domains
+  if (!isAllowedUrl(imageUrl)) {
+    return new Response('URL not allowed', { status: 403 });
   }
 
   try {

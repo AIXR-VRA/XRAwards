@@ -11,28 +11,28 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
     {
       title: 'XR Awards 2025',
       links: [
-        { name: 'The Categories', href: '/categories' },
-        { name: 'Previous Winners & Finalists', href: '/archive' },
-        { name: 'Sponsors and Partners', href: '/sponsors-and-partners' },
-        { name: 'Travel & Accommodation', href: '/travel-accommodation' },
+        { name: 'The Categories', href: '/categories/' },
+        { name: 'Previous Winners & Finalists', href: '/archive/' },
+        { name: 'Sponsors and Partners', href: '/sponsors-and-partners/' },
+        { name: 'Travel & Accommodation', href: '/travel-accommodation/' },
       ],
     },
     {
       title: 'About',
       links: [
-        { name: 'The Judges', href: '/judges' },
-        { name: 'Book Tickets', href: '/tickets' },
-        { name: 'About XR Awards', href: '/about-xr-awards' },
-        { name: 'FAQs', href: '/legal/faq' },
-        { name: 'XR Awards Store', href: '/store' },
+        { name: 'The Judges', href: '/judges/' },
+        { name: 'Book Tickets', href: '/tickets/' },
+        { name: 'About XR Awards', href: '/about-xr-awards/' },
+        { name: 'FAQs', href: '/legal/faq/' },
+        { name: 'XR Awards Store', href: '/store/' },
       ],
     },
     {
       title: 'Ceremonies',
       links: [
-        { name: '8th International XR Awards', href: '/xr-awards-2024' },
-        { name: '7th International XR Awards', href: '/vr-awards-2023' },
-        { name: 'View all Ceremonies', href: '/archive' },
+        { name: '8th International XR Awards', href: '/xr-awards-2024/' },
+        { name: '7th International XR Awards', href: '/vr-awards-2023/' },
+        { name: 'View all Ceremonies', href: '/archive/' },
       ],
     },
     {
@@ -64,11 +64,11 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
               </p>
             </div>
             <div className="text-sm text-gray-300">
-              <a href="/legal/privacy-policy" className="hover:text-primary transition-colors">
+              <a href="/legal/privacy-policy/" className="hover:text-primary transition-colors">
                 Privacy Policy
               </a>
               <span className="mx-2">|</span>
-              <a href="/legal" className="hover:text-primary transition-colors">
+              <a href="/legal/" className="hover:text-primary transition-colors">
                 Legal
               </a>
             </div>

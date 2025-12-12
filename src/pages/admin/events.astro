@@ -553,7 +553,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   // Load events
   async function loadEvents() {
     try {
-      const response = await fetch('/api/events');
+      const response = await fetch('/api/events/');
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error);
@@ -816,7 +816,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
 
     try {
-      const response = await fetch('/api/events', {
+      const response = await fetch('/api/events/', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
@@ -895,7 +895,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     };
 
     try {
-      const response = await fetch('/api/events', {
+      const response = await fetch('/api/events/', {
         method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

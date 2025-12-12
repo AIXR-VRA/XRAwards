@@ -30,6 +30,10 @@ import 'vanilla-cookieconsent/dist/cookieconsent.css';
   import { run } from 'vanilla-cookieconsent';
   import { config } from './CookieConsentConfig';
 
-  run(config);
+  // Don't initialize cookie consent on admin pages
+  // Admin pages use their own layout and don't need cookie consent
+  if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin')) {
+    run(config);
+  }
 </script>
 
