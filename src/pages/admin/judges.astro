@@ -250,7 +250,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   // Load events
   async function loadEvents() {
     try {
-      const response = await fetch('/api/events');
+      const response = await fetch('/api/events/');
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
 
@@ -265,7 +265,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   // Load tags
   async function loadTags() {
     try {
-      const response = await fetch('/api/tags');
+      const response = await fetch('/api/tags/');
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
 
@@ -506,7 +506,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   // Load judges
   async function loadJudges() {
     try {
-      const response = await fetch('/api/judges');
+      const response = await fetch('/api/judges/');
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error);
@@ -711,7 +711,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
 
     try {
-      const response = await fetch('/api/judges', {
+      const response = await fetch('/api/judges/', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
@@ -763,7 +763,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     }
 
     try {
-      const response = await fetch('/api/judges', {
+      const response = await fetch('/api/judges/', {
         method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

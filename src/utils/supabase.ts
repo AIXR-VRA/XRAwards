@@ -237,7 +237,7 @@ export async function requireAdminAuth(cookies: any, request?: Request) {
   if (error || !user) {
     return {
       authenticated: false,
-      redirect: '/admin/login',
+      redirect: '/admin/login/',
       user: null,
       supabase: null
     };
