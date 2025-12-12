@@ -450,7 +450,7 @@ const safeFinalists = finalists || [];
   <Footer />
 </Layout>
 
-<!-- Import crest generator utilities -->
+<!-- Import utilities -->
 <script>
   import { 
     generateAccoladeCrest, 
@@ -458,6 +458,18 @@ const safeFinalists = finalists || [];
     wrapText, 
     cleanupBlobUrls 
   } from '../utils/crest-generator';
+  import { 
+    generateSocialCopy, 
+    getShareUrl, 
+    getInstagramShareText 
+  } from '../utils/social-copy-generator';
+  import { 
+    generateFinalistImage, 
+    downloadImage, 
+    sanitizeFilename, 
+    revokeBlobUrl, 
+    getProxyImageUrl 
+  } from '../utils/finalist-image-generator';
   
   // Expose to window for use by the main script
   (window as any).CrestGenerator = {
@@ -466,10 +478,23 @@ const safeFinalists = finalists || [];
     wrapText,
     cleanupBlobUrls
   };
+  (window as any).SocialCopyGenerator = {
+    generateSocialCopy,
+    getShareUrl,
+    getInstagramShareText
+  };
+  (window as any).FinalistImageGenerator = {
+    generateFinalistImage,
+    downloadImage,
+    sanitizeFilename,
+    revokeBlobUrl,
+    getProxyImageUrl
+  };
 </script>
 
 <script define:vars={{ finalists: safeFinalists, overlayFrame, eventDetails: safeEventDetails, crestBaseBlack, crestBaseWhite, winnerCrestBaseBlack, winnerCrestBaseWhite }}>
   document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
     const searchInput = document.getElementById('finalist-search');
     const finalistsList = document.getElementById('finalists-list');
     const selectedFinalistInfo = document.getElementById('selected-finalist-info');
@@ -483,7 +508,7 @@ const safeFinalists = finalists || [];
     const instagramCopy = document.getElementById('instagram-copy');
     const pressReleaseCopy = document.getElementById('press-release-copy');
     
-    // Thumbnail selection elements
+    // Thumbnail elements
     const thumbnailSelection = document.getElementById('thumbnail-selection');
     const currentThumbnailPreview = document.getElementById('current-thumbnail-preview');
     const currentThumbnailImg = document.getElementById('current-thumbnail-img');
@@ -497,11 +522,18 @@ const safeFinalists = finalists || [];
     const changeThumbnailBtn = document.getElementById('change-thumbnail-btn');
     const resetThumbnailBtn = document.getElementById('reset-thumbnail-btn');
 
+    // State
     let selectedFinalist = null;
     let allFinalists = [];
     let filteredFinalists = [];
     let customThumbnailFile = null;
     let customThumbnailUrl = null;
+    let currentBlobUrl = null;
+
+    // Get utilities from window
+    const CrestGenerator = window.CrestGenerator;
+    const SocialCopyGenerator = window.SocialCopyGenerator;
+    const FinalistImageGenerator = window.FinalistImageGenerator;
 
     // Initialize finalists data
     function initializeFinalists() {
@@ -509,7 +541,7 @@ const safeFinalists = finalists || [];
         id: finalist.id,
         title: finalist.title || 'Untitled',
         organization: finalist.organization || '',
-        image: finalist.image_url ? `/api/proxy-image/?url=${encodeURIComponent(finalist.image_url)}` : '',
+        image: finalist.image_url ? FinalistImageGenerator.getProxyImageUrl(finalist.image_url) : '',
         description: finalist.description || '',
         category: finalist.categories ? finalist.categories.name : '',
         accolades: (finalist.finalist_accolades || []).map((fa) => fa.accolades).filter(Boolean),
@@ -517,47 +549,36 @@ const safeFinalists = finalists || [];
       })) || [];
     }
 
-    // Search functionality - filter the list
+    // Search functionality
     searchInput?.addEventListener('input', (e) => {
-      const searchTerm = e.target.value.toLowerCase();
-      filterFinalists(searchTerm);
+      filterFinalists(e.target.value.toLowerCase());
     });
 
-    // Filter finalists based on search term
     function filterFinalists(searchTerm) {
-      if (searchTerm.length === 0) {
-        filteredFinalists = [...allFinalists];
-      } else {
-        filteredFinalists = allFinalists.filter(finalist => {
-          const title = finalist.title?.toLowerCase() || '';
-          const organization = finalist.organization?.toLowerCase() || '';
-          const category = finalist.category?.toLowerCase() || '';
-          
-          return title.includes(searchTerm) || 
-                 organization.includes(searchTerm) || 
-                 category.includes(searchTerm);
-        });
-      }
+      filteredFinalists = searchTerm.length === 0 
+        ? [...allFinalists]
+        : allFinalists.filter(f => {
+            const title = f.title?.toLowerCase() || '';
+            const organization = f.organization?.toLowerCase() || '';
+            const category = f.category?.toLowerCase() || '';
+            return title.includes(searchTerm) || organization.includes(searchTerm) || category.includes(searchTerm);
+          });
       renderFinalistsList();
     }
 
-    // Render the finalists list
     function renderFinalistsList() {
       if (!finalistsList) return;
       
       if (filteredFinalists.length === 0) {
         finalistsList.innerHTML = '<div class="px-4 py-8 text-center text-gray-500">No finalists found</div>';
       } else {
-        finalistsList.innerHTML = filteredFinalists.map((finalist) => `
-          <div 
-            class="finalist-item px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
-            data-finalist-id="${finalist.id}"
-          >
+        finalistsList.innerHTML = filteredFinalists.map((f) => `
+          <div class="finalist-item px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors" data-finalist-id="${f.id}">
             <div class="flex items-start justify-between">
               <div class="flex-1 min-w-0">
-                <div class="font-medium text-gray-900 truncate">${finalist.title || 'Untitled'}</div>
-                ${finalist.organization ? `<div class="text-sm text-[#4923EB] truncate">${finalist.organization}</div>` : ''}
-                ${finalist.category ? `<div class="text-xs text-gray-500 uppercase mt-1">${finalist.category}</div>` : ''}
+                <div class="font-medium text-gray-900 truncate">${f.title}</div>
+                ${f.organization ? `<div class="text-sm text-[#4923EB] truncate">${f.organization}</div>` : ''}
+                ${f.category ? `<div class="text-xs text-gray-500 uppercase mt-1">${f.category}</div>` : ''}
               </div>
               <div class="ml-3 flex-shrink-0">
                 <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
@@ -575,30 +596,15 @@ const safeFinalists = finalists || [];
     // Handle click on finalist items
     finalistsList?.addEventListener('click', (e) => {
       const item = e.target.closest('.finalist-item');
-      if (item) {
-        selectFinalist(item);
-      }
+      if (item) selectFinalist(item);
     });
 
-    // Select a finalist
     function selectFinalist(element) {
       const finalistId = element.getAttribute('data-finalist-id');
       const finalist = allFinalists.find(f => f.id === finalistId);
-      
       if (!finalist) return;
       
-      selectedFinalist = {
-        id: finalist.id,
-        title: finalist.title,
-        organization: finalist.organization,
-        image: finalist.image,
-        description: finalist.description,
-        category: finalist.category,
-        accolades: finalist.accolades || [],
-        isWinner: finalist.isWinner || false
-      };
-
-      // Update search input
+      selectedFinalist = { ...finalist };
       searchInput.value = selectedFinalist.title || '';
       
       updatePreview();
@@ -611,14 +617,8 @@ const safeFinalists = finalists || [];
     }
 
     function resetSelection() {
-      // Clean up any existing blob URL
-      if (finalistImageContainer.currentBlobUrl) {
-        URL.revokeObjectURL(finalistImageContainer.currentBlobUrl);
-        finalistImageContainer.currentBlobUrl = null;
-      }
-      
-      // Clean up crest blob URLs using utility
-      const CrestGenerator = window.CrestGenerator;
+      FinalistImageGenerator.revokeBlobUrl(currentBlobUrl);
+      currentBlobUrl = null;
       CrestGenerator?.cleanupBlobUrls(document.getElementById('accolade-crests-container'));
       CrestGenerator?.cleanupBlobUrls(document.getElementById('winner-crests-container'));
       
@@ -631,14 +631,11 @@ const safeFinalists = finalists || [];
       disableDownload();
       hideThumbnailSelection();
       
-      const accoladeSection = document.getElementById('accolade-crests-section');
-      accoladeSection?.classList.add('hidden');
-      
-      const winnerSection = document.getElementById('winner-crests-section');
-      winnerSection?.classList.add('hidden');
+      document.getElementById('accolade-crests-section')?.classList.add('hidden');
+      document.getElementById('winner-crests-section')?.classList.add('hidden');
     }
 
-    function updatePreview() {
+    async function updatePreview() {
       if (!selectedFinalist) {
         showPlaceholder();
         return;
@@ -647,88 +644,51 @@ const safeFinalists = finalists || [];
       hidePlaceholder();
       showImageContainer();
 
-      if (selectedFinalist.image) {
-        // Create a canvas to combine the images
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          showPlaceholder();
-          return;
-        }
+      if (!selectedFinalist.image) {
+        showPlaceholder();
+        return;
+      }
 
-        // Set canvas size
-        const size = 800;
-        canvas.width = size;
-        canvas.height = size;
-
-        // Load the finalist image (use custom thumbnail if selected)
+      try {
         const imageToUse = customThumbnailUrl || selectedFinalist.image;
-        const finalistImg = new Image();
-        finalistImg.crossOrigin = 'anonymous';
+        const overlayProxyUrl = FinalistImageGenerator.getProxyImageUrl(overlayFrame);
         
-        finalistImg.onload = () => {
-          // Draw the finalist image
-          ctx.drawImage(finalistImg, 0, 0, size, size);
-          
-          // Load and draw the overlay frame
-          const overlayImg = new Image();
-          overlayImg.crossOrigin = 'anonymous';
-          
-          overlayImg.onload = () => {
-            // Draw the overlay frame
-            ctx.drawImage(overlayImg, 0, 0, size, size);
-            
-            // Convert canvas to image and display
-            canvas.toBlob((blob) => {
-              if (!blob) return;
-              
-              const url = URL.createObjectURL(blob);
-              const img = document.createElement('img');
-              img.src = url;
-              img.alt = `${selectedFinalist.title} - Finalist Share Image`;
-              img.className = 'w-full h-full object-cover';
-              img.style.cursor = 'pointer';
-              img.title = 'Right-click to download';
-              
-              // Add right-click handler for proper filename
-              img.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${selectedFinalist.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_finalist_share.png`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-              });
-              
-              finalistImageContainer.innerHTML = '';
-              finalistImageContainer.appendChild(img);
-              
-              // Store the blob URL for cleanup later
-              if (finalistImageContainer.currentBlobUrl) {
-                URL.revokeObjectURL(finalistImageContainer.currentBlobUrl);
-              }
-              finalistImageContainer.currentBlobUrl = url;
-            }, 'image/png');
-          };
-          
-          // Use proxy for overlay frame
-          const overlayProxyUrl = `/api/proxy-image/?url=${encodeURIComponent(overlayFrame)}`;
-          overlayImg.src = overlayProxyUrl;
-        };
+        const result = await FinalistImageGenerator.generateFinalistImage({
+          finalistImageUrl: imageToUse,
+          overlayFrameUrl: overlayProxyUrl,
+          size: 800
+        });
+
+        // Cleanup old blob URL
+        FinalistImageGenerator.revokeBlobUrl(currentBlobUrl);
+        currentBlobUrl = result.blobUrl;
+
+        // Create image element
+        const img = document.createElement('img');
+        img.src = result.blobUrl;
+        img.alt = `${selectedFinalist.title} - Finalist Share Image`;
+        img.className = 'w-full h-full object-cover';
+        img.style.cursor = 'pointer';
+        img.title = 'Right-click to download';
         
-        finalistImg.src = imageToUse || '';
-      } else {
+        img.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          FinalistImageGenerator.downloadImage(result.blobUrl, selectedFinalist.title);
+        });
+        
+        finalistImageContainer.innerHTML = '';
+        finalistImageContainer.appendChild(img);
+      } catch (error) {
+        console.error('Error generating preview:', error);
         showPlaceholder();
       }
     }
 
     function updateSelectedInfo() {
       if (!selectedFinalist) return;
-
       finalistInfoContent.innerHTML = `
         <div class="space-y-2">
-          <h4 class="font-semibold text-gray-900">${selectedFinalist.title || 'Untitled'}</h4>
+          <h4 class="font-semibold text-gray-900">${selectedFinalist.title}</h4>
           ${selectedFinalist.organization ? `<p class="text-sm text-[#4923EB]">${selectedFinalist.organization}</p>` : ''}
           ${selectedFinalist.category ? `<p class="text-xs text-gray-500 uppercase">${selectedFinalist.category}</p>` : ''}
           ${selectedFinalist.description ? `<p class="text-sm text-gray-600 mt-2 leading-relaxed">${selectedFinalist.description}</p>` : ''}
@@ -737,500 +697,187 @@ const safeFinalists = finalists || [];
       selectedFinalistInfo?.classList.remove('hidden');
     }
 
-    function showPlaceholder() {
-      previewPlaceholder?.classList.remove('hidden');
-      finalistImageContainer?.classList.add('hidden');
-    }
-
-    function hidePlaceholder() {
-      previewPlaceholder?.classList.add('hidden');
-    }
-
-    function showImageContainer() {
-      finalistImageContainer?.classList.remove('hidden');
-    }
-
-    // Overlay frame is now part of the combined image
-
-    function showSelectedInfo() {
-      selectedFinalistInfo?.classList.remove('hidden');
-    }
-
-    function hideSelectedInfo() {
-      selectedFinalistInfo?.classList.add('hidden');
-    }
-
     function updateSocialCopy() {
       if (!selectedFinalist) return;
 
-      // Fixed variables
-      const eventYear = '2025'; // You can make this dynamic from eventDetails
-      const hashtag = `#XRAwards${eventYear.slice(-2)}`;
-      const winnersPageUrl = `https://xrawards.aixr.org/winners-and-finalists-${eventYear}`;
-      const finalistName = selectedFinalist.title;
-      const category = selectedFinalist.category;
+      const eventYear = eventDetails?.event_year || '2025';
+      const config = {
+        eventYear,
+        finalistName: selectedFinalist.title,
+        category: selectedFinalist.category,
+        organization: selectedFinalist.organization,
+        description: selectedFinalist.description,
+        eventName: eventDetails?.event_name || 'XR Awards'
+      };
+
+      const copy = SocialCopyGenerator.generateSocialCopy(config);
       
-      // Social media handles
-      const twitterHandles = '@vrawards @aixrorg';
-      const instagramHandles = '@vrawards @unitedxr @aixrorg';
-      const linkedinHandles = '@unitedXR @aixr';
-      
-      // Random message templates
-      const twitterTemplates = [
-        `🎉 Excited to be a finalist in the ${category} category at the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nSee all finalists: ${winnersPageUrl}`,
-        `🏆 Honored to be selected as a finalist for ${finalistName} in the ${category} category at the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nView all finalists: ${winnersPageUrl}`,
-        `✨ Amazing news! ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nCheck out all finalists: ${winnersPageUrl}`,
-        `🚀 Proud to announce that ${finalistName} has been selected as a finalist in the ${category} category at the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nSee all finalists: ${winnersPageUrl}`,
-        `🎊 We're thrilled that ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nView all finalists: ${winnersPageUrl}`
-      ];
-      
-      const linkedinTemplates = [
-        `Thrilled to announce that ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis recognition means a lot to our team and we're excited to be part of the XR community.\n\nView all finalists and winners: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`,
-        `We're incredibly proud to share that ${finalistName} has been chosen as a finalist in the ${category} category for the ${eventYear} XR Awards! 🎉\n\nThis achievement reflects our commitment to innovation in the XR space.\n\nSee all finalists: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`,
-        `Exciting news! ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nWe're honored to be recognized alongside such incredible talent in the XR industry.\n\nView all finalists and winners: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`,
-        `We're delighted to announce that ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! ✨\n\nThis recognition validates our team's hard work and dedication to pushing the boundaries of XR technology.\n\nCheck out all finalists: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`,
-        `Amazing news! ${finalistName} has been chosen as a finalist in the ${category} category for the ${eventYear} XR Awards! 🚀\n\nWe're grateful for this recognition and excited to be part of the XR community's continued growth.\n\nView all finalists: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`
-      ];
-      
-      const instagramTemplates = [
-        `🎉 FINALIST ANNOUNCEMENT! 🎉\n\nWe're beyond excited to share that ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis is such an honor and we can't wait to celebrate with the amazing XR community! ✨\n\nCheck out all the incredible finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VirtualReality #AugmentedReality #Innovation #Awards #Technology #ImmersiveTech #FutureTech #DigitalInnovation #TechAwards #VR #AR #MR #ExtendedReality #TechCommunity`,
-        `🏆 WE DID IT! 🏆\n\n${finalistName} is officially a finalist in the ${category} category for the ${eventYear} XR Awards! 🎊\n\nWe're so proud of this achievement and grateful to be part of such an innovative community! 💫\n\nSee all the amazing finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VR #AR #Innovation #Technology #ImmersiveTech #FutureTech #DigitalInnovation #TechAwards #VirtualReality #AugmentedReality #MixedReality #ExtendedReality #TechCommunity #Awards`,
-        `✨ INCREDIBLE NEWS! ✨\n\n${finalistName} has been chosen as a finalist in the ${category} category for the ${eventYear} XR Awards! 🚀\n\nThis recognition means everything to our team! Thank you to the XR community for this amazing opportunity! 🙏\n\nView all finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VirtualReality #AugmentedReality #Innovation #Awards #Technology #ImmersiveTech #FutureTech #DigitalInnovation #TechAwards #VR #AR #MR #ExtendedReality #TechCommunity`,
-        `🎊 CELEBRATION TIME! 🎊\n\nWe're thrilled to announce that ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis is a dream come true! We're so excited to be part of this incredible journey! ✨\n\nCheck out all finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VR #AR #Innovation #Community #Technology #ImmersiveTech #FutureTech #DigitalInnovation #TechAwards #VirtualReality #AugmentedReality #MixedReality #ExtendedReality #Awards`,
-        `🚀 AMAZING ACHIEVEMENT! 🚀\n\n${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🎉\n\nWe're over the moon with this recognition! The XR community continues to inspire us every day! 💫\n\nSee all the incredible finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VirtualReality #AugmentedReality #Innovation #Technology #ImmersiveTech #FutureTech #DigitalInnovation #TechAwards #VR #AR #MR #ExtendedReality #TechCommunity`
-      ];
-      
-      // Randomly select templates
-      const randomTwitter = twitterTemplates[Math.floor(Math.random() * twitterTemplates.length)];
-      const randomLinkedIn = linkedinTemplates[Math.floor(Math.random() * linkedinTemplates.length)];
-      const randomInstagram = instagramTemplates[Math.floor(Math.random() * instagramTemplates.length)];
-      
-      twitterCopy.value = randomTwitter;
-      linkedinCopy.value = randomLinkedIn;
-      instagramCopy.value = randomInstagram;
-      
-      // Generate press release template
-      updatePressReleaseTemplate();
+      twitterCopy.value = copy.twitter;
+      linkedinCopy.value = copy.linkedin;
+      instagramCopy.value = copy.instagram;
+      pressReleaseCopy.value = copy.pressRelease;
       
       showSocialCopy();
     }
 
-    function showSocialCopy() {
-      socialCopy?.classList.remove('hidden');
-    }
+    // UI State helpers
+    function showPlaceholder() { previewPlaceholder?.classList.remove('hidden'); finalistImageContainer?.classList.add('hidden'); }
+    function hidePlaceholder() { previewPlaceholder?.classList.add('hidden'); }
+    function showImageContainer() { finalistImageContainer?.classList.remove('hidden'); }
+    function hideSelectedInfo() { selectedFinalistInfo?.classList.add('hidden'); }
+    function showSocialCopy() { socialCopy?.classList.remove('hidden'); }
+    function hideSocialCopy() { socialCopy?.classList.add('hidden'); }
+    function enableDownload() { downloadBtn.disabled = false; }
+    function disableDownload() { downloadBtn.disabled = true; }
+    function showThumbnailSelection() { thumbnailSelection?.classList.remove('hidden'); }
+    function hideThumbnailSelection() { thumbnailSelection?.classList.add('hidden'); }
+    function showThumbnailUpload() { thumbnailUploadContainer?.classList.remove('hidden'); changeThumbnailBtn?.classList.add('hidden'); }
+    function hideThumbnailUpload() { thumbnailUploadContainer?.classList.add('hidden'); changeThumbnailBtn?.classList.remove('hidden'); }
 
-    function hideSocialCopy() {
-      socialCopy?.classList.add('hidden');
-    }
-
-    function updatePressReleaseTemplate() {
-      if (!selectedFinalist) return;
-
-      const eventYear = eventDetails?.event_year || '2025';
-      const eventName = eventDetails?.event_name || 'XR Awards';
-      const today = new Date();
-      const todayFormatted = today.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      });
-      
-      const finalistName = selectedFinalist.title;
-      const organization = selectedFinalist.organization || '';
-      const category = selectedFinalist.category;
-      const description = selectedFinalist.description || '';
-      const websiteUrl = selectedFinalist.website_url || '';
-      
-      // Helper function to clean description for press release
-      const cleanDescription = (desc) => {
-        if (!desc) return '';
-        // Remove trailing period if it exists, we'll add proper punctuation in context
-        return desc.trim().replace(/\.$/, '');
-      };
-      
-      const cleanDesc = cleanDescription(description);
-      
-      // Array of varied quote templates
-      const quoteTemplates = [
-        '"We are thrilled to be recognized as a finalist for the ' + eventYear + ' ' + eventName + '," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "This recognition validates our commitment to pushing the boundaries of what\'s possible in extended reality technology."',
-        '"Being selected as a finalist for the ' + eventYear + ' ' + eventName + ' is a tremendous honor," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "This achievement reflects our dedication to innovation and excellence in the XR space."',
-        '"We\'re incredibly proud to be recognized as a finalist in the ' + category + ' category," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "This recognition from the XR community means everything to our team."',
-        '"This finalist selection for the ' + eventYear + ' ' + eventName + ' represents years of hard work and innovation," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "We\'re excited to be part of such an incredible community of XR pioneers."',
-        '"Being chosen as a finalist validates our vision for the future of extended reality," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "We\'re honored to be recognized alongside the industry\'s most innovative projects."'
-      ];
-      
-      // Randomly select a quote template
-      const selectedQuote = quoteTemplates[Math.floor(Math.random() * quoteTemplates.length)];
-      
-      // Generate dynamic press release using string concatenation
-      const pressReleaseTemplate = finalistName + ' Selected as Finalist for ' + eventYear + ' ' + eventName + ' in ' + category + ' Category\n\n' +
-        (organization ? organization + ' ' : '') + 'Recognized for Innovation in Extended Reality Technology\n\n' +
-        'International - ' + todayFormatted + ': For immediate release\n\n' +
-        finalistName + (organization ? ' by ' + organization : '') + ' has been selected as a finalist in the ' + category + ' category for the prestigious ' + eventYear + ' ' + eventName + '. This recognition highlights the innovative work being done in the extended reality space and showcases the cutting-edge technology that is shaping the future of immersive experiences.\n\n' +
-        'The ' + eventName + ' celebrate outstanding achievements and innovation in virtual, augmented, and mixed reality across diverse sectors globally. Being selected as a finalist represents recognition from industry experts and peers for exceptional work in the XR field.\n\n' +
-        finalistName + (cleanDesc ? ' - ' + cleanDesc : '') + ' demonstrates the kind of innovative thinking and technical excellence that the ' + eventName + ' were established to recognize. The project showcases the potential of extended reality technology to transform industries and create meaningful experiences for users.\n\n' +
-        selectedQuote + '\n\n' +
-        'Winners will be announced during the ' + eventName + ' ceremony. For more information about the awards, finalists, and ceremony details, visit https://xrawards.aixr.org/winners-and-finalists-' + eventYear + (websiteUrl ? ' or learn more about ' + finalistName + ' at ' + websiteUrl : '') + '.\n\n' +
-        'Contact\n' +
-        'For any press and media enquiries, please contact:\n\n' +
-        'AIXR Press Team: awards@aixr.org\n' +
-        'Stereopsia | United XR Europe: emma@stereopsia.com\n' +
-        'Finalist Press Contact: [Finalist key contact]\n\n' +
-        'Social media\n' +
-        'Twitter: \n' +
-        'Instagram: \n' +
-        'LinkedIn:\n\n' +
-        'About ' + (organization || finalistName) + ': [Insert Boilerplate copy]\n\n' +
-        'Our boilerplate:\n\n' +
-        'About AIXR - The Academy of International Extended Reality (AIXR) hosts the prestigious international AIXR XR Awards, established in 2017. The awards celebrate outstanding achievements and innovation in virtual, augmented, and mixed reality across diverse sectors globally. Recognized as a benchmark for excellence, the AIXR XR Awards aim to elevate groundbreaking work, honor industry leaders, and drive the immersive technology ecosystem forward. AIXR fosters a global community connecting professionals and innovators within the tech industry. Learn more at https://xrawards.aixr.org.\n\n' +
-        'About United XR Europe - United XR Europe represents the strategic collaboration between AWE and Stereopsia, combining the strengths of AWE EU and Stereopsia into a unified platform. It is dedicated to fostering a global community and celebrating excellence in the immersive technology industry. Learn more at www.unitedxr.eu.';
-
-      pressReleaseCopy.value = pressReleaseTemplate;
-    }
-
-    // Thumbnail selection functions
     function updateThumbnailPreview() {
-      if (!selectedFinalist) {
-        hideThumbnailSelection();
-        return;
-      }
-
+      if (!selectedFinalist) { hideThumbnailSelection(); return; }
       showThumbnailSelection();
       
-      // Update current thumbnail preview
       const thumbnailUrl = customThumbnailUrl || selectedFinalist.image;
       if (thumbnailUrl) {
         currentThumbnailImg.src = thumbnailUrl;
         currentThumbnailImg.alt = customThumbnailUrl ? 'Custom thumbnail' : 'Original finalist image';
       }
       
-      // Update preview text
       const previewText = currentThumbnailPreview.querySelector('p');
-      if (previewText) {
-        previewText.textContent = customThumbnailUrl ? 'Using custom thumbnail' : 'Using original finalist image';
-      }
+      if (previewText) previewText.textContent = customThumbnailUrl ? 'Using custom thumbnail' : 'Using original finalist image';
       
-      // Show/hide reset button
-      if (customThumbnailUrl) {
-        resetThumbnailBtn?.classList.remove('hidden');
-      } else {
-        resetThumbnailBtn?.classList.add('hidden');
-      }
-    }
-
-    function showThumbnailSelection() {
-      thumbnailSelection?.classList.remove('hidden');
-    }
-
-    function hideThumbnailSelection() {
-      thumbnailSelection?.classList.add('hidden');
-    }
-
-    function showThumbnailUpload() {
-      thumbnailUploadContainer?.classList.remove('hidden');
-      changeThumbnailBtn?.classList.add('hidden');
-    }
-
-    function hideThumbnailUpload() {
-      thumbnailUploadContainer?.classList.add('hidden');
-      changeThumbnailBtn?.classList.remove('hidden');
+      customThumbnailUrl ? resetThumbnailBtn?.classList.remove('hidden') : resetThumbnailBtn?.classList.add('hidden');
     }
 
     function handleFileUpload(file) {
-      // Validate file type
       const allowedTypes = ['image/png', 'image/jpeg', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        alert('Please select a PNG, JPEG, or WebP image file.');
-        return;
-      }
+      if (!allowedTypes.includes(file.type)) { alert('Please select a PNG, JPEG, or WebP image file.'); return; }
+      if (file.size > 10 * 1024 * 1024) { alert('File size must be less than 10MB.'); return; }
 
-      // Validate file size (10MB max)
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      if (file.size > maxSize) {
-        alert('File size must be less than 10MB.');
-        return;
-      }
-
-      // Create object URL for preview
-      if (customThumbnailUrl) {
-        URL.revokeObjectURL(customThumbnailUrl);
-      }
+      if (customThumbnailUrl) URL.revokeObjectURL(customThumbnailUrl);
 
       customThumbnailFile = file;
       customThumbnailUrl = URL.createObjectURL(file);
 
-      // Update UI
       uploadedThumbnailPreview.src = customThumbnailUrl;
       uploadedFilename.textContent = file.name;
       uploadedFilePreview?.classList.remove('hidden');
       
-      // Update main preview
       updateThumbnailPreview();
-      updatePreview(); // Refresh the preview with new thumbnail
+      updatePreview();
       hideThumbnailUpload();
     }
 
     function removeCustomThumbnail() {
-      if (customThumbnailUrl) {
-        URL.revokeObjectURL(customThumbnailUrl);
-      }
-      
+      if (customThumbnailUrl) URL.revokeObjectURL(customThumbnailUrl);
       customThumbnailFile = null;
       customThumbnailUrl = null;
-      
-      // Update UI
       uploadedFilePreview?.classList.add('hidden');
       updateThumbnailPreview();
-      updatePreview(); // Refresh the preview with original image
-    }
-
-    function resetThumbnail() {
-      removeCustomThumbnail();
-    }
-
-    function enableDownload() {
-      downloadBtn.disabled = false;
-    }
-
-    function disableDownload() {
-      downloadBtn.disabled = true;
+      updatePreview();
     }
 
     // Download functionality
-    downloadBtn?.addEventListener('click', async () => {
-      if (!selectedFinalist) return;
-
-      try {
-        // Get the current combined image from the preview
-        const previewImg = finalistImageContainer.querySelector('img');
-        if (!previewImg || !previewImg.src) {
-          alert('Please wait for the image to load before downloading.');
-          return;
-        }
-
-        // Create a link to download the current preview image
-              const a = document.createElement('a');
-        a.href = previewImg.src;
-              a.download = `${selectedFinalist.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_finalist_share.png`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-      } catch (error) {
-        console.error('Error downloading image:', error);
-        alert('Error downloading image. Please try again.');
-      }
+    downloadBtn?.addEventListener('click', () => {
+      if (!selectedFinalist || !currentBlobUrl) { alert('Please wait for the image to load before downloading.'); return; }
+      FinalistImageGenerator.downloadImage(currentBlobUrl, selectedFinalist.title);
     });
 
     // Copy button functionality
-    document.getElementById('copy-twitter')?.addEventListener('click', () => {
-      copyToClipboard(twitterCopy.value, 'Twitter copy');
-    });
+    function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!')).catch(() => fallbackCopyToClipboard(text));
+      } else {
+        fallbackCopyToClipboard(text);
+      }
+    }
 
-    document.getElementById('copy-linkedin')?.addEventListener('click', () => {
-      copyToClipboard(linkedinCopy.value, 'LinkedIn copy');
-    });
+    function fallbackCopyToClipboard(text) {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy') ? alert('Copied to clipboard!') : alert('Failed to copy');
+      } catch { alert('Failed to copy'); }
+      document.body.removeChild(textArea);
+    }
 
-    document.getElementById('copy-instagram')?.addEventListener('click', () => {
-      copyToClipboard(instagramCopy.value, 'Instagram copy');
-    });
-
-    document.getElementById('copy-press-release')?.addEventListener('click', () => {
-      copyToClipboard(pressReleaseCopy.value, 'Press release template');
-    });
+    document.getElementById('copy-twitter')?.addEventListener('click', () => copyToClipboard(twitterCopy.value));
+    document.getElementById('copy-linkedin')?.addEventListener('click', () => copyToClipboard(linkedinCopy.value));
+    document.getElementById('copy-instagram')?.addEventListener('click', () => copyToClipboard(instagramCopy.value));
+    document.getElementById('copy-press-release')?.addEventListener('click', () => copyToClipboard(pressReleaseCopy.value));
 
     // Share button functionality
-    document.getElementById('share-twitter')?.addEventListener('click', () => {
-      shareToSocial('twitter');
-    });
-
-    document.getElementById('share-linkedin')?.addEventListener('click', () => {
-      shareToSocial('linkedin');
-    });
-
-    document.getElementById('share-instagram')?.addEventListener('click', () => {
-      shareToSocial('instagram');
-    });
-
-    // Press release download functionality
-    document.getElementById('download-press-release')?.addEventListener('click', () => {
+    function shareToSocial(platform) {
       if (!selectedFinalist) return;
 
-      const pressReleaseText = pressReleaseCopy.value;
-      const filename = `${selectedFinalist.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_press_release.txt`;
+      const eventYear = eventDetails?.event_year || '2025';
+      const config = { eventYear, finalistName: selectedFinalist.title, category: selectedFinalist.category };
       
-      // Create and download the file
-      const blob = new Blob([pressReleaseText], { type: 'text/plain' });
+      if (platform === 'instagram') {
+        const text = SocialCopyGenerator.getInstagramShareText(config);
+        navigator.clipboard.writeText(text).then(() => {
+          alert('Text copied to clipboard! You can now paste it in Instagram with your image.');
+          window.open('https://www.instagram.com/', '_blank');
+        });
+        return;
+      }
+
+      const shareUrl = SocialCopyGenerator.getShareUrl(platform, config);
+      if (shareUrl) window.open(shareUrl, '_blank', 'width=600,height=400,scrollbars=yes,resizable=yes');
+    }
+
+    document.getElementById('share-twitter')?.addEventListener('click', () => shareToSocial('twitter'));
+    document.getElementById('share-linkedin')?.addEventListener('click', () => shareToSocial('linkedin'));
+    document.getElementById('share-instagram')?.addEventListener('click', () => shareToSocial('instagram'));
+
+    // Press release download
+    document.getElementById('download-press-release')?.addEventListener('click', () => {
+      if (!selectedFinalist) return;
+      const filename = `${FinalistImageGenerator.sanitizeFilename(selectedFinalist.title)}_press_release.txt`;
+      const blob = new Blob([pressReleaseCopy.value], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
-      
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      
-      // Clean up the URL
       URL.revokeObjectURL(url);
     });
 
-    function copyToClipboard(text, label) {
-      // Try modern clipboard API first
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(() => {
-          alert('Copied to clipboard!');
-        }).catch(() => {
-          // Fallback to legacy method
-          fallbackCopyToClipboard(text);
-        });
-      } else {
-        // Use legacy method
-        fallbackCopyToClipboard(text);
-      }
-    }
+    // Thumbnail event listeners
+    changeThumbnailBtn?.addEventListener('click', showThumbnailUpload);
+    resetThumbnailBtn?.addEventListener('click', removeCustomThumbnail);
+    uploadArea?.addEventListener('click', () => thumbnailFileInput?.click());
+    thumbnailFileInput?.addEventListener('change', (e) => { if (e.target.files[0]) handleFileUpload(e.target.files[0]); });
+    removeUploadedThumbnail?.addEventListener('click', removeCustomThumbnail);
 
-    function fallbackCopyToClipboard(text) {
-      // Create a temporary textarea element
-      const textArea = document.createElement('textarea');
-      textArea.value = text;
-      textArea.style.position = 'fixed';
-      textArea.style.left = '-999999px';
-      textArea.style.top = '-999999px';
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      
-      try {
-        const successful = document.execCommand('copy');
-        if (successful) {
-          alert('Copied to clipboard!');
-        } else {
-          alert('Failed to copy to clipboard');
-        }
-      } catch (err) {
-        alert('Failed to copy to clipboard');
-      }
-      
-      document.body.removeChild(textArea);
-    }
-
-    function shareToSocial(platform) {
-      if (!selectedFinalist) return;
-
-      const eventYear = '2025';
-      const winnersPageUrl = `https://xrawards.aixr.org/winners-and-finalists-${eventYear}/`;
-      const finalistName = selectedFinalist.title;
-      const category = selectedFinalist.category;
-      
-      // Get the current image URL from the preview
-      const previewImg = finalistImageContainer.querySelector('img');
-      const imageUrl = previewImg ? previewImg.src : '';
-      
-      let shareUrl = '';
-      let shareText = '';
-      
-      switch(platform) {
-        case 'twitter':
-          shareText = `🎉 Excited to be a finalist in the ${category} category at the ${eventYear} XR Awards! #XRAwards25 @vrawards @aixrorg`;
-          shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(winnersPageUrl)}`;
-          break;
-          
-        case 'linkedin':
-          shareText = `Thrilled to announce that ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆`;
-          shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(winnersPageUrl)}&summary=${encodeURIComponent(shareText)}`;
-          break;
-          
-        case 'instagram':
-          // Instagram doesn't support direct URL sharing, so we'll open their web interface
-          shareText = `🎉 FINALIST ANNOUNCEMENT! 🎉\n\nWe're beyond excited to share that ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis is such an honor and we can't wait to celebrate with the amazing XR community! ✨\n\nCheck out all the incredible finalists: ${winnersPageUrl}\n\n#XRAwards25 @vrawards @unitedxr @aixrorg #XR #VirtualReality #AugmentedReality #Innovation #Awards #Technology #ImmersiveTech #FutureTech #DigitalInnovation #TechAwards #VR #AR #MR #ExtendedReality #TechCommunity`;
-          // For Instagram, we'll copy the text and open their web interface
-          navigator.clipboard.writeText(shareText).then(() => {
-            alert('Text copied to clipboard! You can now paste it in Instagram with your image.');
-            window.open('https://www.instagram.com/', '_blank');
-          });
-          return;
-      }
-      
-      // Copy the text to clipboard for all platforms
-      copyToClipboard(shareText, `${platform} content`);
-      
-      // Open the share URL in a new tab
-      if (shareUrl) {
-        window.open(shareUrl, '_blank', 'width=600,height=400,scrollbars=yes,resizable=yes');
-      }
-    }
-
-    // Thumbnail button event listeners
-    changeThumbnailBtn?.addEventListener('click', () => {
-      showThumbnailUpload();
-    });
-
-    resetThumbnailBtn?.addEventListener('click', () => {
-      resetThumbnail();
-    });
-
-    // File upload event listeners
-    uploadArea?.addEventListener('click', () => {
-      thumbnailFileInput?.click();
-    });
-
-    thumbnailFileInput?.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        handleFileUpload(file);
-      }
-    });
-
-    removeUploadedThumbnail?.addEventListener('click', () => {
-      removeCustomThumbnail();
-    });
-
-    // Drag and drop support
-    uploadArea?.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      uploadArea.classList.add('border-blue-400', 'bg-blue-50');
-    });
-
-    uploadArea?.addEventListener('dragleave', (e) => {
-      e.preventDefault();
-      uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
-    });
-
+    // Drag and drop
+    uploadArea?.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('border-blue-400', 'bg-blue-50'); });
+    uploadArea?.addEventListener('dragleave', (e) => { e.preventDefault(); uploadArea.classList.remove('border-blue-400', 'bg-blue-50'); });
     uploadArea?.addEventListener('drop', (e) => {
       e.preventDefault();
       uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
-      
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        handleFileUpload(files[0]);
-      }
+      if (e.dataTransfer.files.length > 0) handleFileUpload(e.dataTransfer.files[0]);
     });
 
-    // Crest config for generators
-    const accoladeConfig = {
-      baseImageBlack: crestBaseBlack,
-      baseImageWhite: crestBaseWhite
-    };
-
-    const winnerConfig = {
-      baseImageBlack: winnerCrestBaseBlack,
-      baseImageWhite: winnerCrestBaseWhite
-    };
+    // Crest configs
+    const accoladeConfig = { baseImageBlack: crestBaseBlack, baseImageWhite: crestBaseWhite };
+    const winnerConfig = { baseImageBlack: winnerCrestBaseBlack, baseImageWhite: winnerCrestBaseWhite };
 
     async function updateAccoladeCrests() {
       const container = document.getElementById('accolade-crests-container');
       const section = document.getElementById('accolade-crests-section');
       
-      if (!container || !selectedFinalist) {
-        if (section) section.classList.add('hidden');
-        return;
-      }
+      if (!container || !selectedFinalist) { section?.classList.add('hidden'); return; }
 
       const accolades = selectedFinalist.accolades || [];
-      
-      if (accolades.length === 0) {
-        section?.classList.add('hidden');
-        return;
-      }
+      if (accolades.length === 0) { section?.classList.add('hidden'); return; }
 
       section?.classList.remove('hidden');
       container.innerHTML = '<p class="text-sm text-gray-500 mb-4">Generating accolade crests...</p>';
@@ -1238,8 +885,6 @@ const safeFinalists = finalists || [];
       const eventYear = eventDetails?.event_year || '2025';
       const projectName = selectedFinalist.title || '';
 
-      // Generate crests for each accolade (both black and white versions)
-      const CrestGenerator = window.CrestGenerator;
       const crestPromises = accolades.flatMap(async (accolade) => {
         try {
           const [blackCrest, whiteCrest] = await Promise.all([
@@ -1251,7 +896,7 @@ const safeFinalists = finalists || [];
             { accolade, crestUrl: whiteCrest, variant: 'white' }
           ];
         } catch (error) {
-          console.error('Error generating crest for accolade:', accolade, error);
+          console.error('Error generating crest:', accolade, error);
           return [];
         }
       });
@@ -1264,57 +909,35 @@ const safeFinalists = finalists || [];
         return;
       }
 
-      // Group by accolade
       const groupedCrests = {};
       validCrests.forEach(item => {
         const key = item.accolade.id || item.accolade.name;
-        if (!groupedCrests[key]) {
-          groupedCrests[key] = { accolade: item.accolade, variants: {} };
-        }
+        if (!groupedCrests[key]) groupedCrests[key] = { accolade: item.accolade, variants: {} };
         groupedCrests[key].variants[item.variant] = item.crestUrl;
       });
 
       container.innerHTML = Object.values(groupedCrests).map((group) => `
         <div class="bg-white rounded-lg border border-gray-200 p-4">
           <h4 class="text-sm font-medium text-gray-700 mb-3">${group.accolade.name}</h4>
-          
           <div class="grid grid-cols-2 gap-3 mb-3">
-            <!-- Black Version -->
             <div>
               <p class="text-xs text-gray-500 mb-1 text-center">Black Version</p>
               <div class="relative bg-gray-50 rounded-lg overflow-hidden mb-2 flex items-center justify-center p-2">
                 <img src="${group.variants.black}" alt="${group.accolade.name} Crest (Black)" class="max-w-full h-auto object-contain" />
               </div>
-              <button 
-                class="w-full px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-lg hover:bg-gray-900 transition-colors download-crest-btn"
-                data-crest-url="${group.variants.black}"
-                data-accolade-name="${group.accolade.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}"
-                data-variant="black"
-              >
-                Download Black
-              </button>
+              <button class="w-full px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-lg hover:bg-gray-900 transition-colors download-crest-btn" data-crest-url="${group.variants.black}" data-accolade-name="${FinalistImageGenerator.sanitizeFilename(group.accolade.name)}" data-variant="black">Download Black</button>
             </div>
-            
-            <!-- White Version -->
             <div>
               <p class="text-xs text-gray-500 mb-1 text-center">White Version</p>
               <div class="relative bg-gray-900 rounded-lg overflow-hidden mb-2 flex items-center justify-center p-2">
                 <img src="${group.variants.white}" alt="${group.accolade.name} Crest (White)" class="max-w-full h-auto object-contain" />
               </div>
-              <button 
-                class="w-full px-3 py-1.5 bg-gray-100 text-gray-800 text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors download-crest-btn border border-gray-300"
-                data-crest-url="${group.variants.white}"
-                data-accolade-name="${group.accolade.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}"
-                data-variant="white"
-              >
-                Download White
-              </button>
+              <button class="w-full px-3 py-1.5 bg-gray-100 text-gray-800 text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors download-crest-btn border border-gray-300" data-crest-url="${group.variants.white}" data-accolade-name="${FinalistImageGenerator.sanitizeFilename(group.accolade.name)}" data-variant="white">Download White</button>
             </div>
           </div>
         </div>
       `).join('');
 
-      // Add download handlers
       container.querySelectorAll('.download-crest-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const url = btn.getAttribute('data-crest-url');
@@ -1336,16 +959,8 @@ const safeFinalists = finalists || [];
       const container = document.getElementById('winner-crests-container');
       const section = document.getElementById('winner-crests-section');
       
-      if (!container || !selectedFinalist) {
-        if (section) section.classList.add('hidden');
-        return;
-      }
-
-      // Only show winner crests if the finalist is a winner
-      if (!selectedFinalist.isWinner) {
-        section?.classList.add('hidden');
-        return;
-      }
+      if (!container || !selectedFinalist) { section?.classList.add('hidden'); return; }
+      if (!selectedFinalist.isWinner) { section?.classList.add('hidden'); return; }
 
       section?.classList.remove('hidden');
       container.innerHTML = '<p class="text-sm text-gray-500 mb-4">Generating winner crest...</p>';
@@ -1354,8 +969,6 @@ const safeFinalists = finalists || [];
       const projectName = selectedFinalist.title || '';
       const categoryName = selectedFinalist.category || '';
 
-      // Generate winner crests (both black and white versions)
-      const CrestGenerator = window.CrestGenerator;
       try {
         const [blackCrest, whiteCrest] = await Promise.all([
           CrestGenerator.generateWinnerCrest(categoryName, projectName, eventYear, 'black', winnerConfig),
@@ -1365,48 +978,31 @@ const safeFinalists = finalists || [];
         container.innerHTML = `
           <div class="bg-white rounded-lg border border-gray-200 p-4">
             <h4 class="text-sm font-medium text-gray-700 mb-3">${categoryName} Winner</h4>
-            
             <div class="grid grid-cols-2 gap-3 mb-3">
-              <!-- Black Version -->
               <div>
                 <p class="text-xs text-gray-500 mb-1 text-center">Black Version</p>
                 <div class="relative bg-gray-50 rounded-lg overflow-hidden mb-2 flex items-center justify-center p-2">
                   <img src="${blackCrest}" alt="Winner Crest (Black)" class="max-w-full h-auto object-contain" />
                 </div>
-                <button 
-                  class="w-full px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-lg hover:bg-gray-900 transition-colors download-winner-crest-btn"
-                  data-crest-url="${blackCrest}"
-                  data-variant="black"
-                >
-                  Download Black
-                </button>
+                <button class="w-full px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-lg hover:bg-gray-900 transition-colors download-winner-crest-btn" data-crest-url="${blackCrest}" data-variant="black">Download Black</button>
               </div>
-              
-              <!-- White Version -->
               <div>
                 <p class="text-xs text-gray-500 mb-1 text-center">White Version</p>
                 <div class="relative bg-gray-900 rounded-lg overflow-hidden mb-2 flex items-center justify-center p-2">
                   <img src="${whiteCrest}" alt="Winner Crest (White)" class="max-w-full h-auto object-contain" />
                 </div>
-                <button 
-                  class="w-full px-3 py-1.5 bg-gray-100 text-gray-800 text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors download-winner-crest-btn border border-gray-300"
-                  data-crest-url="${whiteCrest}"
-                  data-variant="white"
-                >
-                  Download White
-                </button>
+                <button class="w-full px-3 py-1.5 bg-gray-100 text-gray-800 text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors download-winner-crest-btn border border-gray-300" data-crest-url="${whiteCrest}" data-variant="white">Download White</button>
               </div>
             </div>
           </div>
         `;
 
-        // Add download handlers
         container.querySelectorAll('.download-winner-crest-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const url = btn.getAttribute('data-crest-url');
             const variant = btn.getAttribute('data-variant');
             if (url) {
-              const projectSlug = projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+              const projectSlug = FinalistImageGenerator.sanitizeFilename(projectName);
               const a = document.createElement('a');
               a.href = url;
               a.download = `${projectSlug}_winner_crest_${variant}_${eventYear}.png`;
