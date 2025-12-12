@@ -76,7 +76,20 @@ const sponsors = sponsorEvents
 // Get winners for this event (limit to featured winners for ceremony section)
 const { data: winners } = await supabase
   .from('finalists')
-  .select('*')
+  .select(`
+    *,
+    categories (
+      id,
+      name,
+      category_tags (
+        tags (
+          id,
+          name,
+          slug
+        )
+      )
+    )
+  `)
   .eq('event_id', event.id)
   .eq('is_winner', true)
   .order('title', { ascending: true });
@@ -394,9 +407,18 @@ const otherWinners = winners?.slice(3) || [];
                     {winner.organization && (
                       <p class="text-base text-[#4923EB] mb-3 font-medium">{winner.organization}</p>
                     )}
-                    <p class="text-sm text-gray-600 uppercase tracking-wide font-semibold">
-                      Winner
+                    <p class="text-sm text-gray-600 uppercase tracking-wide font-semibold mb-2">
+                      {winner.categories?.name || 'Winner'}
                     </p>
+                    {winner.categories?.category_tags && winner.categories.category_tags.length > 0 && (
+                      <div class="flex flex-wrap gap-1 justify-center">
+                        {winner.categories.category_tags.map((categoryTag: any) => (
+                          <span class="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs whitespace-nowrap text-purple-700">
+                            {categoryTag.tags.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -422,8 +444,17 @@ const otherWinners = winners?.slice(3) || [];
                   )}
                   <div class="p-6">
                     <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                      Winner
+                      {winner.categories?.name || 'Winner'}
                     </p>
+                    {winner.categories?.category_tags && winner.categories.category_tags.length > 0 && (
+                      <div class="flex flex-wrap gap-1 mb-2 justify-center">
+                        {winner.categories.category_tags.map((categoryTag: any) => (
+                          <span class="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs whitespace-nowrap text-purple-700">
+                            {categoryTag.tags.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <h3 class="text-lg font-bold text-gray-900 mb-1">{winner.title}</h3>
                     {winner.organization && (
                       <p class="text-sm text-gray-600">By {winner.organization}</p>
