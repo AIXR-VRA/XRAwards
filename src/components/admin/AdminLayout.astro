@@ -22,7 +22,11 @@ if (!authResult.authenticated) {
   return Astro.redirect(authResult.redirect);
 }
 
-const { user } = authResult;
+const { user, supabase: serverSupabase } = authResult;
+
+// Get the session to pass access token to client-side scripts
+const { data: { session } } = await serverSupabase.auth.getSession();
+const accessToken = session?.access_token || '';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', href: '/admin/' },
@@ -45,6 +49,10 @@ const navItems = [
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body class="bg-gray-50 min-h-screen">
+    <!-- Pass auth token to client-side scripts -->
+    <script is:inline define:vars={{ accessToken }}>
+      window.__SUPABASE_ACCESS_TOKEN__ = accessToken;
+    </script>
     <div class="flex h-screen">
       <!-- Sidebar -->
       <aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
