@@ -193,10 +193,12 @@ const ogImageUrl = getOGImageUrl(image);
 		<!-- Event Banner -->
 		<EventBanner client:load eventDate={eventDate} ticketsUrl={ticketsUrl} />
 
-		<!-- Cookie Consent Banner -->
-		<div id="cc-container">
-			<CookieConsent />
-		</div>
+		<!-- Cookie Consent Banner - Exclude on admin pages -->
+		{!Astro.url.pathname.startsWith('/admin') && (
+			<div id="cc-container">
+				<CookieConsent />
+			</div>
+		)}
 
 		<!-- Scripts -->
 		<script>
