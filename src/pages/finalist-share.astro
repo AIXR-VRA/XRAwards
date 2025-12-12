@@ -1242,11 +1242,15 @@ const safeFinalists = finalists || [];
 
           // Project name (below accolade name) - where "AWARD PROJECT NAME GOES HERE" was
           // Uppercase and smaller to match template
-          ctx.font = `${24 * scaleFactor}px sans-serif`;
-          const projectLines = wrapText(ctx, projectName.toUpperCase(), imgWidth * 0.8);
+          // Reduce font size for longer names (over 33 characters)
+          const projectNameUpper = projectName.toUpperCase();
+          const projectFontSize = projectNameUpper.length > 33 ? 20 : 24;
+          ctx.font = `${projectFontSize * scaleFactor}px sans-serif`;
+          const projectLines = wrapText(ctx, projectNameUpper, imgWidth * 0.8);
           const accoladeHeight = accoladeLines.length * 40 * scaleFactor;
+          const projectLineHeight = projectNameUpper.length > 33 ? 24 : 28;
           projectLines.forEach((line, index) => {
-            ctx.fillText(line, imgWidth * 0.5, imgHeight * 0.50 + accoladeHeight + (15 * scaleFactor) + (index * 28 * scaleFactor));
+            ctx.fillText(line, imgWidth * 0.5, imgHeight * 0.50 + accoladeHeight + (15 * scaleFactor) + (index * projectLineHeight * scaleFactor));
           });
 
           // Year at bottom (within wreath base) - where "2025" was
