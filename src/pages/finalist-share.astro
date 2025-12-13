@@ -226,8 +226,8 @@ const safeFinalists = finalists || [];
               <h3 class="text-xl font-semibold text-gray-900">Social Media Preview</h3>
               
               <!-- Image Preview -->
-              <div class="relative bg-white rounded-2xl shadow-lg overflow-hidden">
-                <div id="finalist-preview" class="relative bg-gray-100 aspect-ratio-container" data-ratio="square">
+              <div class="relative bg-gray-900 rounded-2xl shadow-lg overflow-hidden">
+                <div id="finalist-preview" class="relative bg-gray-900 aspect-ratio-container" data-ratio="square">
                   <!-- Placeholder when no finalist selected -->
                   <div id="preview-placeholder" class="absolute inset-0 flex items-center justify-center">
                     <div class="text-center">
@@ -1594,19 +1594,24 @@ const safeFinalists = finalists || [];
   /* Aspect ratio container styles */
   .aspect-ratio-container {
     transition: aspect-ratio 0.3s ease;
+    margin: 0 auto;
   }
 
   .aspect-ratio-container[data-ratio="square"] {
     aspect-ratio: 1 / 1;
+    width: 100%;
   }
 
   .aspect-ratio-container[data-ratio="landscape"] {
     aspect-ratio: 16 / 9;
+    width: 100%;
   }
 
   .aspect-ratio-container[data-ratio="portrait"] {
     aspect-ratio: 9 / 16;
-    max-height: 600px;
+    max-height: 550px;
+    width: auto;
+    height: 550px;
   }
 
   /* Aspect ratio button styles */
