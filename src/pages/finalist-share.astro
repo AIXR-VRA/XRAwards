@@ -1031,7 +1031,8 @@ const safeFinalists = finalists || [];
         category: selectedFinalist.category,
         organization: selectedFinalist.organization,
         description: selectedFinalist.description,
-        eventName: eventDetails?.event_name || 'XR Awards'
+        eventName: eventDetails?.event_name || 'XR Awards',
+        isWinner: selectedFinalist.isWinner || false
       };
 
       const copy = SocialCopyGenerator.generateSocialCopy(config);
@@ -1157,7 +1158,12 @@ const safeFinalists = finalists || [];
       if (!selectedFinalist) return;
 
       const eventYear = selectedFinalist.eventYear || eventDetails?.event_year || '2025';
-      const config = { eventYear, finalistName: selectedFinalist.title, category: selectedFinalist.category };
+      const config = { 
+        eventYear, 
+        finalistName: selectedFinalist.title, 
+        category: selectedFinalist.category,
+        isWinner: selectedFinalist.isWinner || false
+      };
       
       if (platform === 'instagram') {
         const text = SocialCopyGenerator.getInstagramShareText(config);
