@@ -201,10 +201,11 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
     mainImgX = padding;
     mainImgY = padding;
   } else {
-    // Portrait: square image in upper portion
-    mainImgSize = Math.round(canvasWidth * 0.85);
+    // Portrait: square image at top, text below
+    const padding = Math.round(canvasWidth * 0.08);
+    mainImgSize = Math.round(canvasWidth * 0.84);
     mainImgX = (canvasWidth - mainImgSize) / 2;
-    mainImgY = canvasHeight * 0.08;
+    mainImgY = padding;
   }
 
   // Calculate how to cover the main image area while maintaining aspect ratio
@@ -251,7 +252,7 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
     ctx.restore();
   }
 
-  // === DARK OVERLAY GRADIENT (for square only - non-square already has overlay) ===
+  // === DARK OVERLAY GRADIENT (for square only - non-square has text outside image) ===
   if (aspectRatio === 'square') {
     const overlay = ctx.createLinearGradient(0, 0, 0, canvasHeight);
     overlay.addColorStop(0, 'rgba(14, 16, 34, 0.9)');
@@ -261,33 +262,8 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
     overlay.addColorStop(1, 'rgba(14, 16, 34, 0.92)');
     ctx.fillStyle = overlay;
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-  } else if (aspectRatio === 'portrait') {
-    // Add subtle gradient overlay on the main image for text readability (portrait only)
-    ctx.save();
-    const radius = 16;
-    ctx.beginPath();
-    ctx.moveTo(mainImgX + radius, mainImgY);
-    ctx.lineTo(mainImgX + mainImgSize - radius, mainImgY);
-    ctx.quadraticCurveTo(mainImgX + mainImgSize, mainImgY, mainImgX + mainImgSize, mainImgY + radius);
-    ctx.lineTo(mainImgX + mainImgSize, mainImgY + mainImgSize - radius);
-    ctx.quadraticCurveTo(mainImgX + mainImgSize, mainImgY + mainImgSize, mainImgX + mainImgSize - radius, mainImgY + mainImgSize);
-    ctx.lineTo(mainImgX + radius, mainImgY + mainImgSize);
-    ctx.quadraticCurveTo(mainImgX, mainImgY + mainImgSize, mainImgX, mainImgY + mainImgSize - radius);
-    ctx.lineTo(mainImgX, mainImgY + radius);
-    ctx.quadraticCurveTo(mainImgX, mainImgY, mainImgX + radius, mainImgY);
-    ctx.closePath();
-    ctx.clip();
-    const imgOverlay = ctx.createLinearGradient(mainImgX, mainImgY, mainImgX, mainImgY + mainImgSize);
-    imgOverlay.addColorStop(0, 'rgba(14, 16, 34, 0.85)');
-    imgOverlay.addColorStop(0.25, 'rgba(14, 16, 34, 0.5)');
-    imgOverlay.addColorStop(0.5, 'rgba(14, 16, 34, 0.4)');
-    imgOverlay.addColorStop(0.75, 'rgba(14, 16, 34, 0.5)');
-    imgOverlay.addColorStop(1, 'rgba(14, 16, 34, 0.85)');
-    ctx.fillStyle = imgOverlay;
-    ctx.fillRect(mainImgX, mainImgY, mainImgSize, mainImgSize);
-    ctx.restore();
   }
-  // Landscape: no overlay on image - text is on the right side
+  // Landscape & Portrait: no overlay on image - text is outside the thumbnail
 
   // Calculate text positioning based on aspect ratio
   let textCenterX: number;
@@ -321,25 +297,32 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
     textScale = (mainImgSize / size) * 1.1;
   }
 
-  // === LANDSCAPE MODE: Stack all text elements with proper spacing ===
-  if (aspectRatio === 'landscape') {
-    // For landscape, we stack elements top-to-bottom with consistent spacing
-    const headerFontSize = 22;
-    const statusFontSize = 22;
-    const dotSize = 3;
-    const titleBaseFontSize = title.length > 40 ? 28 : (title.length > 25 ? 32 : 36);
-    const orgFontSize = 18;
+  // === LANDSCAPE & PORTRAIT MODES: Stack all text elements with proper spacing ===
+  if (aspectRatio === 'landscape' || aspectRatio === 'portrait') {
+    // Font sizes - slightly larger for portrait since we have more horizontal space
+    const headerFontSize = aspectRatio === 'portrait' ? 26 : 22;
+    const statusFontSize = aspectRatio === 'portrait' ? 26 : 22;
+    const dotSize = aspectRatio === 'portrait' ? 4 : 3;
+    const titleBaseFontSize = aspectRatio === 'portrait' 
+      ? (title.length > 40 ? 34 : (title.length > 25 ? 40 : 46))
+      : (title.length > 40 ? 28 : (title.length > 25 ? 32 : 36));
+    const orgFontSize = aspectRatio === 'portrait' ? 22 : 18;
+    
+    // Calculate text area - for portrait, text is BELOW the image
+    const portraitTextMaxWidth = canvasWidth * 0.85;
+    const actualTextMaxWidth = aspectRatio === 'portrait' ? portraitTextMaxWidth : textMaxWidth;
+    const actualTextCenterX = aspectRatio === 'portrait' ? canvasWidth / 2 : textCenterX;
     
     // First, calculate total height of all text elements
     ctx.font = `bold ${titleBaseFontSize}px Jura, Helvetica, Arial, sans-serif`;
-    const titleLines = wrapText(ctx, title, textMaxWidth);
+    const titleLines = wrapText(ctx, title, actualTextMaxWidth);
     const titleLineHeight = titleBaseFontSize * 1.2;
     
     let orgLines: string[] = [];
     const orgLineHeight = orgFontSize * 1.3;
     if (organization) {
       ctx.font = `500 ${orgFontSize}px Jura, Helvetica, Arial, sans-serif`;
-      orgLines = wrapText(ctx, `by ${organization}`, textMaxWidth);
+      orgLines = wrapText(ctx, `by ${organization}`, actualTextMaxWidth);
     }
     
     const totalHeight = 
@@ -349,29 +332,40 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
       (titleLines.length * titleLineHeight) +        // Title
       (organization ? 12 + (orgLines.length * orgLineHeight) : 0); // Org spacing + org
     
-    // Calculate starting Y to vertically center the text group with the thumbnail
-    const thumbnailCenterY = mainImgY + mainImgSize / 2;
-    let currentY = thumbnailCenterY - totalHeight / 2;
+    // Calculate starting Y position
+    let currentY: number;
+    if (aspectRatio === 'portrait') {
+      // For portrait: text starts below the image, centered in remaining space (above logo)
+      const textAreaTop = mainImgY + mainImgSize + 20;
+      const textAreaBottom = canvasHeight - 100; // Leave room for logo
+      const textAreaHeight = textAreaBottom - textAreaTop;
+      currentY = textAreaTop + (textAreaHeight - totalHeight) / 2;
+    } else {
+      // For landscape: vertically center text group with the thumbnail
+      const thumbnailCenterY = mainImgY + mainImgSize / 2;
+      currentY = thumbnailCenterY - totalHeight / 2;
+    }
     
     // Category
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.font = `bold ${headerFontSize}px Jura, Helvetica, Arial, sans-serif`;
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(category.toUpperCase(), textCenterX, currentY);
+    ctx.fillText(category.toUpperCase(), actualTextCenterX, currentY);
     currentY += headerFontSize + 8;
     
     // Status + Year
     ctx.font = `400 ${statusFontSize}px "IBM Plex Mono", monospace`;
     ctx.fillStyle = isWinner ? '#E91E8C' : '#00D4D8';
-    ctx.fillText(`${year} ${isWinner ? 'WINNER' : 'FINALIST'}`, textCenterX, currentY);
+    ctx.fillText(`${year} ${isWinner ? 'WINNER' : 'FINALIST'}`, actualTextCenterX, currentY);
     currentY += statusFontSize + 12;
     
     // Decorative dots
+    const dotSpacing = aspectRatio === 'portrait' ? 12 : 10;
     ctx.fillStyle = '#00D4D8';
     for (let i = -2; i <= 2; i++) {
       ctx.beginPath();
-      ctx.arc(textCenterX + (i * 10), currentY + dotSize, dotSize, 0, Math.PI * 2);
+      ctx.arc(actualTextCenterX + (i * dotSpacing), currentY + dotSize, dotSize, 0, Math.PI * 2);
       ctx.fill();
     }
     currentY += dotSize * 2 + 28;
@@ -381,7 +375,7 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
     ctx.font = `bold ${titleBaseFontSize}px Jura, Helvetica, Arial, sans-serif`;
     ctx.textBaseline = 'top';
     titleLines.forEach((line, index) => {
-      ctx.fillText(line, textCenterX, currentY + (index * titleLineHeight));
+      ctx.fillText(line, actualTextCenterX, currentY + (index * titleLineHeight));
     });
     currentY += titleLines.length * titleLineHeight + 12;
     
@@ -390,7 +384,7 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
       ctx.font = `500 ${orgFontSize}px Jura, Helvetica, Arial, sans-serif`;
       ctx.fillStyle = '#c8d4e4';
       orgLines.forEach((line, index) => {
-        ctx.fillText(line, textCenterX, currentY + (index * orgLineHeight));
+        ctx.fillText(line, actualTextCenterX, currentY + (index * orgLineHeight));
       });
     }
   } else {
@@ -475,10 +469,10 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
   }
 
   // === LOGO ===
-  // For portrait: logo goes below the image. For landscape: on the right side. For square: at bottom
-  const logoMaxHeight = aspectRatio === 'landscape' ? 45 : Math.round(65 * textScale);
-  const logoBottomPadding = aspectRatio === 'square' ? 50 : (aspectRatio === 'landscape' ? 25 : Math.round(35 * textScale));
-  const logoAreaBottom = aspectRatio === 'portrait' ? canvasHeight - 40 : (aspectRatio === 'square' ? canvasHeight : canvasHeight - 10);
+  // For portrait: logo at bottom. For landscape: centered. For square: at bottom
+  const logoMaxHeight = aspectRatio === 'landscape' ? 45 : (aspectRatio === 'portrait' ? 55 : 65);
+  const logoBottomPadding = aspectRatio === 'square' ? 50 : (aspectRatio === 'landscape' ? 25 : 30);
+  const logoAreaBottom = canvasHeight;
   
   // Calculate logo area width based on aspect ratio
   let logoAreaWidth: number;
@@ -492,9 +486,9 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
     logoAreaWidth = canvasWidth * 0.5;
     logoAreaCenterX = canvasWidth / 2;
   } else {
-    // Portrait
-    logoAreaWidth = mainImgSize;
-    logoAreaCenterX = mainImgX + mainImgSize / 2;
+    // Portrait - logo centered at bottom
+    logoAreaWidth = canvasWidth * 0.7;
+    logoAreaCenterX = canvasWidth / 2;
   }
   
   if (secondLogoImg) {
