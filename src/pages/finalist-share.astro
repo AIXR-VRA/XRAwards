@@ -227,7 +227,7 @@ const safeFinalists = finalists || [];
               
               <!-- Image Preview -->
               <div class="relative bg-white rounded-2xl shadow-lg overflow-hidden">
-                <div id="finalist-preview" class="relative aspect-square bg-gray-100">
+                <div id="finalist-preview" class="relative bg-gray-100 aspect-ratio-container" data-ratio="square">
                   <!-- Placeholder when no finalist selected -->
                   <div id="preview-placeholder" class="absolute inset-0 flex items-center justify-center">
                     <div class="text-center">
@@ -243,6 +243,37 @@ const safeFinalists = finalists || [];
                     <!-- Finalist image will be loaded here -->
                   </div>
                   
+                </div>
+              </div>
+              
+              <!-- Aspect Ratio Selection -->
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Aspect Ratio</label>
+                <div class="flex gap-2">
+                  <button 
+                    type="button"
+                    class="aspect-ratio-btn flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition-colors"
+                    data-ratio="square"
+                  >
+                    <span class="block text-xs text-gray-500 mb-0.5">Square</span>
+                    <span class="block font-semibold">1:1</span>
+                  </button>
+                  <button 
+                    type="button"
+                    class="aspect-ratio-btn flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition-colors"
+                    data-ratio="landscape"
+                  >
+                    <span class="block text-xs text-gray-500 mb-0.5">Landscape</span>
+                    <span class="block font-semibold">16:9</span>
+                  </button>
+                  <button 
+                    type="button"
+                    class="aspect-ratio-btn flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition-colors"
+                    data-ratio="portrait"
+                  >
+                    <span class="block text-xs text-gray-500 mb-0.5">Portrait</span>
+                    <span class="block font-semibold">9:16</span>
+                  </button>
                 </div>
               </div>
               
@@ -660,6 +691,7 @@ const safeFinalists = finalists || [];
     let customThumbnailFile = null;
     let customThumbnailUrl = null;
     let currentBlobUrl = null;
+    let selectedAspectRatio = 'square'; // 'square', 'landscape', 'portrait'
 
     // Get utilities from window
     const CrestGenerator = window.CrestGenerator;
@@ -687,6 +719,39 @@ const safeFinalists = finalists || [];
         } else {
           clearResults();
         }
+      });
+    }
+
+    // Initialize aspect ratio buttons
+    function initializeAspectRatioButtons() {
+      const buttons = document.querySelectorAll('.aspect-ratio-btn');
+      const previewContainer = document.getElementById('finalist-preview');
+      
+      // Set initial active state
+      buttons.forEach(btn => {
+        const ratio = btn.getAttribute('data-ratio');
+        if (ratio === selectedAspectRatio) {
+          btn.classList.add('active');
+        }
+        
+        btn.addEventListener('click', () => {
+          // Update active state
+          buttons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          
+          // Update selected ratio
+          selectedAspectRatio = ratio;
+          
+          // Update preview container aspect ratio
+          if (previewContainer) {
+            previewContainer.setAttribute('data-ratio', ratio);
+          }
+          
+          // Regenerate preview with new aspect ratio
+          if (selectedFinalist) {
+            updatePreview();
+          }
+        });
       });
     }
 
@@ -895,6 +960,16 @@ const safeFinalists = finalists || [];
       customThumbnailFile = null;
       customThumbnailUrl = null;
       
+      // Reset aspect ratio to square
+      selectedAspectRatio = 'square';
+      const previewContainer = document.getElementById('finalist-preview');
+      if (previewContainer) {
+        previewContainer.setAttribute('data-ratio', 'square');
+      }
+      document.querySelectorAll('.aspect-ratio-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-ratio') === 'square');
+      });
+      
       // Show empty state and hide main content
       showEmptyState();
       
@@ -959,7 +1034,8 @@ const safeFinalists = finalists || [];
           category: selectedFinalist.category || '',
           isWinner: selectedFinalist.isWinner || false,
           year: selectedFinalist.eventYear?.toString() || eventDetails?.event_year?.toString() || '2025',
-          size: 800
+          size: 800,
+          aspectRatio: selectedAspectRatio
         });
 
         // Cleanup old blob URL
@@ -976,7 +1052,7 @@ const safeFinalists = finalists || [];
         
         img.addEventListener('contextmenu', (e) => {
           e.preventDefault();
-          FinalistImageGenerator.downloadImage(result.blobUrl, selectedFinalist.title);
+          FinalistImageGenerator.downloadImage(result.blobUrl, selectedFinalist.title, 'finalist_share', selectedAspectRatio);
         });
         
         finalistImageContainer.innerHTML = '';
@@ -1123,7 +1199,7 @@ const safeFinalists = finalists || [];
     // Download functionality
     downloadBtn?.addEventListener('click', () => {
       if (!selectedFinalist || !currentBlobUrl) { alert('Please wait for the image to load before downloading.'); return; }
-      FinalistImageGenerator.downloadImage(currentBlobUrl, selectedFinalist.title);
+      FinalistImageGenerator.downloadImage(currentBlobUrl, selectedFinalist.title, 'finalist_share', selectedAspectRatio);
     });
 
     // Copy button functionality
@@ -1460,6 +1536,7 @@ const safeFinalists = finalists || [];
     // Initialize
     initializeYearDropdown();
     initializeFinalists();
+    initializeAspectRatioButtons();
     filteredFinalists = [];
     // Don't render initial list - wait for user to type 3+ characters
     
@@ -1512,6 +1589,42 @@ const safeFinalists = finalists || [];
   select#year-select option:checked {
     background-color: #f3f4f6 !important;
     color: #0E1022 !important;
+  }
+
+  /* Aspect ratio container styles */
+  .aspect-ratio-container {
+    transition: aspect-ratio 0.3s ease;
+  }
+
+  .aspect-ratio-container[data-ratio="square"] {
+    aspect-ratio: 1 / 1;
+  }
+
+  .aspect-ratio-container[data-ratio="landscape"] {
+    aspect-ratio: 16 / 9;
+  }
+
+  .aspect-ratio-container[data-ratio="portrait"] {
+    aspect-ratio: 9 / 16;
+    max-height: 600px;
+  }
+
+  /* Aspect ratio button styles */
+  .aspect-ratio-btn {
+    border-color: #e5e7eb;
+    background-color: white;
+    color: #374151;
+  }
+
+  .aspect-ratio-btn:hover {
+    border-color: #9ca3af;
+    background-color: #f9fafb;
+  }
+
+  .aspect-ratio-btn.active {
+    border-color: #4923EB;
+    background-color: #f5f3ff;
+    color: #4923EB;
   }
 </style>
 
