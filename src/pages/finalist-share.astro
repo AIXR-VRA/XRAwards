@@ -51,7 +51,15 @@ const { data: finalistsData, error: finalistsError } = await supabase
     event_id,
     categories!category_id (
       name,
-      slug
+      slug,
+      category_tags (
+        tag_id,
+        tags (
+          id,
+          name,
+          slug
+        )
+      )
     ),
     finalist_accolades!finalist_id (
       accolade_id,
@@ -74,8 +82,13 @@ if (finalistsError) {
   finalists = finalistsData || [];
 }
 
-// Get the overlay frame image
-const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist_frame_2024_1760450572001.png');
+// Get the logo images for the social share card
+const logoUrl = getR2ImageUrl('/images/2025/12/xra-logo_1765616281600.png');
+const euLogoUrl = getR2ImageUrl('/images/2025/12/european-xr-awards-logo_1765616346565.png');
+
+// Category tag IDs
+const EU_CATEGORY_ID = 'bf2511f3-267e-4acb-ba79-a6003f715fe3';
+const CROSS_CATEGORY_ID = '348b57c4-66af-4601-a424-499f7497f53f';
 
 // Get the base crest images for accolades
 const crestBaseBlack = getR2ImageUrl('/images/2025/12/xra-winner_crests-252_1765577014221.png');
@@ -528,7 +541,7 @@ const safeFinalists = finalists || [];
   };
 </script>
 
-<script define:vars={{ finalists: safeFinalists, overlayFrame, eventDetails: safeEventDetails, crestBaseBlack, crestBaseWhite, winnerCrestBaseBlack, winnerCrestBaseWhite, availableYears }}>
+<script define:vars={{ finalists: safeFinalists, logoUrl, euLogoUrl, EU_CATEGORY_ID, CROSS_CATEGORY_ID, eventDetails: safeEventDetails, crestBaseBlack, crestBaseWhite, winnerCrestBaseBlack, winnerCrestBaseWhite, availableYears }}>
   document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const searchInput = document.getElementById('finalist-search');
@@ -598,17 +611,25 @@ const safeFinalists = finalists || [];
 
     // Initialize finalists data
     function initializeFinalists() {
-      allFinalists = finalists?.map((finalist) => ({
-        id: finalist.id,
-        title: finalist.title || 'Untitled',
-        organization: finalist.organization || '',
-        image: finalist.image_url ? FinalistImageGenerator.getProxyImageUrl(finalist.image_url) : '',
-        description: finalist.description || '',
-        category: finalist.categories ? finalist.categories.name : '',
-        accolades: (finalist.finalist_accolades || []).map((fa) => fa.accolades).filter(Boolean),
-        isWinner: finalist.is_winner || false,
-        eventYear: finalist.event_details?.event_year || null
-      })) || [];
+      allFinalists = finalists?.map((finalist) => {
+        // Extract tag IDs from category_tags
+        const categoryTags = finalist.categories?.category_tags || [];
+        const tagIds = categoryTags.map((ct) => ct.tag_id).filter(Boolean);
+        
+        return {
+          id: finalist.id,
+          title: finalist.title || 'Untitled',
+          organization: finalist.organization || '',
+          image: finalist.image_url ? FinalistImageGenerator.getProxyImageUrl(finalist.image_url) : '',
+          description: finalist.description || '',
+          category: finalist.categories ? finalist.categories.name : '',
+          categoryId: finalist.category_id || null,
+          tagIds: tagIds,
+          accolades: (finalist.finalist_accolades || []).map((fa) => fa.accolades).filter(Boolean),
+          isWinner: finalist.is_winner || false,
+          eventYear: finalist.event_details?.event_year || null
+        };
+      }) || [];
     }
 
     // Search functionality
@@ -813,11 +834,37 @@ const safeFinalists = finalists || [];
 
       try {
         const imageToUse = customThumbnailUrl || selectedFinalist.image;
-        const overlayProxyUrl = FinalistImageGenerator.getProxyImageUrl(overlayFrame);
+        
+        // Determine which logo(s) to use based on category tags
+        const tagIds = selectedFinalist.tagIds || [];
+        const hasEuTag = tagIds.includes(EU_CATEGORY_ID);
+        const hasCrossTag = tagIds.includes(CROSS_CATEGORY_ID);
+        
+        let primaryLogoUrl, secondaryLogoUrl;
+        
+        if (hasCrossTag) {
+          // Cross category - both logos side by side
+          primaryLogoUrl = FinalistImageGenerator.getProxyImageUrl(logoUrl);
+          secondaryLogoUrl = FinalistImageGenerator.getProxyImageUrl(euLogoUrl);
+        } else if (hasEuTag) {
+          // EU category - only EU logo
+          primaryLogoUrl = FinalistImageGenerator.getProxyImageUrl(euLogoUrl);
+          secondaryLogoUrl = undefined;
+        } else {
+          // Default - main XR Awards logo
+          primaryLogoUrl = FinalistImageGenerator.getProxyImageUrl(logoUrl);
+          secondaryLogoUrl = undefined;
+        }
         
         const result = await FinalistImageGenerator.generateFinalistImage({
           finalistImageUrl: imageToUse,
-          overlayFrameUrl: overlayProxyUrl,
+          logoUrl: primaryLogoUrl,
+          secondLogoUrl: secondaryLogoUrl,
+          title: selectedFinalist.title || '',
+          organization: selectedFinalist.organization || '',
+          category: selectedFinalist.category || '',
+          isWinner: selectedFinalist.isWinner || false,
+          year: selectedFinalist.eventYear?.toString() || eventDetails?.event_year?.toString() || '2025',
           size: 800
         });
 
