@@ -1,8 +1,8 @@
 ---
 /**
- * Share your status as a finalist
+ * Media & Assets page for finalists and winners
  * URL: /finalist-share
- * Generate your finalist image and tag us on social media
+ * Download crests, shareable images, and social media assets for finalists and winners
  */
 export const prerender = true;
 
@@ -16,7 +16,7 @@ import { supabase } from '../utils/supabase';
 import { getEventPhase } from '../utils/date-checker';
 
 // Fetch active event details
-const { data: eventDetails } = await supabase
+const { data: eventDetails, error: eventError } = await supabase
   .from('event_details')
   .select('*')
   .eq('is_active', true)
@@ -25,8 +25,20 @@ const { data: eventDetails } = await supabase
 // Get current event phase
 const eventPhase = await getEventPhase();
 
-// Get finalists for the active event
-const { data: finalists } = await supabase
+// Get all available event years for the dropdown
+const { data: allEvents, error: eventsError } = await supabase
+  .from('event_details')
+  .select('event_year')
+  .order('event_year', { ascending: false });
+
+const availableYears = (allEvents?.map(e => e.event_year) || []).filter(year => year >= 2024);
+if (eventDetails?.event_year && eventDetails.event_year >= 2024 && !availableYears.includes(eventDetails.event_year)) {
+  availableYears.unshift(eventDetails.event_year);
+}
+
+// Get finalists for all events (we'll filter by year in the frontend)
+let finalists = [];
+const { data: finalistsData, error: finalistsError } = await supabase
   .from('finalists')
   .select(`
     id,
@@ -35,21 +47,74 @@ const { data: finalists } = await supabase
     image_url,
     description,
     category_id,
+    is_winner,
+    event_id,
     categories!category_id (
       name,
-      slug
+      slug,
+      category_tags (
+        tag_id,
+        tags (
+          id,
+          name,
+          slug
+        )
+      )
+    ),
+    finalist_accolades!finalist_id (
+      accolade_id,
+      accolades!accolade_id (
+        id,
+        code,
+        name,
+        description
+      )
+    ),
+    event_details!event_id (
+      event_year
     )
   `)
-  .eq('event_id', eventDetails?.id)
   .order('title', { ascending: true });
 
-// Get the overlay frame image
-const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist_frame_2024_1760450572001.png');
+if (finalistsError) {
+  console.error('Error fetching finalists:', finalistsError);
+} else {
+  finalists = finalistsData || [];
+}
+
+// Get the logo images for the social share card
+const logoUrl = getR2ImageUrl('/images/2025/12/xra-logo_1765616281600.png');
+const euLogoUrl = getR2ImageUrl('/images/2025/12/european-xr-awards-logo_1765616346565.png');
+
+// Category tag IDs
+const EU_CATEGORY_ID = 'bf2511f3-267e-4acb-ba79-a6003f715fe3';
+const CROSS_CATEGORY_ID = '348b57c4-66af-4601-a424-499f7497f53f';
+
+
+// Get the base crest images with R2 URLs
+const crestConfigs = {
+  default: {
+    baseImageBlack: getR2ImageUrl('/images/2025/12/xra-winner_crests-252_1765577014221.png'),
+    baseImageWhite: getR2ImageUrl('/images/2025/12/xra-winner_crests-253_1765577030174.png')
+  },
+  eu: {
+    baseImageBlack: getR2ImageUrl('/images/2025/12/xra-winner_crests-eu-252_1765658549691.png'),
+    baseImageWhite: getR2ImageUrl('/images/2025/12/xra-winner_crests-eu-253_1765658563271.png')
+  },
+  shared: {
+    baseImageBlack: getR2ImageUrl('/images/2025/12/xra-shared-winner_crests-252_1765658372395.png'),
+    baseImageWhite: getR2ImageUrl('/images/2025/12/xra-shared-winner_crests-253_1765658391928.png')
+  }
+};
+
+// Ensure we have valid data - if not, provide empty defaults
+const safeEventDetails = eventDetails || null;
+const safeFinalists = finalists || [];
 ---
 
 <Layout
-  title="Share your status as a finalist - AIXR XR Awards"
-  description="Generate your finalist image and tag us on social media. Create shareable images for XR Awards finalists with custom overlay frames."
+  title="Media & Assets - Finalists & Winners - AIXR XR Awards"
+  description="Download media assets, crests, and shareable images for XR Awards finalists and winners. Generate social media content and press release templates."
 >
   <Header />
 
@@ -69,7 +134,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
       <!-- Content -->
       <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h1 class="page-title text-white mb-6">
-          Share your status as a finalist
+          Media & Assets
         </h1>
 
         <!-- Decorative Dots -->
@@ -81,51 +146,154 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
           <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
         </div>
 
-        <p class="page-subtitle text-white">
-          Generate your finalist image and tag us on social media
+        <p class="page-subtitle text-white mb-8">
+          Download crests, shareable images, and social media assets for finalists and winners
         </p>
-      </div>
-    </section>
 
-    <!-- Main Tool Section -->
-    <section class="py-16 md:py-24 bg-white">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <!-- Left: Selection Panel -->
-          <div class="space-y-6">
-            <!-- Search Input -->
-            <div>
-              <label for="finalist-search" class="block text-sm font-medium text-gray-700 mb-2">
-                Search Finalists
-              </label>
-              <div class="relative">
+        <!-- Search Section -->
+        <div class="max-w-2xl mx-auto mt-8">
+          <div class="relative">
+            <div class="flex flex-col sm:flex-row gap-3">
+              <!-- Year Dropdown -->
+              <div class="flex-shrink-0">
+                <select 
+                  id="year-select"
+                  class="w-full sm:w-auto min-w-[120px] px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-cyan-400 focus:border-transparent appearance-none cursor-pointer"
+                  style="background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpath d=%27M6 9l6 6 6-6%27/%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25rem; padding-right: 2.5rem;"
+                >
+                  <!-- Options will be populated by JavaScript -->
+                </select>
+              </div>
+              
+              <!-- Search Input -->
+              <div class="flex-1 relative">
                 <input 
                   type="text" 
                   id="finalist-search" 
-                  placeholder="Type to search finalists..."
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4923EB] focus:border-transparent"
+                  placeholder="Type at least 3 characters to search finalists..."
+                  class="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/60 focus:ring-2 focus:ring-cyan-400 focus:border-transparent focus:outline-none"
                   autocomplete="off"
                 />
-                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-            <!-- Finalists List -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Finalists ({finalists?.length || 0} total)
-              </label>
-              <div id="finalists-list" class="border border-gray-300 rounded-lg max-h-80 overflow-y-auto">
-                <!-- Finalists will be populated here -->
+    <!-- Search Results Dropdown (outside section to avoid clipping) -->
+    <div id="finalists-list" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto z-[100] hidden">
+      <!-- Results will be populated here -->
+    </div>
+
+    <!-- Empty State - Shows when no finalist selected -->
+    <section id="empty-state" class="py-20 md:py-32 bg-white">
+      <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+        <!-- Icon -->
+        <div class="mb-8">
+          <div class="flex items-center justify-center w-24 h-24 rounded-full bg-gray-50 border-2 border-dashed border-gray-200">
+            <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        </div>
+        
+        <!-- Message -->
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">Select a Finalist</h2>
+        <p class="text-sm text-gray-500 mb-8 max-w-md leading-relaxed">
+          Use the search above to find a finalist or winner, then generate shareable media assets, crests, and social media copy.
+        </p>
+        
+        <!-- Visual hint arrow pointing up -->
+        <svg class="w-6 h-6 text-gray-300 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+      </div>
+    </section>
+
+    <!-- Main Tool Section -->
+    <section id="main-tool-section" class="py-8 md:py-12 bg-white hidden">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <!-- Left: Preview Images -->
+          <div class="space-y-6">
+            <!-- Preview Section -->
+            <div class="space-y-6">
+              <h3 class="text-xl font-semibold text-gray-900">Social Media Preview</h3>
+              
+              <!-- Image Preview -->
+              <div class="relative bg-gray-900 rounded-2xl shadow-lg overflow-hidden">
+                <div id="finalist-preview" class="relative bg-gray-900 aspect-ratio-container" data-ratio="square">
+                  <!-- Placeholder when no finalist selected -->
+                  <div id="preview-placeholder" class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-center">
+                      <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <p class="text-gray-500">Select a finalist to see preview</p>
+                    </div>
+                  </div>
+                  
+                  <!-- Finalist image container -->
+                  <div id="finalist-image-container" class="absolute inset-0 hidden">
+                    <!-- Finalist image will be loaded here -->
+                  </div>
+                  
+                </div>
               </div>
+              
+              <!-- Aspect Ratio Selection -->
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Aspect Ratio</label>
+                <div class="flex gap-2">
+                  <button 
+                    type="button"
+                    class="aspect-ratio-btn flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition-colors"
+                    data-ratio="square"
+                  >
+                    <span class="block text-xs text-gray-500 mb-0.5">Square</span>
+                    <span class="block font-semibold">1:1</span>
+                  </button>
+                  <button 
+                    type="button"
+                    class="aspect-ratio-btn flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition-colors"
+                    data-ratio="landscape"
+                  >
+                    <span class="block text-xs text-gray-500 mb-0.5">Landscape</span>
+                    <span class="block font-semibold">16:9</span>
+                  </button>
+                  <button 
+                    type="button"
+                    class="aspect-ratio-btn flex-1 px-3 py-2 text-sm font-medium rounded-lg border-2 transition-colors"
+                    data-ratio="portrait"
+                  >
+                    <span class="block text-xs text-gray-500 mb-0.5">Portrait</span>
+                    <span class="block font-semibold">9:16</span>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Download Button -->
+              <button 
+                id="download-btn"
+                class="w-full px-6 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled
+              >
+                Download Image
+              </button>
             </div>
 
-            <!-- Selected Finalist Info -->
+          </div>
+
+          <!-- Right: Selected Entry Info + Crests -->
+          <div class="space-y-6">
+            <!-- Selected Entry Info -->
             <div id="selected-finalist-info" class="bg-gray-50 rounded-lg p-4 hidden">
-              <h3 class="font-semibold text-gray-900 mb-2">Selected Finalist</h3>
+              <h3 class="font-semibold text-gray-900 mb-2">Selected Entry</h3>
               <div id="finalist-info-content">
                 <!-- Content will be populated here -->
               </div>
@@ -209,45 +377,85 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
             </div>
 
           </div>
+        </div>
+      </div>
+    </section>
 
-          <!-- Right: Preview Panel -->
-          <div class="space-y-6">
-            <h3 class="text-xl font-semibold text-gray-900">Preview</h3>
-            
-            <!-- Image Preview -->
-            <div class="relative bg-white rounded-2xl shadow-lg overflow-hidden">
-              <div id="finalist-preview" class="relative aspect-square bg-gray-100">
-                <!-- Placeholder when no finalist selected -->
-                <div id="preview-placeholder" class="absolute inset-0 flex items-center justify-center">
-                  <div class="text-center">
-                    <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <p class="text-gray-500">Select a finalist to see preview</p>
-                  </div>
-                </div>
-                
-                <!-- Finalist image container -->
-                <div id="finalist-image-container" class="absolute inset-0 hidden">
-                  <!-- Finalist image will be loaded here -->
-                </div>
-                
+    <!-- Crests Section -->
+    <section id="crests-section" class="py-8 md:py-12 bg-gray-50 hidden">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Downloadable Crests</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Left: Crests -->
+          <div class="space-y-4">
+            <!-- Finalist Crests Section -->
+            <div id="finalist-crests-section" class="hidden">
+              <div id="finalist-crests-container" class="space-y-4">
+                <!-- Finalist crests will be generated here -->
               </div>
             </div>
-            
-            <!-- Download Button -->
-            <button 
-              id="download-btn"
-              class="w-full px-6 py-3 bg-[#4923EB] text-white font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled
-            >
-              Download Image
-            </button>
 
-            <!-- Social Media Copy -->
-            <div id="social-copy" class="hidden">
-              <h4 class="text-lg font-semibold text-gray-900 mb-3">Social Media Copy</h4>
-              <div class="space-y-3">
+            <!-- Winner Crests Section -->
+            <div id="winner-crests-section" class="hidden">
+              <div id="winner-crests-container" class="space-y-4">
+                <!-- Winner crests will be generated here -->
+              </div>
+            </div>
+
+            <!-- Accolade Crests Section -->
+            <div id="accolade-crests-section" class="hidden">
+              <div id="accolade-crests-container" class="space-y-4">
+                <!-- Accolade crests will be generated here -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Usage Guidelines -->
+          <div class="space-y-6">
+            <!-- How to Best Use Your Crest -->
+            <div>
+              <h3 class="text-lg font-bold text-gray-900 mb-4">How to Best Use Your Crest</h3>
+              <ul class="text-base text-gray-600 space-y-3 list-disc list-outside ml-8">
+                <li><span class="font-medium text-gray-800">Display It Online:</span> Add to your website's About page, homepage, or project portfolios.</li>
+                <li><span class="font-medium text-gray-800">Email Signature:</span> Include in your emails as a subtle reminder of your expertise.</li>
+                <li><span class="font-medium text-gray-800">XR Storefronts:</span> Feature on Meta, Pico, and Steam store pages.</li>
+                <li><span class="font-medium text-gray-800">Presentations:</span> Include in pitch decks, slideshows, or proposals.</li>
+              </ul>
+            </div>
+
+            <!-- Approved & Disapproved Uses -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-green-50 rounded-lg p-4">
+                <p class="text-sm font-semibold text-green-800 mb-3">Approved uses:</p>
+                <ul class="text-base text-green-700 space-y-1.5">
+                  <li>✓ Product store pages</li>
+                  <li>✓ Email signatures</li>
+                  <li>✓ Professional proposals</li>
+                  <li>✓ Social profiles</li>
+                  <li>✓ Your website</li>
+                </ul>
+              </div>
+              <div class="bg-red-50 rounded-lg p-4">
+                <p class="text-sm font-semibold text-red-800 mb-3">Disapproved uses:</p>
+                <ul class="text-base text-red-700 space-y-1.5">
+                  <li>✗ Modifying the logo</li>
+                  <li>✗ Stretching or distorting</li>
+                  <li>✗ Breaking brand guidelines</li>
+                  <li>✗ Payment/login screens</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Social Media Copy Section -->
+    <section id="social-copy-section" class="py-8 md:py-12 bg-white hidden">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div id="social-copy" class="hidden">
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">Social Media Copy</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Twitter/X Copy -->
                 <div>
                   <div class="flex items-center justify-between mb-1">
@@ -351,7 +559,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
                 </div>
 
                 <!-- Press Release Template -->
-                <div>
+                <div class="md:col-span-2">
                   <div class="flex items-center justify-between mb-1">
                     <label class="block text-sm font-medium text-gray-700">Press Release Template</label>
                     <div class="flex gap-1">
@@ -387,7 +595,6 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -400,9 +607,57 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
   <Footer />
 </Layout>
 
-<script define:vars={{ finalists, overlayFrame, eventDetails }}>
+<!-- Import utilities -->
+<script>
+  import { 
+    generateAccoladeCrest, 
+    generateWinnerCrest,
+    generateFinalistCrest,
+    wrapText, 
+    cleanupBlobUrls,
+    getCrestConfigForTags
+  } from '../utils/crest-generator';
+  import { 
+    generateSocialCopy, 
+    getShareUrl, 
+    getInstagramShareText 
+  } from '../utils/social-copy-generator';
+  import { 
+    generateFinalistImage, 
+    downloadImage, 
+    sanitizeFilename, 
+    revokeBlobUrl, 
+    getProxyImageUrl 
+  } from '../utils/finalist-image-generator';
+  
+  // Expose to window for use by the main script
+  (window as any).CrestGenerator = {
+    generateAccoladeCrest,
+    generateWinnerCrest,
+    generateFinalistCrest,
+    wrapText,
+    cleanupBlobUrls,
+    getCrestConfigForTags
+  };
+  (window as any).SocialCopyGenerator = {
+    generateSocialCopy,
+    getShareUrl,
+    getInstagramShareText
+  };
+  (window as any).FinalistImageGenerator = {
+    generateFinalistImage,
+    downloadImage,
+    sanitizeFilename,
+    revokeBlobUrl,
+    getProxyImageUrl
+  };
+</script>
+
+<script define:vars={{ finalists: safeFinalists, logoUrl, euLogoUrl, EU_CATEGORY_ID, CROSS_CATEGORY_ID, eventDetails: safeEventDetails, crestConfigs, availableYears }}>
   document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
     const searchInput = document.getElementById('finalist-search');
+    const yearSelect = document.getElementById('year-select');
     const finalistsList = document.getElementById('finalists-list');
     const selectedFinalistInfo = document.getElementById('selected-finalist-info');
     const finalistInfoContent = document.getElementById('finalist-info-content');
@@ -415,7 +670,7 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
     const instagramCopy = document.getElementById('instagram-copy');
     const pressReleaseCopy = document.getElementById('press-release-copy');
     
-    // Thumbnail selection elements
+    // Thumbnail elements
     const thumbnailSelection = document.getElementById('thumbnail-selection');
     const currentThumbnailPreview = document.getElementById('current-thumbnail-preview');
     const currentThumbnailImg = document.getElementById('current-thumbnail-img');
@@ -429,65 +684,165 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
     const changeThumbnailBtn = document.getElementById('change-thumbnail-btn');
     const resetThumbnailBtn = document.getElementById('reset-thumbnail-btn');
 
+    // State
     let selectedFinalist = null;
     let allFinalists = [];
     let filteredFinalists = [];
     let customThumbnailFile = null;
     let customThumbnailUrl = null;
+    let currentBlobUrl = null;
+    let selectedAspectRatio = 'square'; // 'square', 'landscape', 'portrait'
+
+    // Get utilities from window
+    const CrestGenerator = window.CrestGenerator;
+    const SocialCopyGenerator = window.SocialCopyGenerator;
+    const FinalistImageGenerator = window.FinalistImageGenerator;
+
+    // Initialize year dropdown
+    function initializeYearDropdown() {
+      if (!yearSelect || !availableYears || availableYears.length === 0) return;
+      
+      const defaultYear = eventDetails?.event_year || availableYears[0];
+      
+      yearSelect.innerHTML = availableYears.map(year => 
+        `<option value="${year}" ${year === defaultYear ? 'selected' : ''} style="background-color: white; color: #0E1022;">${year}</option>`
+      ).join('');
+      
+      // Trigger filter when year changes
+      yearSelect.addEventListener('change', () => {
+        // Update URL with year
+        const finalistId = selectedFinalist ? selectedFinalist.id : null;
+        updateURL(finalistId, yearSelect.value);
+        
+        if (searchInput.value.length >= 3) {
+          filterFinalists(searchInput.value.toLowerCase());
+        } else {
+          clearResults();
+        }
+      });
+    }
+
+    // Initialize aspect ratio buttons
+    function initializeAspectRatioButtons() {
+      const buttons = document.querySelectorAll('.aspect-ratio-btn');
+      const previewContainer = document.getElementById('finalist-preview');
+      
+      // Set initial active state
+      buttons.forEach(btn => {
+        const ratio = btn.getAttribute('data-ratio');
+        if (ratio === selectedAspectRatio) {
+          btn.classList.add('active');
+        }
+        
+        btn.addEventListener('click', () => {
+          // Update active state
+          buttons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          
+          // Update selected ratio
+          selectedAspectRatio = ratio;
+          
+          // Update preview container aspect ratio
+          if (previewContainer) {
+            previewContainer.setAttribute('data-ratio', ratio);
+          }
+          
+          // Regenerate preview with new aspect ratio
+          if (selectedFinalist) {
+            updatePreview();
+          }
+        });
+      });
+    }
 
     // Initialize finalists data
     function initializeFinalists() {
-      allFinalists = finalists?.map((finalist) => ({
-        id: finalist.id,
-        title: finalist.title || 'Untitled',
-        organization: finalist.organization || '',
-        image: finalist.image_url ? `/api/proxy-image?url=${encodeURIComponent(finalist.image_url)}` : '',
-        description: finalist.description || '',
-        category: finalist.categories ? finalist.categories.name : ''
-      })) || [];
+      allFinalists = finalists?.map((finalist) => {
+        // Extract tag IDs from category_tags
+        const categoryTags = finalist.categories?.category_tags || [];
+        const tagIds = categoryTags.map((ct) => ct.tag_id).filter(Boolean);
+        
+        return {
+          id: finalist.id,
+          title: finalist.title || 'Untitled',
+          organization: finalist.organization || '',
+          image: finalist.image_url ? FinalistImageGenerator.getProxyImageUrl(finalist.image_url) : '',
+          description: finalist.description || '',
+          category: finalist.categories ? finalist.categories.name : '',
+          categoryId: finalist.category_id || null,
+          tagIds: tagIds,
+          accolades: (finalist.finalist_accolades || []).map((fa) => fa.accolades).filter(Boolean),
+          isWinner: finalist.is_winner || false,
+          eventYear: finalist.event_details?.event_year || null
+        };
+      }) || [];
     }
 
-    // Search functionality - filter the list
+    // Search functionality
     searchInput?.addEventListener('input', (e) => {
       const searchTerm = e.target.value.toLowerCase();
-      filterFinalists(searchTerm);
+      if (searchTerm.length >= 3) {
+        filterFinalists(searchTerm);
+      } else {
+        clearResults();
+      }
     });
 
-    // Filter finalists based on search term
+    function clearResults() {
+      if (!finalistsList) return;
+      finalistsList.innerHTML = '';
+      finalistsList.classList.add('hidden');
+      filteredFinalists = [];
+    }
+
     function filterFinalists(searchTerm) {
-      if (searchTerm.length === 0) {
-        filteredFinalists = [...allFinalists];
-      } else {
-        filteredFinalists = allFinalists.filter(finalist => {
-          const title = finalist.title?.toLowerCase() || '';
-          const organization = finalist.organization?.toLowerCase() || '';
-          const category = finalist.category?.toLowerCase() || '';
-          
-          return title.includes(searchTerm) || 
-                 organization.includes(searchTerm) || 
-                 category.includes(searchTerm);
-        });
-      }
+      if (!yearSelect) return;
+      
+      const selectedYear = parseInt(yearSelect.value);
+      
+      filteredFinalists = allFinalists.filter(f => {
+        // Filter by year first
+        if (f.eventYear !== selectedYear) return false;
+        
+        // Then filter by search term
+        const title = f.title?.toLowerCase() || '';
+        const organization = f.organization?.toLowerCase() || '';
+        const category = f.category?.toLowerCase() || '';
+        return title.includes(searchTerm) || organization.includes(searchTerm) || category.includes(searchTerm);
+      });
+      
       renderFinalistsList();
     }
 
-    // Render the finalists list
+    function positionDropdown() {
+      if (!finalistsList || !searchInput) return;
+      
+      const searchRect = searchInput.getBoundingClientRect();
+      const searchContainer = searchInput.closest('.max-w-2xl');
+      const containerRect = searchContainer?.getBoundingClientRect();
+      
+      if (containerRect) {
+        finalistsList.style.top = `${searchRect.bottom + 8}px`;
+        finalistsList.style.left = `${containerRect.left}px`;
+        finalistsList.style.width = `${containerRect.width}px`;
+      }
+    }
+
     function renderFinalistsList() {
       if (!finalistsList) return;
       
       if (filteredFinalists.length === 0) {
-        finalistsList.innerHTML = '<div class="px-4 py-8 text-center text-gray-500">No finalists found</div>';
+        finalistsList.innerHTML = '<div class="px-4 py-8 text-center text-gray-500">No finalists found matching your search</div>';
+        positionDropdown();
+        finalistsList.classList.remove('hidden');
       } else {
-        finalistsList.innerHTML = filteredFinalists.map((finalist) => `
-          <div 
-            class="finalist-item px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
-            data-finalist-id="${finalist.id}"
-          >
+        finalistsList.innerHTML = filteredFinalists.map((f) => `
+          <div class="finalist-item px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors" data-finalist-id="${f.id}">
             <div class="flex items-start justify-between">
               <div class="flex-1 min-w-0">
-                <div class="font-medium text-gray-900 truncate">${finalist.title || 'Untitled'}</div>
-                ${finalist.organization ? `<div class="text-sm text-[#4923EB] truncate">${finalist.organization}</div>` : ''}
-                ${finalist.category ? `<div class="text-xs text-gray-500 uppercase mt-1">${finalist.category}</div>` : ''}
+                <div class="font-medium text-gray-900 truncate">${f.title}</div>
+                ${f.organization ? `<div class="text-sm text-[#4923EB] truncate">${f.organization}</div>` : ''}
+                ${f.category ? `<div class="text-xs text-gray-500 uppercase mt-1">${f.category}</div>` : ''}
               </div>
               <div class="ml-3 flex-shrink-0">
                 <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
@@ -499,61 +854,137 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
             </div>
           </div>
         `).join('');
+        positionDropdown();
+        finalistsList.classList.remove('hidden');
       }
     }
 
     // Handle click on finalist items
     finalistsList?.addEventListener('click', (e) => {
       const item = e.target.closest('.finalist-item');
-      if (item) {
-        selectFinalist(item);
-      }
+      if (item) selectFinalist(item);
     });
 
-    // Select a finalist
+    function updateURL(finalistId, year) {
+      const url = new URL(window.location.href);
+      if (finalistId) {
+        url.searchParams.set('finalist', finalistId);
+      } else {
+        url.searchParams.delete('finalist');
+      }
+      if (year) {
+        url.searchParams.set('year', year);
+      }
+      window.history.pushState({}, '', url);
+    }
+
     function selectFinalist(element) {
       const finalistId = element.getAttribute('data-finalist-id');
       const finalist = allFinalists.find(f => f.id === finalistId);
-      
       if (!finalist) return;
       
-      selectedFinalist = {
-        id: finalist.id,
-        title: finalist.title,
-        organization: finalist.organization,
-        image: finalist.image,
-        description: finalist.description,
-        category: finalist.category
-      };
-
-      // Update search input
+      selectedFinalist = { ...finalist };
       searchInput.value = selectedFinalist.title || '';
+      
+      // Update URL
+      const selectedYear = yearSelect ? yearSelect.value : null;
+      updateURL(finalistId, selectedYear);
+      
+      // Close the dropdown
+      if (finalistsList) {
+        finalistsList.classList.add('hidden');
+      }
+      
+      // Hide empty state and show main content
+      hideEmptyState();
       
       updatePreview();
       updateSelectedInfo();
       updateSocialCopy();
       enableDownload();
       updateThumbnailPreview();
+      updateFinalistCrests();
+      updateAccoladeCrests();
+      updateWinnerCrests();
+    }
+
+    function selectFinalistById(finalistId) {
+      const finalist = allFinalists.find(f => f.id === finalistId);
+      if (!finalist) return;
+      
+      // Set the year dropdown to match the finalist's year
+      if (finalist.eventYear && yearSelect) {
+        yearSelect.value = finalist.eventYear.toString();
+      }
+      
+      selectedFinalist = { ...finalist };
+      searchInput.value = selectedFinalist.title || '';
+      
+      // Hide empty state and show main content
+      hideEmptyState();
+      
+      updatePreview();
+      updateSelectedInfo();
+      updateSocialCopy();
+      enableDownload();
+      updateThumbnailPreview();
+      updateFinalistCrests();
+      updateAccoladeCrests();
+      updateWinnerCrests();
+    }
+
+    function loadFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const yearParam = urlParams.get('year');
+      const finalistId = urlParams.get('finalist');
+      
+      // Set year if provided
+      if (yearParam && yearSelect) {
+        yearSelect.value = yearParam;
+      }
+      
+      // Load finalist if provided
+      if (finalistId && allFinalists.length > 0) {
+        selectFinalistById(finalistId);
+      }
     }
 
     function resetSelection() {
-      // Clean up any existing blob URL
-      if (finalistImageContainer.currentBlobUrl) {
-        URL.revokeObjectURL(finalistImageContainer.currentBlobUrl);
-        finalistImageContainer.currentBlobUrl = null;
-      }
+      FinalistImageGenerator.revokeBlobUrl(currentBlobUrl);
+      currentBlobUrl = null;
+      CrestGenerator?.cleanupBlobUrls(document.getElementById('finalist-crests-container'));
+      CrestGenerator?.cleanupBlobUrls(document.getElementById('accolade-crests-container'));
+      CrestGenerator?.cleanupBlobUrls(document.getElementById('winner-crests-container'));
       
       selectedFinalist = null;
       customThumbnailFile = null;
       customThumbnailUrl = null;
+      
+      // Reset aspect ratio to square
+      selectedAspectRatio = 'square';
+      const previewContainer = document.getElementById('finalist-preview');
+      if (previewContainer) {
+        previewContainer.setAttribute('data-ratio', 'square');
+      }
+      document.querySelectorAll('.aspect-ratio-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-ratio') === 'square');
+      });
+      
+      // Show empty state and hide main content
+      showEmptyState();
+      
       showPlaceholder();
       hideSelectedInfo();
       hideSocialCopy();
       disableDownload();
       hideThumbnailSelection();
+      
+      document.getElementById('finalist-crests-section')?.classList.add('hidden');
+      document.getElementById('accolade-crests-section')?.classList.add('hidden');
+      document.getElementById('winner-crests-section')?.classList.add('hidden');
     }
 
-    function updatePreview() {
+    async function updatePreview() {
       if (!selectedFinalist) {
         showPlaceholder();
         return;
@@ -562,568 +993,555 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
       hidePlaceholder();
       showImageContainer();
 
-      if (selectedFinalist.image) {
-        // Create a canvas to combine the images
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          showPlaceholder();
-          return;
-        }
+      if (!selectedFinalist.image) {
+        showPlaceholder();
+        return;
+      }
 
-        // Set canvas size
-        const size = 800;
-        canvas.width = size;
-        canvas.height = size;
-
-        // Load the finalist image (use custom thumbnail if selected)
+      try {
         const imageToUse = customThumbnailUrl || selectedFinalist.image;
-        const finalistImg = new Image();
-        finalistImg.crossOrigin = 'anonymous';
         
-        finalistImg.onload = () => {
-          // Draw the finalist image
-          ctx.drawImage(finalistImg, 0, 0, size, size);
-          
-          // Load and draw the overlay frame
-          const overlayImg = new Image();
-          overlayImg.crossOrigin = 'anonymous';
-          
-          overlayImg.onload = () => {
-            // Draw the overlay frame
-            ctx.drawImage(overlayImg, 0, 0, size, size);
-            
-            // Convert canvas to image and display
-            canvas.toBlob((blob) => {
-              if (!blob) return;
-              
-              const url = URL.createObjectURL(blob);
-              const img = document.createElement('img');
-              img.src = url;
-              img.alt = `${selectedFinalist.title} - Finalist Share Image`;
-              img.className = 'w-full h-full object-cover';
-              img.style.cursor = 'pointer';
-              img.title = 'Right-click to download';
-              
-              // Add right-click handler for proper filename
-              img.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${selectedFinalist.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_finalist_share.png`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-              });
-              
-              finalistImageContainer.innerHTML = '';
-              finalistImageContainer.appendChild(img);
-              
-              // Store the blob URL for cleanup later
-              if (finalistImageContainer.currentBlobUrl) {
-                URL.revokeObjectURL(finalistImageContainer.currentBlobUrl);
-              }
-              finalistImageContainer.currentBlobUrl = url;
-            }, 'image/png');
-          };
-          
-          // Use proxy for overlay frame
-          const overlayProxyUrl = `/api/proxy-image?url=${encodeURIComponent(overlayFrame)}`;
-          overlayImg.src = overlayProxyUrl;
-        };
+        // Determine which logo(s) to use based on category tags
+        const tagIds = selectedFinalist.tagIds || [];
+        const hasEuTag = tagIds.includes(EU_CATEGORY_ID);
+        const hasCrossTag = tagIds.includes(CROSS_CATEGORY_ID);
         
-        finalistImg.src = imageToUse || '';
-      } else {
+        let primaryLogoUrl, secondaryLogoUrl;
+        let isEuOnly = false;
+        
+        if (hasCrossTag) {
+          // Cross category - both logos side by side
+          primaryLogoUrl = FinalistImageGenerator.getProxyImageUrl(logoUrl);
+          secondaryLogoUrl = FinalistImageGenerator.getProxyImageUrl(euLogoUrl);
+        } else if (hasEuTag) {
+          // EU category - only EU logo (bigger)
+          primaryLogoUrl = FinalistImageGenerator.getProxyImageUrl(euLogoUrl);
+          secondaryLogoUrl = undefined;
+          isEuOnly = true;
+        } else {
+          // Default - main XR Awards logo
+          primaryLogoUrl = FinalistImageGenerator.getProxyImageUrl(logoUrl);
+          secondaryLogoUrl = undefined;
+        }
+        
+        const result = await FinalistImageGenerator.generateFinalistImage({
+          finalistImageUrl: imageToUse,
+          logoUrl: primaryLogoUrl,
+          secondLogoUrl: secondaryLogoUrl,
+          isEuOnly: isEuOnly,
+          title: selectedFinalist.title || '',
+          organization: selectedFinalist.organization || '',
+          category: selectedFinalist.category || '',
+          isWinner: selectedFinalist.isWinner || false,
+          year: selectedFinalist.eventYear?.toString() || eventDetails?.event_year?.toString() || '2025',
+          size: 800,
+          aspectRatio: selectedAspectRatio
+        });
+
+        // Cleanup old blob URL
+        FinalistImageGenerator.revokeBlobUrl(currentBlobUrl);
+        currentBlobUrl = result.blobUrl;
+
+        // Create image element
+        const img = document.createElement('img');
+        img.src = result.blobUrl;
+        img.alt = `${selectedFinalist.title} - Finalist Share Image`;
+        img.className = 'w-full h-full object-cover';
+        img.style.cursor = 'pointer';
+        img.title = 'Right-click to download';
+        
+        img.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          FinalistImageGenerator.downloadImage(result.blobUrl, selectedFinalist.title, 'finalist_share', selectedAspectRatio);
+        });
+        
+        finalistImageContainer.innerHTML = '';
+        finalistImageContainer.appendChild(img);
+      } catch (error) {
+        console.error('Error generating preview:', error);
         showPlaceholder();
       }
     }
 
     function updateSelectedInfo() {
       if (!selectedFinalist) return;
-
+      
+      // Status badge (Winner or Finalist)
+      const statusBadge = selectedFinalist.isWinner 
+        ? `<span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-yellow-400 text-yellow-900 rounded">Winner</span>`
+        : `<span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-700 rounded">Finalist</span>`;
+      
+      // Accolades display
+      const accolades = selectedFinalist.accolades || [];
+      const accoladesHtml = accolades.length > 0 
+        ? `<div class="mt-3 pt-3 border-t border-gray-200">
+            <p class="text-xs text-gray-500 uppercase mb-2">Accolades</p>
+            <div class="flex flex-wrap gap-1.5">
+              ${accolades.map(a => `<span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 rounded">${a.name}</span>`).join('')}
+            </div>
+           </div>`
+        : '';
+      
       finalistInfoContent.innerHTML = `
         <div class="space-y-2">
-          <h4 class="font-semibold text-gray-900">${selectedFinalist.title || 'Untitled'}</h4>
+          <div class="flex items-baseline gap-2 flex-wrap">
+            <span class="font-semibold text-gray-900">${selectedFinalist.title || 'Untitled'}</span>
+            ${statusBadge}
+          </div>
           ${selectedFinalist.organization ? `<p class="text-sm text-[#4923EB]">${selectedFinalist.organization}</p>` : ''}
           ${selectedFinalist.category ? `<p class="text-xs text-gray-500 uppercase">${selectedFinalist.category}</p>` : ''}
           ${selectedFinalist.description ? `<p class="text-sm text-gray-600 mt-2 leading-relaxed">${selectedFinalist.description}</p>` : ''}
+          ${accoladesHtml}
         </div>
       `;
       selectedFinalistInfo?.classList.remove('hidden');
     }
 
-    function showPlaceholder() {
-      previewPlaceholder?.classList.remove('hidden');
-      finalistImageContainer?.classList.add('hidden');
-    }
-
-    function hidePlaceholder() {
-      previewPlaceholder?.classList.add('hidden');
-    }
-
-    function showImageContainer() {
-      finalistImageContainer?.classList.remove('hidden');
-    }
-
-    // Overlay frame is now part of the combined image
-
-    function showSelectedInfo() {
-      selectedFinalistInfo?.classList.remove('hidden');
-    }
-
-    function hideSelectedInfo() {
-      selectedFinalistInfo?.classList.add('hidden');
-    }
-
     function updateSocialCopy() {
       if (!selectedFinalist) return;
 
-      // Fixed variables
-      const eventYear = '2025'; // You can make this dynamic from eventDetails
-      const hashtag = `#XRAwards${eventYear.slice(-2)}`;
-      const winnersPageUrl = `https://xrawards.aixr.org/winners-and-finalists-${eventYear}`;
-      const finalistName = selectedFinalist.title;
-      const category = selectedFinalist.category;
+      const eventYear = selectedFinalist.eventYear || eventDetails?.event_year || '2025';
+      const config = {
+        eventYear,
+        finalistName: selectedFinalist.title,
+        category: selectedFinalist.category,
+        organization: selectedFinalist.organization,
+        description: selectedFinalist.description,
+        eventName: eventDetails?.event_name || 'XR Awards',
+        isWinner: selectedFinalist.isWinner || false
+      };
+
+      const copy = SocialCopyGenerator.generateSocialCopy(config);
       
-      // Social media handles
-      const twitterHandles = '@vrawards @aixrorg';
-      const instagramHandles = '@vrawards @unitedxr @aixrorg';
-      const linkedinHandles = '@unitedXR @aixr';
-      
-      // Random message templates
-      const twitterTemplates = [
-        `🎉 Excited to be a finalist in the ${category} category at the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nSee all finalists: ${winnersPageUrl}`,
-        `🏆 Honored to be selected as a finalist for ${finalistName} in the ${category} category at the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nView all finalists: ${winnersPageUrl}`,
-        `✨ Amazing news! ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nCheck out all finalists: ${winnersPageUrl}`,
-        `🚀 Proud to announce that ${finalistName} has been selected as a finalist in the ${category} category at the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nSee all finalists: ${winnersPageUrl}`,
-        `🎊 We're thrilled that ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! ${hashtag} ${twitterHandles}\n\nView all finalists: ${winnersPageUrl}`
-      ];
-      
-      const linkedinTemplates = [
-        `Thrilled to announce that ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis recognition means a lot to our team and we're excited to be part of the XR community.\n\nView all finalists and winners: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`,
-        `We're incredibly proud to share that ${finalistName} has been chosen as a finalist in the ${category} category for the ${eventYear} XR Awards! 🎉\n\nThis achievement reflects our commitment to innovation in the XR space.\n\nSee all finalists: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`,
-        `Exciting news! ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nWe're honored to be recognized alongside such incredible talent in the XR industry.\n\nView all finalists and winners: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`,
-        `We're delighted to announce that ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! ✨\n\nThis recognition validates our team's hard work and dedication to pushing the boundaries of XR technology.\n\nCheck out all finalists: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`,
-        `Amazing news! ${finalistName} has been chosen as a finalist in the ${category} category for the ${eventYear} XR Awards! 🚀\n\nWe're grateful for this recognition and excited to be part of the XR community's continued growth.\n\nView all finalists: ${winnersPageUrl}\n\n${hashtag} ${linkedinHandles}`
-      ];
-      
-      const instagramTemplates = [
-        `🎉 FINALIST ANNOUNCEMENT! 🎉\n\nWe're beyond excited to share that ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis is such an honor and we can't wait to celebrate with the amazing XR community! ✨\n\nCheck out all the incredible finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VirtualReality #AugmentedReality #Innovation #Awards #Technology #ImmersiveTech #FutureTech #DigitalInnovation #TechAwards #VR #AR #MR #ExtendedReality #TechCommunity`,
-        `🏆 WE DID IT! 🏆\n\n${finalistName} is officially a finalist in the ${category} category for the ${eventYear} XR Awards! 🎊\n\nWe're so proud of this achievement and grateful to be part of such an innovative community! 💫\n\nSee all the amazing finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VR #AR #Innovation #Technology #ImmersiveTech #FutureTech #DigitalInnovation #TechAwards #VirtualReality #AugmentedReality #MixedReality #ExtendedReality #TechCommunity #Awards`,
-        `✨ INCREDIBLE NEWS! ✨\n\n${finalistName} has been chosen as a finalist in the ${category} category for the ${eventYear} XR Awards! 🚀\n\nThis recognition means everything to our team! Thank you to the XR community for this amazing opportunity! 🙏\n\nView all finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VirtualReality #AugmentedReality #Innovation #Awards #Technology #ImmersiveTech #FutureTech #DigitalInnovation #TechAwards #VR #AR #MR #ExtendedReality #TechCommunity`,
-        `🎊 CELEBRATION TIME! 🎊\n\nWe're thrilled to announce that ${finalistName} is a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis is a dream come true! We're so excited to be part of this incredible journey! ✨\n\nCheck out all finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VR #AR #Innovation #Community #Technology #ImmersiveTech #FutureTech #DigitalInnovation #TechAwards #VirtualReality #AugmentedReality #MixedReality #ExtendedReality #Awards`,
-        `🚀 AMAZING ACHIEVEMENT! 🚀\n\n${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🎉\n\nWe're over the moon with this recognition! The XR community continues to inspire us every day! 💫\n\nSee all the incredible finalists: ${winnersPageUrl}\n\n${hashtag} ${instagramHandles} #XR #VirtualReality #AugmentedReality #Innovation #Technology #ImmersiveTech #FutureTech #DigitalInnovation #TechAwards #VR #AR #MR #ExtendedReality #TechCommunity`
-      ];
-      
-      // Randomly select templates
-      const randomTwitter = twitterTemplates[Math.floor(Math.random() * twitterTemplates.length)];
-      const randomLinkedIn = linkedinTemplates[Math.floor(Math.random() * linkedinTemplates.length)];
-      const randomInstagram = instagramTemplates[Math.floor(Math.random() * instagramTemplates.length)];
-      
-      twitterCopy.value = randomTwitter;
-      linkedinCopy.value = randomLinkedIn;
-      instagramCopy.value = randomInstagram;
-      
-      // Generate press release template
-      updatePressReleaseTemplate();
+      twitterCopy.value = copy.twitter;
+      linkedinCopy.value = copy.linkedin;
+      instagramCopy.value = copy.instagram;
+      pressReleaseCopy.value = copy.pressRelease;
       
       showSocialCopy();
     }
 
-    function showSocialCopy() {
-      socialCopy?.classList.remove('hidden');
+    // UI State helpers
+    const emptyState = document.getElementById('empty-state');
+    const mainToolSection = document.getElementById('main-tool-section');
+    const crestsSection = document.getElementById('crests-section');
+    const socialCopySection = document.getElementById('social-copy-section');
+    
+    function showEmptyState() { 
+      emptyState?.classList.remove('hidden'); 
+      mainToolSection?.classList.add('hidden');
+      crestsSection?.classList.add('hidden');
+      socialCopySection?.classList.add('hidden');
     }
-
-    function hideSocialCopy() {
-      socialCopy?.classList.add('hidden');
+    function hideEmptyState() { 
+      emptyState?.classList.add('hidden'); 
+      mainToolSection?.classList.remove('hidden');
+      crestsSection?.classList.remove('hidden');
+      socialCopySection?.classList.remove('hidden');
     }
+    function showPlaceholder() { previewPlaceholder?.classList.remove('hidden'); finalistImageContainer?.classList.add('hidden'); }
+    function hidePlaceholder() { previewPlaceholder?.classList.add('hidden'); }
+    function showImageContainer() { finalistImageContainer?.classList.remove('hidden'); }
+    function hideSelectedInfo() { selectedFinalistInfo?.classList.add('hidden'); }
+    function showSocialCopy() { socialCopy?.classList.remove('hidden'); }
+    function hideSocialCopy() { socialCopy?.classList.add('hidden'); }
+    function enableDownload() { downloadBtn.disabled = false; }
+    function disableDownload() { downloadBtn.disabled = true; }
+    function showThumbnailSelection() { thumbnailSelection?.classList.remove('hidden'); }
+    function hideThumbnailSelection() { thumbnailSelection?.classList.add('hidden'); }
+    function showThumbnailUpload() { thumbnailUploadContainer?.classList.remove('hidden'); changeThumbnailBtn?.classList.add('hidden'); }
+    function hideThumbnailUpload() { thumbnailUploadContainer?.classList.add('hidden'); changeThumbnailBtn?.classList.remove('hidden'); }
 
-    function updatePressReleaseTemplate() {
-      if (!selectedFinalist) return;
-
-      const eventYear = eventDetails?.event_year || '2025';
-      const eventName = eventDetails?.event_name || 'XR Awards';
-      const today = new Date();
-      const todayFormatted = today.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      });
-      
-      const finalistName = selectedFinalist.title;
-      const organization = selectedFinalist.organization || '';
-      const category = selectedFinalist.category;
-      const description = selectedFinalist.description || '';
-      const websiteUrl = selectedFinalist.website_url || '';
-      
-      // Helper function to clean description for press release
-      const cleanDescription = (desc) => {
-        if (!desc) return '';
-        // Remove trailing period if it exists, we'll add proper punctuation in context
-        return desc.trim().replace(/\.$/, '');
-      };
-      
-      const cleanDesc = cleanDescription(description);
-      
-      // Array of varied quote templates
-      const quoteTemplates = [
-        '"We are thrilled to be recognized as a finalist for the ' + eventYear + ' ' + eventName + '," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "This recognition validates our commitment to pushing the boundaries of what\'s possible in extended reality technology."',
-        '"Being selected as a finalist for the ' + eventYear + ' ' + eventName + ' is a tremendous honor," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "This achievement reflects our dedication to innovation and excellence in the XR space."',
-        '"We\'re incredibly proud to be recognized as a finalist in the ' + category + ' category," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "This recognition from the XR community means everything to our team."',
-        '"This finalist selection for the ' + eventYear + ' ' + eventName + ' represents years of hard work and innovation," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "We\'re excited to be part of such an incredible community of XR pioneers."',
-        '"Being chosen as a finalist validates our vision for the future of extended reality," said [Insert name of a representative from ' + (organization || 'the project team') + ']. "We\'re honored to be recognized alongside the industry\'s most innovative projects."'
-      ];
-      
-      // Randomly select a quote template
-      const selectedQuote = quoteTemplates[Math.floor(Math.random() * quoteTemplates.length)];
-      
-      // Generate dynamic press release using string concatenation
-      const pressReleaseTemplate = finalistName + ' Selected as Finalist for ' + eventYear + ' ' + eventName + ' in ' + category + ' Category\n\n' +
-        (organization ? organization + ' ' : '') + 'Recognized for Innovation in Extended Reality Technology\n\n' +
-        'International - ' + todayFormatted + ': For immediate release\n\n' +
-        finalistName + (organization ? ' by ' + organization : '') + ' has been selected as a finalist in the ' + category + ' category for the prestigious ' + eventYear + ' ' + eventName + '. This recognition highlights the innovative work being done in the extended reality space and showcases the cutting-edge technology that is shaping the future of immersive experiences.\n\n' +
-        'The ' + eventName + ' celebrate outstanding achievements and innovation in virtual, augmented, and mixed reality across diverse sectors globally. Being selected as a finalist represents recognition from industry experts and peers for exceptional work in the XR field.\n\n' +
-        finalistName + (cleanDesc ? ' - ' + cleanDesc : '') + ' demonstrates the kind of innovative thinking and technical excellence that the ' + eventName + ' were established to recognize. The project showcases the potential of extended reality technology to transform industries and create meaningful experiences for users.\n\n' +
-        selectedQuote + '\n\n' +
-        'Winners will be announced during the ' + eventName + ' ceremony. For more information about the awards, finalists, and ceremony details, visit https://xrawards.aixr.org/winners-and-finalists-' + eventYear + (websiteUrl ? ' or learn more about ' + finalistName + ' at ' + websiteUrl : '') + '.\n\n' +
-        'Contact\n' +
-        'For any press and media enquiries, please contact:\n\n' +
-        'AIXR Press Team: awards@aixr.org\n' +
-        'Stereopsia | United XR Europe: emma@stereopsia.com\n' +
-        'Finalist Press Contact: [Finalist key contact]\n\n' +
-        'Social media\n' +
-        'Twitter: \n' +
-        'Instagram: \n' +
-        'LinkedIn:\n\n' +
-        'About ' + (organization || finalistName) + ': [Insert Boilerplate copy]\n\n' +
-        'Our boilerplate:\n\n' +
-        'About AIXR - The Academy of International Extended Reality (AIXR) hosts the prestigious international AIXR XR Awards, established in 2017. The awards celebrate outstanding achievements and innovation in virtual, augmented, and mixed reality across diverse sectors globally. Recognized as a benchmark for excellence, the AIXR XR Awards aim to elevate groundbreaking work, honor industry leaders, and drive the immersive technology ecosystem forward. AIXR fosters a global community connecting professionals and innovators within the tech industry. Learn more at https://xrawards.aixr.org.\n\n' +
-        'About United XR Europe - United XR Europe represents the strategic collaboration between AWE and Stereopsia, combining the strengths of AWE EU and Stereopsia into a unified platform. It is dedicated to fostering a global community and celebrating excellence in the immersive technology industry. Learn more at www.unitedxr.eu.';
-
-      pressReleaseCopy.value = pressReleaseTemplate;
-    }
-
-    // Thumbnail selection functions
     function updateThumbnailPreview() {
-      if (!selectedFinalist) {
-        hideThumbnailSelection();
-        return;
-      }
-
+      if (!selectedFinalist) { hideThumbnailSelection(); return; }
       showThumbnailSelection();
       
-      // Update current thumbnail preview
       const thumbnailUrl = customThumbnailUrl || selectedFinalist.image;
       if (thumbnailUrl) {
         currentThumbnailImg.src = thumbnailUrl;
         currentThumbnailImg.alt = customThumbnailUrl ? 'Custom thumbnail' : 'Original finalist image';
       }
       
-      // Update preview text
       const previewText = currentThumbnailPreview.querySelector('p');
-      if (previewText) {
-        previewText.textContent = customThumbnailUrl ? 'Using custom thumbnail' : 'Using original finalist image';
-      }
+      if (previewText) previewText.textContent = customThumbnailUrl ? 'Using custom thumbnail' : 'Using original finalist image';
       
-      // Show/hide reset button
-      if (customThumbnailUrl) {
-        resetThumbnailBtn?.classList.remove('hidden');
-      } else {
-        resetThumbnailBtn?.classList.add('hidden');
-      }
-    }
-
-    function showThumbnailSelection() {
-      thumbnailSelection?.classList.remove('hidden');
-    }
-
-    function hideThumbnailSelection() {
-      thumbnailSelection?.classList.add('hidden');
-    }
-
-    function showThumbnailUpload() {
-      thumbnailUploadContainer?.classList.remove('hidden');
-      changeThumbnailBtn?.classList.add('hidden');
-    }
-
-    function hideThumbnailUpload() {
-      thumbnailUploadContainer?.classList.add('hidden');
-      changeThumbnailBtn?.classList.remove('hidden');
+      customThumbnailUrl ? resetThumbnailBtn?.classList.remove('hidden') : resetThumbnailBtn?.classList.add('hidden');
     }
 
     function handleFileUpload(file) {
-      // Validate file type
       const allowedTypes = ['image/png', 'image/jpeg', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        alert('Please select a PNG, JPEG, or WebP image file.');
-        return;
-      }
+      if (!allowedTypes.includes(file.type)) { alert('Please select a PNG, JPEG, or WebP image file.'); return; }
+      if (file.size > 10 * 1024 * 1024) { alert('File size must be less than 10MB.'); return; }
 
-      // Validate file size (10MB max)
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      if (file.size > maxSize) {
-        alert('File size must be less than 10MB.');
-        return;
-      }
-
-      // Create object URL for preview
-      if (customThumbnailUrl) {
-        URL.revokeObjectURL(customThumbnailUrl);
-      }
+      if (customThumbnailUrl) URL.revokeObjectURL(customThumbnailUrl);
 
       customThumbnailFile = file;
       customThumbnailUrl = URL.createObjectURL(file);
 
-      // Update UI
       uploadedThumbnailPreview.src = customThumbnailUrl;
       uploadedFilename.textContent = file.name;
       uploadedFilePreview?.classList.remove('hidden');
       
-      // Update main preview
       updateThumbnailPreview();
-      updatePreview(); // Refresh the preview with new thumbnail
+      updatePreview();
       hideThumbnailUpload();
     }
 
     function removeCustomThumbnail() {
-      if (customThumbnailUrl) {
-        URL.revokeObjectURL(customThumbnailUrl);
-      }
-      
+      if (customThumbnailUrl) URL.revokeObjectURL(customThumbnailUrl);
       customThumbnailFile = null;
       customThumbnailUrl = null;
-      
-      // Update UI
       uploadedFilePreview?.classList.add('hidden');
       updateThumbnailPreview();
-      updatePreview(); // Refresh the preview with original image
-    }
-
-    function resetThumbnail() {
-      removeCustomThumbnail();
-    }
-
-    function enableDownload() {
-      downloadBtn.disabled = false;
-    }
-
-    function disableDownload() {
-      downloadBtn.disabled = true;
+      updatePreview();
     }
 
     // Download functionality
-    downloadBtn?.addEventListener('click', async () => {
-      if (!selectedFinalist) return;
-
-      try {
-        // Get the current combined image from the preview
-        const previewImg = finalistImageContainer.querySelector('img');
-        if (!previewImg || !previewImg.src) {
-          alert('Please wait for the image to load before downloading.');
-          return;
-        }
-
-        // Create a link to download the current preview image
-              const a = document.createElement('a');
-        a.href = previewImg.src;
-              a.download = `${selectedFinalist.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_finalist_share.png`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-      } catch (error) {
-        console.error('Error downloading image:', error);
-        alert('Error downloading image. Please try again.');
-      }
+    downloadBtn?.addEventListener('click', () => {
+      if (!selectedFinalist || !currentBlobUrl) { alert('Please wait for the image to load before downloading.'); return; }
+      FinalistImageGenerator.downloadImage(currentBlobUrl, selectedFinalist.title, 'finalist_share', selectedAspectRatio);
     });
 
     // Copy button functionality
-    document.getElementById('copy-twitter')?.addEventListener('click', () => {
-      copyToClipboard(twitterCopy.value, 'Twitter copy');
-    });
+    function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!')).catch(() => fallbackCopyToClipboard(text));
+      } else {
+        fallbackCopyToClipboard(text);
+      }
+    }
 
-    document.getElementById('copy-linkedin')?.addEventListener('click', () => {
-      copyToClipboard(linkedinCopy.value, 'LinkedIn copy');
-    });
+    function fallbackCopyToClipboard(text) {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy') ? alert('Copied to clipboard!') : alert('Failed to copy');
+      } catch { alert('Failed to copy'); }
+      document.body.removeChild(textArea);
+    }
 
-    document.getElementById('copy-instagram')?.addEventListener('click', () => {
-      copyToClipboard(instagramCopy.value, 'Instagram copy');
-    });
-
-    document.getElementById('copy-press-release')?.addEventListener('click', () => {
-      copyToClipboard(pressReleaseCopy.value, 'Press release template');
-    });
+    document.getElementById('copy-twitter')?.addEventListener('click', () => copyToClipboard(twitterCopy.value));
+    document.getElementById('copy-linkedin')?.addEventListener('click', () => copyToClipboard(linkedinCopy.value));
+    document.getElementById('copy-instagram')?.addEventListener('click', () => copyToClipboard(instagramCopy.value));
+    document.getElementById('copy-press-release')?.addEventListener('click', () => copyToClipboard(pressReleaseCopy.value));
 
     // Share button functionality
-    document.getElementById('share-twitter')?.addEventListener('click', () => {
-      shareToSocial('twitter');
-    });
-
-    document.getElementById('share-linkedin')?.addEventListener('click', () => {
-      shareToSocial('linkedin');
-    });
-
-    document.getElementById('share-instagram')?.addEventListener('click', () => {
-      shareToSocial('instagram');
-    });
-
-    // Press release download functionality
-    document.getElementById('download-press-release')?.addEventListener('click', () => {
+    function shareToSocial(platform) {
       if (!selectedFinalist) return;
 
-      const pressReleaseText = pressReleaseCopy.value;
-      const filename = `${selectedFinalist.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_press_release.txt`;
+      const eventYear = selectedFinalist.eventYear || eventDetails?.event_year || '2025';
+      const config = { 
+        eventYear, 
+        finalistName: selectedFinalist.title, 
+        category: selectedFinalist.category,
+        isWinner: selectedFinalist.isWinner || false
+      };
       
-      // Create and download the file
-      const blob = new Blob([pressReleaseText], { type: 'text/plain' });
+      if (platform === 'instagram') {
+        const text = SocialCopyGenerator.getInstagramShareText(config);
+        navigator.clipboard.writeText(text).then(() => {
+          alert('Text copied to clipboard! You can now paste it in Instagram with your image.');
+          window.open('https://www.instagram.com/', '_blank');
+        });
+        return;
+      }
+
+      const shareUrl = SocialCopyGenerator.getShareUrl(platform, config);
+      if (shareUrl) window.open(shareUrl, '_blank', 'width=600,height=400,scrollbars=yes,resizable=yes');
+    }
+
+    document.getElementById('share-twitter')?.addEventListener('click', () => shareToSocial('twitter'));
+    document.getElementById('share-linkedin')?.addEventListener('click', () => shareToSocial('linkedin'));
+    document.getElementById('share-instagram')?.addEventListener('click', () => shareToSocial('instagram'));
+
+    // Press release download
+    document.getElementById('download-press-release')?.addEventListener('click', () => {
+      if (!selectedFinalist) return;
+      const filename = `${FinalistImageGenerator.sanitizeFilename(selectedFinalist.title)}_press_release.txt`;
+      const blob = new Blob([pressReleaseCopy.value], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
-      
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      
-      // Clean up the URL
       URL.revokeObjectURL(url);
     });
 
-    function copyToClipboard(text, label) {
-      // Try modern clipboard API first
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(() => {
-          alert('Copied to clipboard!');
-        }).catch(() => {
-          // Fallback to legacy method
-          fallbackCopyToClipboard(text);
-        });
-      } else {
-        // Use legacy method
-        fallbackCopyToClipboard(text);
-      }
-    }
+    // Thumbnail event listeners
+    changeThumbnailBtn?.addEventListener('click', showThumbnailUpload);
+    resetThumbnailBtn?.addEventListener('click', removeCustomThumbnail);
+    uploadArea?.addEventListener('click', () => thumbnailFileInput?.click());
+    thumbnailFileInput?.addEventListener('change', (e) => { if (e.target.files[0]) handleFileUpload(e.target.files[0]); });
+    removeUploadedThumbnail?.addEventListener('click', removeCustomThumbnail);
 
-    function fallbackCopyToClipboard(text) {
-      // Create a temporary textarea element
-      const textArea = document.createElement('textarea');
-      textArea.value = text;
-      textArea.style.position = 'fixed';
-      textArea.style.left = '-999999px';
-      textArea.style.top = '-999999px';
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      
-      try {
-        const successful = document.execCommand('copy');
-        if (successful) {
-          alert('Copied to clipboard!');
-        } else {
-          alert('Failed to copy to clipboard');
-        }
-      } catch (err) {
-        alert('Failed to copy to clipboard');
-      }
-      
-      document.body.removeChild(textArea);
-    }
-
-    function shareToSocial(platform) {
-      if (!selectedFinalist) return;
-
-      const eventYear = '2025';
-      const winnersPageUrl = `https://xrawards.aixr.org/winners-and-finalists-${eventYear}/`;
-      const finalistName = selectedFinalist.title;
-      const category = selectedFinalist.category;
-      
-      // Get the current image URL from the preview
-      const previewImg = finalistImageContainer.querySelector('img');
-      const imageUrl = previewImg ? previewImg.src : '';
-      
-      let shareUrl = '';
-      let shareText = '';
-      
-      switch(platform) {
-        case 'twitter':
-          shareText = `🎉 Excited to be a finalist in the ${category} category at the ${eventYear} XR Awards! #XRAwards25 @vrawards @aixrorg`;
-          shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(winnersPageUrl)}`;
-          break;
-          
-        case 'linkedin':
-          shareText = `Thrilled to announce that ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆`;
-          shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(winnersPageUrl)}&summary=${encodeURIComponent(shareText)}`;
-          break;
-          
-        case 'instagram':
-          // Instagram doesn't support direct URL sharing, so we'll open their web interface
-          shareText = `🎉 FINALIST ANNOUNCEMENT! 🎉\n\nWe're beyond excited to share that ${finalistName} has been selected as a finalist in the ${category} category for the ${eventYear} XR Awards! 🏆\n\nThis is such an honor and we can't wait to celebrate with the amazing XR community! ✨\n\nCheck out all the incredible finalists: ${winnersPageUrl}\n\n#XRAwards25 @vrawards @unitedxr @aixrorg #XR #VirtualReality #AugmentedReality #Innovation #Awards #Technology #ImmersiveTech #FutureTech #DigitalInnovation #TechAwards #VR #AR #MR #ExtendedReality #TechCommunity`;
-          // For Instagram, we'll copy the text and open their web interface
-          navigator.clipboard.writeText(shareText).then(() => {
-            alert('Text copied to clipboard! You can now paste it in Instagram with your image.');
-            window.open('https://www.instagram.com/', '_blank');
-          });
-          return;
-      }
-      
-      // Copy the text to clipboard for all platforms
-      copyToClipboard(shareText, `${platform} content`);
-      
-      // Open the share URL in a new tab
-      if (shareUrl) {
-        window.open(shareUrl, '_blank', 'width=600,height=400,scrollbars=yes,resizable=yes');
-      }
-    }
-
-    // Thumbnail button event listeners
-    changeThumbnailBtn?.addEventListener('click', () => {
-      showThumbnailUpload();
-    });
-
-    resetThumbnailBtn?.addEventListener('click', () => {
-      resetThumbnail();
-    });
-
-    // File upload event listeners
-    uploadArea?.addEventListener('click', () => {
-      thumbnailFileInput?.click();
-    });
-
-    thumbnailFileInput?.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        handleFileUpload(file);
-      }
-    });
-
-    removeUploadedThumbnail?.addEventListener('click', () => {
-      removeCustomThumbnail();
-    });
-
-    // Drag and drop support
-    uploadArea?.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      uploadArea.classList.add('border-blue-400', 'bg-blue-50');
-    });
-
-    uploadArea?.addEventListener('dragleave', (e) => {
-      e.preventDefault();
-      uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
-    });
-
+    // Drag and drop
+    uploadArea?.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('border-blue-400', 'bg-blue-50'); });
+    uploadArea?.addEventListener('dragleave', (e) => { e.preventDefault(); uploadArea.classList.remove('border-blue-400', 'bg-blue-50'); });
     uploadArea?.addEventListener('drop', (e) => {
       e.preventDefault();
       uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+      if (e.dataTransfer.files.length > 0) handleFileUpload(e.dataTransfer.files[0]);
+    });
+
+    // Function to get the correct crest config based on tags
+    function getCrestConfig() {
+      const tagIds = selectedFinalist?.tagIds || [];
+      return CrestGenerator.getCrestConfigForTags(tagIds, crestConfigs);
+    }
+
+    async function updateFinalistCrests() {
+      const container = document.getElementById('finalist-crests-container');
+      const section = document.getElementById('finalist-crests-section');
       
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        handleFileUpload(files[0]);
+      if (!container || !selectedFinalist) { section?.classList.add('hidden'); return; }
+      
+      // Only show finalist crest if NOT a winner
+      if (selectedFinalist.isWinner) { section?.classList.add('hidden'); return; }
+
+      section?.classList.remove('hidden');
+      container.innerHTML = '<p class="text-sm text-gray-500 mb-4">Generating finalist crest...</p>';
+
+      const eventYear = selectedFinalist.eventYear || eventDetails?.event_year || '2025';
+      const projectName = selectedFinalist.title || '';
+      const categoryName = selectedFinalist.category || '';
+
+      try {
+        const crestConfig = getCrestConfig();
+        const [blackCrest, whiteCrest] = await Promise.all([
+          CrestGenerator.generateFinalistCrest(categoryName, projectName, eventYear, 'black', crestConfig),
+          CrestGenerator.generateFinalistCrest(categoryName, projectName, eventYear, 'white', crestConfig)
+        ]);
+
+        container.innerHTML = `
+          <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <h4 class="text-sm font-medium text-gray-700 mb-3">${categoryName} Finalist</h4>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <p class="text-xs text-gray-500 mb-1 text-center">Black Version</p>
+                <div class="relative bg-gray-50 rounded-lg overflow-hidden mb-2 flex items-center justify-center p-2">
+                  <img src="${blackCrest}" alt="Finalist Crest (Black)" class="max-w-full h-auto object-contain" />
+                </div>
+                <button class="w-full px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-lg hover:bg-gray-900 transition-colors download-finalist-crest-btn" data-crest-url="${blackCrest}" data-variant="black">Download Black</button>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500 mb-1 text-center">White Version</p>
+                <div class="relative bg-gray-900 rounded-lg overflow-hidden mb-2 flex items-center justify-center p-2">
+                  <img src="${whiteCrest}" alt="Finalist Crest (White)" class="max-w-full h-auto object-contain" />
+                </div>
+                <button class="w-full px-3 py-1.5 bg-gray-100 text-gray-800 text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors download-finalist-crest-btn border border-gray-300" data-crest-url="${whiteCrest}" data-variant="white">Download White</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        container.querySelectorAll('.download-finalist-crest-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const url = btn.getAttribute('data-crest-url');
+            const variant = btn.getAttribute('data-variant');
+            if (url) {
+              const projectSlug = FinalistImageGenerator.sanitizeFilename(projectName);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `${projectSlug}_finalist_crest_${variant}_${eventYear}.png`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            }
+          });
+        });
+      } catch (error) {
+        console.error('Error generating finalist crest:', error);
+        container.innerHTML = '<p class="text-sm text-red-500">Error generating finalist crest</p>';
+      }
+    }
+
+    async function updateAccoladeCrests() {
+      const container = document.getElementById('accolade-crests-container');
+      const section = document.getElementById('accolade-crests-section');
+      
+      if (!container || !selectedFinalist) { section?.classList.add('hidden'); return; }
+
+      const accolades = selectedFinalist.accolades || [];
+      if (accolades.length === 0) { section?.classList.add('hidden'); return; }
+
+      section?.classList.remove('hidden');
+      container.innerHTML = '<p class="text-sm text-gray-500 mb-4">Generating accolade crests...</p>';
+
+      const eventYear = selectedFinalist.eventYear || eventDetails?.event_year || '2025';
+      const projectName = selectedFinalist.title || '';
+
+      const crestConfig = getCrestConfig();
+      const crestPromises = accolades.flatMap(async (accolade) => {
+        try {
+          const [blackCrest, whiteCrest] = await Promise.all([
+            CrestGenerator.generateAccoladeCrest(accolade, projectName, eventYear, 'black', crestConfig),
+            CrestGenerator.generateAccoladeCrest(accolade, projectName, eventYear, 'white', crestConfig)
+          ]);
+          return [
+            { accolade, crestUrl: blackCrest, variant: 'black' },
+            { accolade, crestUrl: whiteCrest, variant: 'white' }
+          ];
+        } catch (error) {
+          console.error('Error generating crest:', accolade, error);
+          return [];
+        }
+      });
+
+      const allCrests = await Promise.all(crestPromises);
+      const validCrests = allCrests.flat().filter(Boolean);
+
+      if (validCrests.length === 0) {
+        container.innerHTML = '<p class="text-sm text-gray-500">No accolade crests available</p>';
+        return;
+      }
+
+      const groupedCrests = {};
+      validCrests.forEach(item => {
+        const key = item.accolade.id || item.accolade.name;
+        if (!groupedCrests[key]) groupedCrests[key] = { accolade: item.accolade, variants: {} };
+        groupedCrests[key].variants[item.variant] = item.crestUrl;
+      });
+
+      container.innerHTML = Object.values(groupedCrests).map((group) => `
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+          <h4 class="text-sm font-medium text-gray-700 mb-3">${group.accolade.name}</h4>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <p class="text-xs text-gray-500 mb-1 text-center">Black Version</p>
+              <div class="relative bg-gray-50 rounded-lg overflow-hidden mb-2 flex items-center justify-center p-2">
+                <img src="${group.variants.black}" alt="${group.accolade.name} Crest (Black)" class="max-w-full h-auto object-contain" />
+              </div>
+              <button class="w-full px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-lg hover:bg-gray-900 transition-colors download-crest-btn" data-crest-url="${group.variants.black}" data-accolade-name="${FinalistImageGenerator.sanitizeFilename(group.accolade.name)}" data-variant="black">Download Black</button>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 mb-1 text-center">White Version</p>
+              <div class="relative bg-gray-900 rounded-lg overflow-hidden mb-2 flex items-center justify-center p-2">
+                <img src="${group.variants.white}" alt="${group.accolade.name} Crest (White)" class="max-w-full h-auto object-contain" />
+              </div>
+              <button class="w-full px-3 py-1.5 bg-gray-100 text-gray-800 text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors download-crest-btn border border-gray-300" data-crest-url="${group.variants.white}" data-accolade-name="${FinalistImageGenerator.sanitizeFilename(group.accolade.name)}" data-variant="white">Download White</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('.download-crest-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const url = btn.getAttribute('data-crest-url');
+          const name = btn.getAttribute('data-accolade-name');
+          const variant = btn.getAttribute('data-variant');
+          if (url) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${name}_accolade_crest_${variant}_${eventYear}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          }
+        });
+      });
+    }
+
+    async function updateWinnerCrests() {
+      const container = document.getElementById('winner-crests-container');
+      const section = document.getElementById('winner-crests-section');
+      
+      if (!container || !selectedFinalist) { section?.classList.add('hidden'); return; }
+      if (!selectedFinalist.isWinner) { section?.classList.add('hidden'); return; }
+
+      section?.classList.remove('hidden');
+      container.innerHTML = '<p class="text-sm text-gray-500 mb-4">Generating winner crest...</p>';
+
+      const eventYear = selectedFinalist.eventYear || eventDetails?.event_year || '2025';
+      const projectName = selectedFinalist.title || '';
+      const categoryName = selectedFinalist.category || '';
+
+      try {
+        const crestConfig = getCrestConfig();
+        const [blackCrest, whiteCrest] = await Promise.all([
+          CrestGenerator.generateWinnerCrest(categoryName, projectName, eventYear, 'black', crestConfig),
+          CrestGenerator.generateWinnerCrest(categoryName, projectName, eventYear, 'white', crestConfig)
+        ]);
+
+        container.innerHTML = `
+          <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <h4 class="text-sm font-medium text-gray-700 mb-3">${categoryName} Winner</h4>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <p class="text-xs text-gray-500 mb-1 text-center">Black Version</p>
+                <div class="relative bg-gray-50 rounded-lg overflow-hidden mb-2 flex items-center justify-center p-2">
+                  <img src="${blackCrest}" alt="Winner Crest (Black)" class="max-w-full h-auto object-contain" />
+                </div>
+                <button class="w-full px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-lg hover:bg-gray-900 transition-colors download-winner-crest-btn" data-crest-url="${blackCrest}" data-variant="black">Download Black</button>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500 mb-1 text-center">White Version</p>
+                <div class="relative bg-gray-900 rounded-lg overflow-hidden mb-2 flex items-center justify-center p-2">
+                  <img src="${whiteCrest}" alt="Winner Crest (White)" class="max-w-full h-auto object-contain" />
+                </div>
+                <button class="w-full px-3 py-1.5 bg-gray-100 text-gray-800 text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors download-winner-crest-btn border border-gray-300" data-crest-url="${whiteCrest}" data-variant="white">Download White</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        container.querySelectorAll('.download-winner-crest-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const url = btn.getAttribute('data-crest-url');
+            const variant = btn.getAttribute('data-variant');
+            if (url) {
+              const projectSlug = FinalistImageGenerator.sanitizeFilename(projectName);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `${projectSlug}_winner_crest_${variant}_${eventYear}.png`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            }
+          });
+        });
+      } catch (error) {
+        console.error('Error generating winner crest:', error);
+        container.innerHTML = '<p class="text-sm text-red-500">Error generating winner crest</p>';
+      }
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!finalistsList) return;
+      const searchContainer = searchInput?.closest('.max-w-2xl');
+      if (searchContainer && !searchContainer.contains(e.target) && !finalistsList.contains(e.target)) {
+        finalistsList.classList.add('hidden');
+      }
+    });
+
+    // Reposition dropdown on scroll/resize
+    window.addEventListener('scroll', () => {
+      if (finalistsList && !finalistsList.classList.contains('hidden')) {
+        positionDropdown();
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (finalistsList && !finalistsList.classList.contains('hidden')) {
+        positionDropdown();
       }
     });
 
     // Initialize
+    initializeYearDropdown();
     initializeFinalists();
-    filteredFinalists = [...allFinalists];
-    renderFinalistsList();
+    initializeAspectRatioButtons();
+    filteredFinalists = [];
+    // Don't render initial list - wait for user to type 3+ characters
+    
+    // Load finalist from URL if present
+    loadFromURL();
   });
 </script>
 
@@ -1146,4 +1564,72 @@ const overlayFrame = getR2ImageUrl('/images/2025/10/xr_awards_gala_2025_finalist
   .finalist-card:hover {
     transform: translateY(-2px);
   }
+
+  /* Style the select element itself - white text for the selected value */
+  #year-select {
+    color: white;
+  }
+
+  /* Style the dropdown options - dark text on white background */
+  #year-select option {
+    background: white !important;
+    color: #0E1022 !important;
+    padding: 8px;
+  }
+
+  /* Ensure options are visible when dropdown is open */
+  select#year-select option {
+    background-color: white !important;
+    color: #0E1022 !important;
+  }
+
+  /* Hover state for options */
+  select#year-select option:hover,
+  select#year-select option:focus,
+  select#year-select option:checked {
+    background-color: #f3f4f6 !important;
+    color: #0E1022 !important;
+  }
+
+  /* Aspect ratio container styles */
+  .aspect-ratio-container {
+    transition: aspect-ratio 0.3s ease;
+    margin: 0 auto;
+  }
+
+  .aspect-ratio-container[data-ratio="square"] {
+    aspect-ratio: 1 / 1;
+    width: 100%;
+  }
+
+  .aspect-ratio-container[data-ratio="landscape"] {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+  }
+
+  .aspect-ratio-container[data-ratio="portrait"] {
+    aspect-ratio: 9 / 16;
+    max-height: 550px;
+    width: auto;
+    height: 550px;
+  }
+
+  /* Aspect ratio button styles */
+  .aspect-ratio-btn {
+    border-color: #e5e7eb;
+    background-color: white;
+    color: #374151;
+  }
+
+  .aspect-ratio-btn:hover {
+    border-color: #9ca3af;
+    background-color: #f9fafb;
+  }
+
+  .aspect-ratio-btn.active {
+    border-color: #4923EB;
+    background-color: #f5f3ff;
+    color: #4923EB;
+  }
 </style>
+
