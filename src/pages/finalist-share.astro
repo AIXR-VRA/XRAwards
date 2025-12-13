@@ -258,11 +258,11 @@ const safeFinalists = finalists || [];
 
           </div>
 
-          <!-- Right: Selected Finalist Info + Social Media Copy -->
+          <!-- Right: Selected Entry Info + Crests -->
           <div class="space-y-6">
-            <!-- Selected Finalist Info -->
+            <!-- Selected Entry Info -->
             <div id="selected-finalist-info" class="bg-gray-50 rounded-lg p-4 hidden">
-              <h3 class="font-semibold text-gray-900 mb-2">Selected Finalist</h3>
+              <h3 class="font-semibold text-gray-900 mb-2">Selected Entry</h3>
               <div id="finalist-info-content">
                 <!-- Content will be populated here -->
               </div>
@@ -944,12 +944,33 @@ const safeFinalists = finalists || [];
 
     function updateSelectedInfo() {
       if (!selectedFinalist) return;
+      
+      // Status badge (Winner or Finalist)
+      const statusBadge = selectedFinalist.isWinner 
+        ? `<span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-yellow-400 text-yellow-900 rounded">Winner</span>`
+        : `<span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-700 rounded">Finalist</span>`;
+      
+      // Accolades display
+      const accolades = selectedFinalist.accolades || [];
+      const accoladesHtml = accolades.length > 0 
+        ? `<div class="mt-3 pt-3 border-t border-gray-200">
+            <p class="text-xs text-gray-500 uppercase mb-2">Accolades</p>
+            <div class="flex flex-wrap gap-1.5">
+              ${accolades.map(a => `<span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 rounded">${a.name}</span>`).join('')}
+            </div>
+           </div>`
+        : '';
+      
       finalistInfoContent.innerHTML = `
         <div class="space-y-2">
-          <h4 class="font-semibold text-gray-900">${selectedFinalist.title || 'Untitled'}</h4>
+          <div class="flex items-baseline gap-2 flex-wrap">
+            <span class="font-semibold text-gray-900">${selectedFinalist.title || 'Untitled'}</span>
+            ${statusBadge}
+          </div>
           ${selectedFinalist.organization ? `<p class="text-sm text-[#4923EB]">${selectedFinalist.organization}</p>` : ''}
           ${selectedFinalist.category ? `<p class="text-xs text-gray-500 uppercase">${selectedFinalist.category}</p>` : ''}
           ${selectedFinalist.description ? `<p class="text-sm text-gray-600 mt-2 leading-relaxed">${selectedFinalist.description}</p>` : ''}
+          ${accoladesHtml}
         </div>
       `;
       selectedFinalistInfo?.classList.remove('hidden');
