@@ -201,11 +201,12 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
     mainImgX = padding;
     mainImgY = padding;
   } else {
-    // Portrait: square image at top, text below
-    const padding = Math.round(canvasWidth * 0.08);
-    mainImgSize = Math.round(canvasWidth * 0.84);
+    // Portrait: category/status at top, then image, then title/org below
+    const topPadding = Math.round(canvasHeight * 0.06);
+    const headerSpace = 140; // Space for category + status above image
+    mainImgSize = Math.round(canvasWidth * 0.72);
     mainImgX = (canvasWidth - mainImgSize) / 2;
-    mainImgY = padding;
+    mainImgY = topPadding + headerSpace;
   }
 
   // Calculate how to cover the main image area while maintaining aspect ratio
@@ -299,21 +300,21 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
 
   // === LANDSCAPE & PORTRAIT MODES: Stack all text elements with proper spacing ===
   if (aspectRatio === 'landscape' || aspectRatio === 'portrait') {
-    // Font sizes - slightly larger for portrait since we have more horizontal space
-    const headerFontSize = aspectRatio === 'portrait' ? 26 : 22;
-    const statusFontSize = aspectRatio === 'portrait' ? 26 : 22;
-    const dotSize = aspectRatio === 'portrait' ? 4 : 3;
+    // Font sizes - larger for portrait since we have more horizontal space
+    const headerFontSize = aspectRatio === 'portrait' ? 38 : 22;
+    const statusFontSize = aspectRatio === 'portrait' ? 38 : 22;
+    const dotSize = aspectRatio === 'portrait' ? 5 : 3;
     const titleBaseFontSize = aspectRatio === 'portrait' 
-      ? (title.length > 40 ? 34 : (title.length > 25 ? 40 : 46))
+      ? (title.length > 40 ? 42 : (title.length > 25 ? 50 : 58))
       : (title.length > 40 ? 28 : (title.length > 25 ? 32 : 36));
-    const orgFontSize = aspectRatio === 'portrait' ? 22 : 18;
+    const orgFontSize = aspectRatio === 'portrait' ? 26 : 18;
     
-    // Calculate text area - for portrait, text is BELOW the image
+    // Calculate text area
     const portraitTextMaxWidth = canvasWidth * 0.85;
     const actualTextMaxWidth = aspectRatio === 'portrait' ? portraitTextMaxWidth : textMaxWidth;
     const actualTextCenterX = aspectRatio === 'portrait' ? canvasWidth / 2 : textCenterX;
     
-    // First, calculate total height of all text elements
+    // First, calculate total height of text elements
     ctx.font = `bold ${titleBaseFontSize}px Jura, Helvetica, Arial, sans-serif`;
     const titleLines = wrapText(ctx, title, actualTextMaxWidth);
     const titleLineHeight = titleBaseFontSize * 1.2;
@@ -325,67 +326,115 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
       orgLines = wrapText(ctx, `by ${organization}`, actualTextMaxWidth);
     }
     
-    const totalHeight = 
-      headerFontSize + 8 +                           // Category + spacing
-      statusFontSize + 12 +                          // Status + spacing
-      dotSize * 2 + 28 +                             // Dots + spacing
-      (titleLines.length * titleLineHeight) +        // Title
-      (organization ? 12 + (orgLines.length * orgLineHeight) : 0); // Org spacing + org
-    
-    // Calculate starting Y position
-    let currentY: number;
     if (aspectRatio === 'portrait') {
-      // For portrait: text starts below the image, centered in remaining space (above logo)
-      const textAreaTop = mainImgY + mainImgSize + 20;
-      const textAreaBottom = canvasHeight - 100; // Leave room for logo
-      const textAreaHeight = textAreaBottom - textAreaTop;
-      currentY = textAreaTop + (textAreaHeight - totalHeight) / 2;
-    } else {
-      // For landscape: vertically center text group with the thumbnail
-      const thumbnailCenterY = mainImgY + mainImgSize / 2;
-      currentY = thumbnailCenterY - totalHeight / 2;
-    }
-    
-    // Category
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.font = `bold ${headerFontSize}px Jura, Helvetica, Arial, sans-serif`;
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(category.toUpperCase(), actualTextCenterX, currentY);
-    currentY += headerFontSize + 8;
-    
-    // Status + Year
-    ctx.font = `400 ${statusFontSize}px "IBM Plex Mono", monospace`;
-    ctx.fillStyle = isWinner ? '#E91E8C' : '#00D4D8';
-    ctx.fillText(`${year} ${isWinner ? 'WINNER' : 'FINALIST'}`, actualTextCenterX, currentY);
-    currentY += statusFontSize + 12;
-    
-    // Decorative dots
-    const dotSpacing = aspectRatio === 'portrait' ? 12 : 10;
-    ctx.fillStyle = '#00D4D8';
-    for (let i = -2; i <= 2; i++) {
-      ctx.beginPath();
-      ctx.arc(actualTextCenterX + (i * dotSpacing), currentY + dotSize, dotSize, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    currentY += dotSize * 2 + 28;
-    
-    // Title
-    ctx.fillStyle = '#ffffff';
-    ctx.font = `bold ${titleBaseFontSize}px Jura, Helvetica, Arial, sans-serif`;
-    ctx.textBaseline = 'top';
-    titleLines.forEach((line, index) => {
-      ctx.fillText(line, actualTextCenterX, currentY + (index * titleLineHeight));
-    });
-    currentY += titleLines.length * titleLineHeight + 12;
-    
-    // Organization
-    if (organization && orgLines.length > 0) {
-      ctx.font = `500 ${orgFontSize}px Jura, Helvetica, Arial, sans-serif`;
-      ctx.fillStyle = '#c8d4e4';
-      orgLines.forEach((line, index) => {
-        ctx.fillText(line, actualTextCenterX, currentY + (index * orgLineHeight));
+      // === PORTRAIT: Category/Status ABOVE image, Title/Dots/Org BELOW image ===
+      
+      // Draw Category above image
+      const headerStartY = Math.round(canvasHeight * 0.06);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.font = `bold ${headerFontSize}px Jura, Helvetica, Arial, sans-serif`;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(category.toUpperCase(), actualTextCenterX, headerStartY);
+      
+      // Draw Status + Year below category
+      ctx.font = `400 ${statusFontSize}px "IBM Plex Mono", monospace`;
+      ctx.fillStyle = isWinner ? '#E91E8C' : '#00D4D8';
+      ctx.fillText(`${year} ${isWinner ? 'WINNER' : 'FINALIST'}`, actualTextCenterX, headerStartY + headerFontSize + 8);
+      
+      // Calculate height of title + dots + org block
+      const bottomBlockHeight = 
+        (titleLines.length * titleLineHeight) +      // Title
+        20 + dotSize * 2 + 20 +                      // Dots with spacing
+        (organization ? (orgLines.length * orgLineHeight) : 0);
+      
+      // Position bottom block centered between image bottom and logo area
+      const bottomAreaTop = mainImgY + mainImgSize + 25;
+      const bottomAreaBottom = canvasHeight - 100;
+      const bottomAreaHeight = bottomAreaBottom - bottomAreaTop;
+      let currentY = bottomAreaTop + (bottomAreaHeight - bottomBlockHeight) / 2;
+      
+      // Draw Title
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `bold ${titleBaseFontSize}px Jura, Helvetica, Arial, sans-serif`;
+      ctx.textBaseline = 'top';
+      titleLines.forEach((line, index) => {
+        ctx.fillText(line, actualTextCenterX, currentY + (index * titleLineHeight));
       });
+      currentY += titleLines.length * titleLineHeight + 20;
+      
+      // Draw Decorative dots (between title and org)
+      const dotSpacing = 12;
+      ctx.fillStyle = '#00D4D8';
+      for (let i = -2; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.arc(actualTextCenterX + (i * dotSpacing), currentY + dotSize, dotSize, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      currentY += dotSize * 2 + 20;
+      
+      // Draw Organization
+      if (organization && orgLines.length > 0) {
+        ctx.font = `500 ${orgFontSize}px Jura, Helvetica, Arial, sans-serif`;
+        ctx.fillStyle = '#c8d4e4';
+        orgLines.forEach((line, index) => {
+          ctx.fillText(line, actualTextCenterX, currentY + (index * orgLineHeight));
+        });
+      }
+    } else {
+      // === LANDSCAPE: All text on the right side ===
+      const totalHeight = 
+        headerFontSize + 8 +                           // Category + spacing
+        statusFontSize + 12 +                          // Status + spacing
+        dotSize * 2 + 28 +                             // Dots + spacing
+        (titleLines.length * titleLineHeight) +        // Title
+        (organization ? 12 + (orgLines.length * orgLineHeight) : 0);
+      
+      // Vertically center text group with the thumbnail
+      const thumbnailCenterY = mainImgY + mainImgSize / 2;
+      let currentY = thumbnailCenterY - totalHeight / 2;
+      
+      // Category
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.font = `bold ${headerFontSize}px Jura, Helvetica, Arial, sans-serif`;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(category.toUpperCase(), actualTextCenterX, currentY);
+      currentY += headerFontSize + 8;
+      
+      // Status + Year
+      ctx.font = `400 ${statusFontSize}px "IBM Plex Mono", monospace`;
+      ctx.fillStyle = isWinner ? '#E91E8C' : '#00D4D8';
+      ctx.fillText(`${year} ${isWinner ? 'WINNER' : 'FINALIST'}`, actualTextCenterX, currentY);
+      currentY += statusFontSize + 12;
+      
+      // Decorative dots
+      const dotSpacing = 10;
+      ctx.fillStyle = '#00D4D8';
+      for (let i = -2; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.arc(actualTextCenterX + (i * dotSpacing), currentY + dotSize, dotSize, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      currentY += dotSize * 2 + 28;
+      
+      // Title
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `bold ${titleBaseFontSize}px Jura, Helvetica, Arial, sans-serif`;
+      ctx.textBaseline = 'top';
+      titleLines.forEach((line, index) => {
+        ctx.fillText(line, actualTextCenterX, currentY + (index * titleLineHeight));
+      });
+      currentY += titleLines.length * titleLineHeight + 12;
+      
+      // Organization
+      if (organization && orgLines.length > 0) {
+        ctx.font = `500 ${orgFontSize}px Jura, Helvetica, Arial, sans-serif`;
+        ctx.fillStyle = '#c8d4e4';
+        orgLines.forEach((line, index) => {
+          ctx.fillText(line, actualTextCenterX, currentY + (index * orgLineHeight));
+        });
+      }
     }
   } else {
     // === SQUARE AND PORTRAIT MODES: Original centered layout ===
@@ -470,8 +519,8 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
 
   // === LOGO ===
   // For portrait: logo at bottom. For landscape: centered. For square: at bottom
-  const logoMaxHeight = aspectRatio === 'landscape' ? 45 : (aspectRatio === 'portrait' ? 55 : 65);
-  const logoBottomPadding = aspectRatio === 'square' ? 50 : (aspectRatio === 'landscape' ? 25 : 30);
+  const logoMaxHeight = aspectRatio === 'landscape' ? 45 : (aspectRatio === 'portrait' ? 80 : 65);
+  const logoBottomPadding = aspectRatio === 'square' ? 50 : (aspectRatio === 'landscape' ? 25 : 40);
   const logoAreaBottom = canvasHeight;
   
   // Calculate logo area width based on aspect ratio
@@ -487,7 +536,7 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
     logoAreaCenterX = canvasWidth / 2;
   } else {
     // Portrait - logo centered at bottom
-    logoAreaWidth = canvasWidth * 0.7;
+    logoAreaWidth = canvasWidth * 0.85;
     logoAreaCenterX = canvasWidth / 2;
   }
   
