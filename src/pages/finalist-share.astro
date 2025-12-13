@@ -353,26 +353,66 @@ const safeFinalists = finalists || [];
     <!-- Crests Section -->
     <section id="crests-section" class="py-8 md:py-12 bg-gray-50 hidden">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-xl font-semibold text-gray-900 mb-6">Downloadable Crests</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Finalist Crests Section -->
-          <div id="finalist-crests-section" class="hidden">
-            <div id="finalist-crests-container" class="space-y-4">
-              <!-- Finalist crests will be generated here -->
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Downloadable Crests</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Left: Crests -->
+          <div class="space-y-4">
+            <!-- Finalist Crests Section -->
+            <div id="finalist-crests-section" class="hidden">
+              <div id="finalist-crests-container" class="space-y-4">
+                <!-- Finalist crests will be generated here -->
+              </div>
+            </div>
+
+            <!-- Winner Crests Section -->
+            <div id="winner-crests-section" class="hidden">
+              <div id="winner-crests-container" class="space-y-4">
+                <!-- Winner crests will be generated here -->
+              </div>
+            </div>
+
+            <!-- Accolade Crests Section -->
+            <div id="accolade-crests-section" class="hidden">
+              <div id="accolade-crests-container" class="space-y-4">
+                <!-- Accolade crests will be generated here -->
+              </div>
             </div>
           </div>
 
-          <!-- Winner Crests Section -->
-          <div id="winner-crests-section" class="hidden">
-            <div id="winner-crests-container" class="space-y-4">
-              <!-- Winner crests will be generated here -->
+          <!-- Right: Usage Guidelines -->
+          <div class="space-y-6">
+            <!-- How to Best Use Your Crest -->
+            <div>
+              <h3 class="text-lg font-bold text-gray-900 mb-4">How to Best Use Your Crest</h3>
+              <ul class="text-base text-gray-600 space-y-3 list-disc list-outside ml-8">
+                <li><span class="font-medium text-gray-800">Display It Online:</span> Add to your website's About page, homepage, or project portfolios.</li>
+                <li><span class="font-medium text-gray-800">Email Signature:</span> Include in your emails as a subtle reminder of your expertise.</li>
+                <li><span class="font-medium text-gray-800">XR Storefronts:</span> Feature on Meta, Pico, and Steam store pages.</li>
+                <li><span class="font-medium text-gray-800">Presentations:</span> Include in pitch decks, slideshows, or proposals.</li>
+              </ul>
             </div>
-          </div>
 
-          <!-- Accolade Crests Section -->
-          <div id="accolade-crests-section" class="col-span-1 md:col-span-2 hidden">
-            <div id="accolade-crests-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <!-- Accolade crests will be generated here -->
+            <!-- Approved & Disapproved Uses -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-green-50 rounded-lg p-4">
+                <p class="text-sm font-semibold text-green-800 mb-3">Approved uses:</p>
+                <ul class="text-base text-green-700 space-y-1.5">
+                  <li>✓ Product store pages</li>
+                  <li>✓ Email signatures</li>
+                  <li>✓ Professional proposals</li>
+                  <li>✓ Social profiles</li>
+                  <li>✓ Your website</li>
+                </ul>
+              </div>
+              <div class="bg-red-50 rounded-lg p-4">
+                <p class="text-sm font-semibold text-red-800 mb-3">Disapproved uses:</p>
+                <ul class="text-base text-red-700 space-y-1.5">
+                  <li>✗ Modifying the logo</li>
+                  <li>✗ Stretching or distorting</li>
+                  <li>✗ Breaking brand guidelines</li>
+                  <li>✗ Payment/login screens</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -383,7 +423,7 @@ const safeFinalists = finalists || [];
     <section id="social-copy-section" class="py-8 md:py-12 bg-white hidden">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div id="social-copy" class="hidden">
-          <h2 class="text-2xl font-semibold text-gray-900 mb-8">Social Media Copy</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">Social Media Copy</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Twitter/X Copy -->
                 <div>
