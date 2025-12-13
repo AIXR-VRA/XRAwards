@@ -841,15 +841,17 @@ const safeFinalists = finalists || [];
         const hasCrossTag = tagIds.includes(CROSS_CATEGORY_ID);
         
         let primaryLogoUrl, secondaryLogoUrl;
+        let isEuOnly = false;
         
         if (hasCrossTag) {
           // Cross category - both logos side by side
           primaryLogoUrl = FinalistImageGenerator.getProxyImageUrl(logoUrl);
           secondaryLogoUrl = FinalistImageGenerator.getProxyImageUrl(euLogoUrl);
         } else if (hasEuTag) {
-          // EU category - only EU logo
+          // EU category - only EU logo (bigger)
           primaryLogoUrl = FinalistImageGenerator.getProxyImageUrl(euLogoUrl);
           secondaryLogoUrl = undefined;
+          isEuOnly = true;
         } else {
           // Default - main XR Awards logo
           primaryLogoUrl = FinalistImageGenerator.getProxyImageUrl(logoUrl);
@@ -860,6 +862,7 @@ const safeFinalists = finalists || [];
           finalistImageUrl: imageToUse,
           logoUrl: primaryLogoUrl,
           secondLogoUrl: secondaryLogoUrl,
+          isEuOnly: isEuOnly,
           title: selectedFinalist.title || '',
           organization: selectedFinalist.organization || '',
           category: selectedFinalist.category || '',

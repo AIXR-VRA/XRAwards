@@ -7,6 +7,7 @@ export interface FinalistImageConfig {
   finalistImageUrl: string;
   logoUrl: string;
   secondLogoUrl?: string; // For cross-category (both logos side by side)
+  isEuOnly?: boolean; // For EU-only display (bigger logo)
   title: string;
   organization: string;
   category: string;
@@ -81,6 +82,7 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
     finalistImageUrl, 
     logoUrl,
     secondLogoUrl,
+    isEuOnly = false,
     title, 
     organization, 
     category, 
@@ -239,8 +241,8 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
   
   if (secondLogoImg) {
     // Two logos side by side
-    const logo1MaxWidth = size * 0.4; // XR Awards logo slightly bigger
-    const logo2MaxWidth = size * 0.32; // EU logo slightly smaller
+    const logo1MaxWidth = size * 0.45; // XR Awards logo slightly bigger
+    const logo2MaxWidth = size * 0.38; // EU logo slightly smaller
     const logoGap = 50; // More space between logos
     
     // Calculate first logo size (XR Awards - bigger)
@@ -275,16 +277,18 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
     ctx.drawImage(secondLogoImg, startX + logo1W + logoGap, logo2Y, logo2W, logo2H);
   } else {
     // Single logo centered
-    const logoMaxWidth = size * 0.7;
+    // EU logo gets bigger display
+    const logoMaxWidth = isEuOnly ? size * 0.8 : size * 0.7;
+    const singleLogoMaxHeight = isEuOnly ? 85 : 65;
     const logoAspect = logoImg.width / logoImg.height;
     
     let logoW, logoH;
-    if (logoAspect > (logoMaxWidth / logoMaxHeight)) {
+    if (logoAspect > (logoMaxWidth / singleLogoMaxHeight)) {
       logoW = logoMaxWidth;
       logoH = logoMaxWidth / logoAspect;
     } else {
-      logoH = logoMaxHeight;
-      logoW = logoMaxHeight * logoAspect;
+      logoH = singleLogoMaxHeight;
+      logoW = singleLogoMaxHeight * logoAspect;
     }
     
     const logoX = (size - logoW) / 2;
