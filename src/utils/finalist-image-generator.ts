@@ -330,7 +330,28 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
     const titleBaseFontSize = title.length > 40 ? 28 : (title.length > 25 ? 32 : 36);
     const orgFontSize = 18;
     
-    let currentY = textAreaTop;
+    // First, calculate total height of all text elements
+    ctx.font = `bold ${titleBaseFontSize}px Jura, Helvetica, Arial, sans-serif`;
+    const titleLines = wrapText(ctx, title, textMaxWidth);
+    const titleLineHeight = titleBaseFontSize * 1.2;
+    
+    let orgLines: string[] = [];
+    const orgLineHeight = orgFontSize * 1.3;
+    if (organization) {
+      ctx.font = `500 ${orgFontSize}px Jura, Helvetica, Arial, sans-serif`;
+      orgLines = wrapText(ctx, `by ${organization}`, textMaxWidth);
+    }
+    
+    const totalHeight = 
+      headerFontSize + 8 +                           // Category + spacing
+      statusFontSize + 12 +                          // Status + spacing
+      dotSize * 2 + 28 +                             // Dots + spacing
+      (titleLines.length * titleLineHeight) +        // Title
+      (organization ? 12 + (orgLines.length * orgLineHeight) : 0); // Org spacing + org
+    
+    // Calculate starting Y to vertically center the text group with the thumbnail
+    const thumbnailCenterY = mainImgY + mainImgSize / 2;
+    let currentY = thumbnailCenterY - totalHeight / 2;
     
     // Category
     ctx.textAlign = 'center';
@@ -353,26 +374,21 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
       ctx.arc(textCenterX + (i * 10), currentY + dotSize, dotSize, 0, Math.PI * 2);
       ctx.fill();
     }
-    currentY += dotSize * 2 + 16;
+    currentY += dotSize * 2 + 28;
     
     // Title
     ctx.fillStyle = '#ffffff';
     ctx.font = `bold ${titleBaseFontSize}px Jura, Helvetica, Arial, sans-serif`;
     ctx.textBaseline = 'top';
-    const titleLines = wrapText(ctx, title, textMaxWidth);
-    const titleLineHeight = titleBaseFontSize * 1.2;
     titleLines.forEach((line, index) => {
       ctx.fillText(line, textCenterX, currentY + (index * titleLineHeight));
     });
     currentY += titleLines.length * titleLineHeight + 12;
     
     // Organization
-    if (organization) {
+    if (organization && orgLines.length > 0) {
       ctx.font = `500 ${orgFontSize}px Jura, Helvetica, Arial, sans-serif`;
       ctx.fillStyle = '#c8d4e4';
-      const orgTextStr = `by ${organization}`;
-      const orgLines = wrapText(ctx, orgTextStr, textMaxWidth);
-      const orgLineHeight = orgFontSize * 1.3;
       orgLines.forEach((line, index) => {
         ctx.fillText(line, textCenterX, currentY + (index * orgLineHeight));
       });
