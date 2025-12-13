@@ -189,16 +189,41 @@ const safeFinalists = finalists || [];
       <!-- Results will be populated here -->
     </div>
 
+    <!-- Empty State - Shows when no finalist selected -->
+    <section id="empty-state" class="py-20 md:py-32 bg-white">
+      <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+        <!-- Icon -->
+        <div class="mb-8">
+          <div class="flex items-center justify-center w-24 h-24 rounded-full bg-gray-50 border-2 border-dashed border-gray-200">
+            <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        </div>
+        
+        <!-- Message -->
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">Select a Finalist</h2>
+        <p class="text-sm text-gray-500 mb-8 max-w-md leading-relaxed">
+          Use the search above to find a finalist or winner, then generate shareable media assets, crests, and social media copy.
+        </p>
+        
+        <!-- Visual hint arrow pointing up -->
+        <svg class="w-6 h-6 text-gray-300 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+      </div>
+    </section>
+
     <!-- Main Tool Section -->
-    <section class="py-16 md:py-24 bg-white">
+    <section id="main-tool-section" class="py-16 md:py-24 bg-white hidden">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <!-- Left: Preview Images -->
           <div class="space-y-6">
             <!-- Preview Section -->
-            <div class="space-y-6 pt-6 border-t border-gray-200">
-              <h3 class="text-xl font-semibold text-gray-900">Preview</h3>
+            <div class="space-y-6">
+              <h3 class="text-xl font-semibold text-gray-900">Social Media Preview</h3>
               
               <!-- Image Preview -->
               <div class="relative bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -350,7 +375,7 @@ const safeFinalists = finalists || [];
     </section>
 
     <!-- Social Media Copy Section -->
-    <section class="py-16 md:py-24 bg-gray-50">
+    <section id="social-copy-section" class="py-16 md:py-24 bg-gray-50 hidden">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div id="social-copy" class="hidden">
           <h2 class="text-2xl font-semibold text-gray-900 mb-8">Social Media Copy</h2>
@@ -760,6 +785,9 @@ const safeFinalists = finalists || [];
         finalistsList.classList.add('hidden');
       }
       
+      // Hide empty state and show main content
+      hideEmptyState();
+      
       updatePreview();
       updateSelectedInfo();
       updateSocialCopy();
@@ -781,6 +809,9 @@ const safeFinalists = finalists || [];
       
       selectedFinalist = { ...finalist };
       searchInput.value = selectedFinalist.title || '';
+      
+      // Hide empty state and show main content
+      hideEmptyState();
       
       updatePreview();
       updateSelectedInfo();
@@ -818,6 +849,10 @@ const safeFinalists = finalists || [];
       selectedFinalist = null;
       customThumbnailFile = null;
       customThumbnailUrl = null;
+      
+      // Show empty state and hide main content
+      showEmptyState();
+      
       showPlaceholder();
       hideSelectedInfo();
       hideSocialCopy();
@@ -944,6 +979,20 @@ const safeFinalists = finalists || [];
     }
 
     // UI State helpers
+    const emptyState = document.getElementById('empty-state');
+    const mainToolSection = document.getElementById('main-tool-section');
+    const socialCopySection = document.getElementById('social-copy-section');
+    
+    function showEmptyState() { 
+      emptyState?.classList.remove('hidden'); 
+      mainToolSection?.classList.add('hidden');
+      socialCopySection?.classList.add('hidden');
+    }
+    function hideEmptyState() { 
+      emptyState?.classList.add('hidden'); 
+      mainToolSection?.classList.remove('hidden');
+      socialCopySection?.classList.remove('hidden');
+    }
     function showPlaceholder() { previewPlaceholder?.classList.remove('hidden'); finalistImageContainer?.classList.add('hidden'); }
     function hidePlaceholder() { previewPlaceholder?.classList.add('hidden'); }
     function showImageContainer() { finalistImageContainer?.classList.remove('hidden'); }
