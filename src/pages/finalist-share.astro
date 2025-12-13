@@ -90,13 +90,22 @@ const euLogoUrl = getR2ImageUrl('/images/2025/12/european-xr-awards-logo_1765616
 const EU_CATEGORY_ID = 'bf2511f3-267e-4acb-ba79-a6003f715fe3';
 const CROSS_CATEGORY_ID = '348b57c4-66af-4601-a424-499f7497f53f';
 
-// Get the base crest images for accolades
-const crestBaseBlack = getR2ImageUrl('/images/2025/12/xra-winner_crests-252_1765577014221.png');
-const crestBaseWhite = getR2ImageUrl('/images/2025/12/xra-winner_crests-253_1765577030174.png');
 
-// Get the base crest images for winners (using same images for now - can be replaced)
-const winnerCrestBaseBlack = getR2ImageUrl('/images/2025/12/xra-winner_crests-252_1765577014221.png');
-const winnerCrestBaseWhite = getR2ImageUrl('/images/2025/12/xra-winner_crests-253_1765577030174.png');
+// Get the base crest images with R2 URLs
+const crestConfigs = {
+  default: {
+    baseImageBlack: getR2ImageUrl('/images/2025/12/xra-winner_crests-252_1765577014221.png'),
+    baseImageWhite: getR2ImageUrl('/images/2025/12/xra-winner_crests-253_1765577030174.png')
+  },
+  eu: {
+    baseImageBlack: getR2ImageUrl('/images/2025/12/xra-winner_crests-eu-252_1765658549691.png'),
+    baseImageWhite: getR2ImageUrl('/images/2025/12/xra-winner_crests-eu-253_1765658563271.png')
+  },
+  shared: {
+    baseImageBlack: getR2ImageUrl('/images/2025/12/xra-shared-winner_crests-252_1765658372395.png'),
+    baseImageWhite: getR2ImageUrl('/images/2025/12/xra-shared-winner_crests-253_1765658391928.png')
+  }
+};
 
 // Ensure we have valid data - if not, provide empty defaults
 const safeEventDetails = eventDetails || null;
@@ -504,7 +513,8 @@ const safeFinalists = finalists || [];
     generateWinnerCrest,
     generateFinalistCrest,
     wrapText, 
-    cleanupBlobUrls 
+    cleanupBlobUrls,
+    getCrestConfigForTags
   } from '../utils/crest-generator';
   import { 
     generateSocialCopy, 
@@ -525,7 +535,8 @@ const safeFinalists = finalists || [];
     generateWinnerCrest,
     generateFinalistCrest,
     wrapText,
-    cleanupBlobUrls
+    cleanupBlobUrls,
+    getCrestConfigForTags
   };
   (window as any).SocialCopyGenerator = {
     generateSocialCopy,
@@ -541,7 +552,7 @@ const safeFinalists = finalists || [];
   };
 </script>
 
-<script define:vars={{ finalists: safeFinalists, logoUrl, euLogoUrl, EU_CATEGORY_ID, CROSS_CATEGORY_ID, eventDetails: safeEventDetails, crestBaseBlack, crestBaseWhite, winnerCrestBaseBlack, winnerCrestBaseWhite, availableYears }}>
+<script define:vars={{ finalists: safeFinalists, logoUrl, euLogoUrl, EU_CATEGORY_ID, CROSS_CATEGORY_ID, eventDetails: safeEventDetails, crestConfigs, availableYears }}>
   document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const searchInput = document.getElementById('finalist-search');
@@ -1078,10 +1089,11 @@ const safeFinalists = finalists || [];
       if (e.dataTransfer.files.length > 0) handleFileUpload(e.dataTransfer.files[0]);
     });
 
-    // Crest configs
-    const accoladeConfig = { baseImageBlack: crestBaseBlack, baseImageWhite: crestBaseWhite };
-    const winnerConfig = { baseImageBlack: winnerCrestBaseBlack, baseImageWhite: winnerCrestBaseWhite };
-    const finalistConfig = { baseImageBlack: crestBaseBlack, baseImageWhite: crestBaseWhite };
+    // Function to get the correct crest config based on tags
+    function getCrestConfig() {
+      const tagIds = selectedFinalist?.tagIds || [];
+      return CrestGenerator.getCrestConfigForTags(tagIds, crestConfigs);
+    }
 
     async function updateFinalistCrests() {
       const container = document.getElementById('finalist-crests-container');
@@ -1100,9 +1112,10 @@ const safeFinalists = finalists || [];
       const categoryName = selectedFinalist.category || '';
 
       try {
+        const crestConfig = getCrestConfig();
         const [blackCrest, whiteCrest] = await Promise.all([
-          CrestGenerator.generateFinalistCrest(categoryName, projectName, eventYear, 'black', finalistConfig),
-          CrestGenerator.generateFinalistCrest(categoryName, projectName, eventYear, 'white', finalistConfig)
+          CrestGenerator.generateFinalistCrest(categoryName, projectName, eventYear, 'black', crestConfig),
+          CrestGenerator.generateFinalistCrest(categoryName, projectName, eventYear, 'white', crestConfig)
         ]);
 
         container.innerHTML = `
@@ -1163,11 +1176,12 @@ const safeFinalists = finalists || [];
       const eventYear = selectedFinalist.eventYear || eventDetails?.event_year || '2025';
       const projectName = selectedFinalist.title || '';
 
+      const crestConfig = getCrestConfig();
       const crestPromises = accolades.flatMap(async (accolade) => {
         try {
           const [blackCrest, whiteCrest] = await Promise.all([
-            CrestGenerator.generateAccoladeCrest(accolade, projectName, eventYear, 'black', accoladeConfig),
-            CrestGenerator.generateAccoladeCrest(accolade, projectName, eventYear, 'white', accoladeConfig)
+            CrestGenerator.generateAccoladeCrest(accolade, projectName, eventYear, 'black', crestConfig),
+            CrestGenerator.generateAccoladeCrest(accolade, projectName, eventYear, 'white', crestConfig)
           ]);
           return [
             { accolade, crestUrl: blackCrest, variant: 'black' },
@@ -1248,9 +1262,10 @@ const safeFinalists = finalists || [];
       const categoryName = selectedFinalist.category || '';
 
       try {
+        const crestConfig = getCrestConfig();
         const [blackCrest, whiteCrest] = await Promise.all([
-          CrestGenerator.generateWinnerCrest(categoryName, projectName, eventYear, 'black', winnerConfig),
-          CrestGenerator.generateWinnerCrest(categoryName, projectName, eventYear, 'white', winnerConfig)
+          CrestGenerator.generateWinnerCrest(categoryName, projectName, eventYear, 'black', crestConfig),
+          CrestGenerator.generateWinnerCrest(categoryName, projectName, eventYear, 'white', crestConfig)
         ]);
 
         container.innerHTML = `

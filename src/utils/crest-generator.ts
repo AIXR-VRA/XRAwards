@@ -3,15 +3,42 @@
  * Generates accolade and winner crests with text overlays
  */
 
+// Tag IDs for category-based crest selection
+export const EU_TAG_ID = 'bf2511f3-267e-4acb-ba79-a6003f715fe3';
+export const CROSS_TAG_ID = '348b57c4-66af-4601-a424-499f7497f53f';
+
 export interface CrestConfig {
   baseImageBlack: string;
   baseImageWhite: string;
+}
+
+export interface AllCrestConfigs {
+  default: CrestConfig;
+  eu: CrestConfig;
+  shared: CrestConfig;
 }
 
 export interface AccoladeData {
   id?: string;
   name: string;
   code?: string;
+}
+
+/**
+ * Get the correct crest config based on tag IDs
+ * @param tagIds - Array of tag IDs from the category
+ * @param configs - All crest configs with resolved URLs
+ */
+export function getCrestConfigForTags(tagIds: string[] = [], configs: AllCrestConfigs): CrestConfig {
+  const hasEuTag = tagIds.includes(EU_TAG_ID);
+  const hasCrossTag = tagIds.includes(CROSS_TAG_ID);
+  
+  if (hasCrossTag) {
+    return configs.shared;
+  } else if (hasEuTag) {
+    return configs.eu;
+  }
+  return configs.default;
 }
 
 /**
