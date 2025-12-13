@@ -321,94 +321,140 @@ export async function generateFinalistImage(config: FinalistImageConfig): Promis
     textScale = (mainImgSize / size) * 1.1;
   }
 
-  // === CATEGORY NAME (big, at top) ===
-  const categoryOnly = category.toUpperCase();
-  
-  // Use larger scale for category/status in landscape mode
-  const headerScale = aspectRatio === 'landscape' ? textScale * 1.2 : textScale;
-  
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  ctx.font = `bold ${Math.round(32 * headerScale)}px Jura, Helvetica, Arial, sans-serif`;
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText(categoryOnly, textCenterX, textAreaTop);
+  // === LANDSCAPE MODE: Stack all text elements with proper spacing ===
+  if (aspectRatio === 'landscape') {
+    // For landscape, we stack elements top-to-bottom with consistent spacing
+    const headerFontSize = 22;
+    const statusFontSize = 22;
+    const dotSize = 3;
+    const titleBaseFontSize = title.length > 40 ? 28 : (title.length > 25 ? 32 : 36);
+    const orgFontSize = 18;
+    
+    let currentY = textAreaTop;
+    
+    // Category
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.font = `bold ${headerFontSize}px Jura, Helvetica, Arial, sans-serif`;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(category.toUpperCase(), textCenterX, currentY);
+    currentY += headerFontSize + 8;
+    
+    // Status + Year
+    ctx.font = `400 ${statusFontSize}px "IBM Plex Mono", monospace`;
+    ctx.fillStyle = isWinner ? '#E91E8C' : '#00D4D8';
+    ctx.fillText(`${year} ${isWinner ? 'WINNER' : 'FINALIST'}`, textCenterX, currentY);
+    currentY += statusFontSize + 12;
+    
+    // Decorative dots
+    ctx.fillStyle = '#00D4D8';
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath();
+      ctx.arc(textCenterX + (i * 10), currentY + dotSize, dotSize, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    currentY += dotSize * 2 + 16;
+    
+    // Title
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${titleBaseFontSize}px Jura, Helvetica, Arial, sans-serif`;
+    ctx.textBaseline = 'top';
+    const titleLines = wrapText(ctx, title, textMaxWidth);
+    const titleLineHeight = titleBaseFontSize * 1.2;
+    titleLines.forEach((line, index) => {
+      ctx.fillText(line, textCenterX, currentY + (index * titleLineHeight));
+    });
+    currentY += titleLines.length * titleLineHeight + 12;
+    
+    // Organization
+    if (organization) {
+      ctx.font = `500 ${orgFontSize}px Jura, Helvetica, Arial, sans-serif`;
+      ctx.fillStyle = '#c8d4e4';
+      const orgTextStr = `by ${organization}`;
+      const orgLines = wrapText(ctx, orgTextStr, textMaxWidth);
+      const orgLineHeight = orgFontSize * 1.3;
+      orgLines.forEach((line, index) => {
+        ctx.fillText(line, textCenterX, currentY + (index * orgLineHeight));
+      });
+    }
+  } else {
+    // === SQUARE AND PORTRAIT MODES: Original centered layout ===
+    
+    // Use larger scale for category/status
+    const headerScale = textScale;
+    
+    // Category
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.font = `bold ${Math.round(32 * headerScale)}px Jura, Helvetica, Arial, sans-serif`;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(category.toUpperCase(), textCenterX, textAreaTop);
 
-  // === STATUS + YEAR (below category, IBM Plex Mono regular) ===
-  const statusText = isWinner ? 'WINNER' : 'FINALIST';
-  const statusWithYear = `${year} ${statusText}`;
-  
-  ctx.font = `400 ${Math.round(32 * headerScale)}px "IBM Plex Mono", monospace`;
-  ctx.fillStyle = isWinner ? '#E91E8C' : '#00D4D8';
-  ctx.fillText(statusWithYear, textCenterX, textAreaTop + Math.round(42 * headerScale));
+    // Status + Year
+    ctx.font = `400 ${Math.round(32 * headerScale)}px "IBM Plex Mono", monospace`;
+    ctx.fillStyle = isWinner ? '#E91E8C' : '#00D4D8';
+    ctx.fillText(`${year} ${isWinner ? 'WINNER' : 'FINALIST'}`, textCenterX, textAreaTop + Math.round(42 * headerScale));
 
-  // === DECORATIVE DOTS (below the text group) ===
-  const dotY = textAreaTop + Math.round(95 * headerScale);
-  const dotSpacing = Math.round(12 * headerScale);
-  const dotRadius = Math.round(3 * headerScale);
-  ctx.fillStyle = '#00D4D8';
-  
-  for (let i = -2; i <= 2; i++) {
-    ctx.beginPath();
-    ctx.arc(textCenterX + (i * dotSpacing), dotY, dotRadius, 0, Math.PI * 2);
-    ctx.fill();
-  }
+    // Decorative dots
+    const dotY = textAreaTop + Math.round(95 * headerScale);
+    const dotSpacing = Math.round(12 * headerScale);
+    const dotRadius = Math.round(3 * headerScale);
+    ctx.fillStyle = '#00D4D8';
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath();
+      ctx.arc(textCenterX + (i * dotSpacing), dotY, dotRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
-  // === PROJECT TITLE (CENTERED) - Using Jura font, bigger and bold ===
-  ctx.fillStyle = '#ffffff';
-  
-  // Use larger Jura for project name
-  const baseTitleFontSize = title.length > 35 ? 40 : (title.length > 25 ? 48 : 56);
-  const titleFontSize = Math.round(baseTitleFontSize * textScale);
-  ctx.font = `bold ${titleFontSize}px Jura, Helvetica, Arial, sans-serif`;
-  ctx.textBaseline = 'middle';
-  
-  // Wrap title if needed
-  const titleLines = wrapText(ctx, title, textMaxWidth);
-  const titleLineHeight = titleFontSize * 1.25;
-  
-  // Calculate total height of title block + organization
-  const orgText = organization ? `by ${organization}` : '';
-  const orgLineCount = orgText.length > 50 ? Math.ceil(orgText.length / 50) : 1;
-  const orgHeight = organization ? (Math.round(30 * textScale) + (orgLineCount * Math.round(30 * textScale))) : 0;
-  const titleBlockHeight = (titleLines.length * titleLineHeight) + orgHeight;
-  
-  // Center the title block vertically
-  const titleStartY = textAreaCenter - (titleBlockHeight / 2) + (titleLineHeight / 2);
-  
-  titleLines.forEach((line, index) => {
-    ctx.fillText(line, textCenterX, titleStartY + (index * titleLineHeight));
-  });
-
-  // === ORGANIZATION - Using Jura ===
-  if (organization) {
-    // Use larger scale for organization in landscape mode
-    const orgScale = aspectRatio === 'landscape' ? textScale * 1.15 : textScale;
-    const orgY = titleStartY + (titleLines.length * titleLineHeight) + Math.round(30 * textScale);
-    ctx.font = `500 ${Math.round(24 * orgScale)}px Jura, Helvetica, Arial, sans-serif`;
-    ctx.fillStyle = '#c8d4e4';
+    // Title
+    ctx.fillStyle = '#ffffff';
+    const baseTitleFontSize = title.length > 35 ? 40 : (title.length > 25 ? 48 : 56);
+    const titleFontSize = Math.round(baseTitleFontSize * textScale);
+    ctx.font = `bold ${titleFontSize}px Jura, Helvetica, Arial, sans-serif`;
     ctx.textBaseline = 'middle';
     
-    const orgTextStr = `by ${organization}`;
+    const titleLines = wrapText(ctx, title, textMaxWidth);
+    const titleLineHeight = titleFontSize * 1.25;
     
-    // Wrap after adjusted character count
-    const maxChars = aspectRatio === 'landscape' ? 30 : Math.round(50 * textScale);
-    if (orgTextStr.length > maxChars) {
-      const orgLines: string[] = [];
-      let remaining = orgTextStr;
-      while (remaining.length > maxChars) {
-        let breakPoint = remaining.lastIndexOf(' ', maxChars);
-        if (breakPoint === -1) breakPoint = maxChars;
-        orgLines.push(remaining.substring(0, breakPoint));
-        remaining = remaining.substring(breakPoint).trim();
-      }
-      if (remaining) orgLines.push(remaining);
+    // Calculate total height of title block + organization
+    const orgText = organization ? `by ${organization}` : '';
+    const orgLineCount = orgText.length > 50 ? Math.ceil(orgText.length / 50) : 1;
+    const orgHeight = organization ? (Math.round(30 * textScale) + (orgLineCount * Math.round(30 * textScale))) : 0;
+    const titleBlockHeight = (titleLines.length * titleLineHeight) + orgHeight;
+    
+    const titleStartY = textAreaCenter - (titleBlockHeight / 2) + (titleLineHeight / 2);
+    
+    titleLines.forEach((line, index) => {
+      ctx.fillText(line, textCenterX, titleStartY + (index * titleLineHeight));
+    });
+
+    // Organization
+    if (organization) {
+      const orgY = titleStartY + (titleLines.length * titleLineHeight) + Math.round(30 * textScale);
+      ctx.font = `500 ${Math.round(24 * textScale)}px Jura, Helvetica, Arial, sans-serif`;
+      ctx.fillStyle = '#c8d4e4';
+      ctx.textBaseline = 'middle';
       
-      const orgLineHeight = Math.round(30 * orgScale);
-      orgLines.forEach((line, index) => {
-        ctx.fillText(line, textCenterX, orgY + (index * orgLineHeight));
-      });
-    } else {
-      ctx.fillText(orgTextStr, textCenterX, orgY);
+      const orgTextStr = `by ${organization}`;
+      const maxChars = Math.round(50 * textScale);
+      if (orgTextStr.length > maxChars) {
+        const orgLines: string[] = [];
+        let remaining = orgTextStr;
+        while (remaining.length > maxChars) {
+          let breakPoint = remaining.lastIndexOf(' ', maxChars);
+          if (breakPoint === -1) breakPoint = maxChars;
+          orgLines.push(remaining.substring(0, breakPoint));
+          remaining = remaining.substring(breakPoint).trim();
+        }
+        if (remaining) orgLines.push(remaining);
+        
+        const orgLineHeight = Math.round(30 * textScale);
+        orgLines.forEach((line, index) => {
+          ctx.fillText(line, textCenterX, orgY + (index * orgLineHeight));
+        });
+      } else {
+        ctx.fillText(orgTextStr, textCenterX, orgY);
+      }
     }
   }
 
