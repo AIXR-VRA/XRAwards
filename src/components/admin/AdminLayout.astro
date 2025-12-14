@@ -10,7 +10,7 @@ import ProfileEditForm from './ProfileEditForm';
 
 interface Props {
   title: string;
-  activePage?: 'dashboard' | 'media-library' | 'categories' | 'finalists' | 'tags' | 'events' | 'sponsors' | 'judges' | 'accolades';
+  activePage?: 'dashboard' | 'media-library' | 'categories' | 'finalists' | 'tags' | 'events' | 'sponsors' | 'judges' | 'accolades' | 'contacts';
 }
 
 const { title, activePage } = Astro.props;
@@ -38,6 +38,7 @@ const navItems = [
   { id: 'finalists', label: 'Finalists', href: '/admin/finalists/' },
   { id: 'sponsors', label: 'Sponsors', href: '/admin/sponsors/' },
   { id: 'judges', label: 'Judges', href: '/admin/judges/' },
+  { id: 'contacts', label: 'Contacts', href: '/admin/contacts/' },
   { id: 'tags', label: 'Tags', href: '/admin/tags/' },
 ];
 ---

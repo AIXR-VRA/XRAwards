@@ -1,0 +1,759 @@
+---
+/**
+ * Admin Contacts Management Page
+ */
+import AdminLayout from '../../components/admin/AdminLayout.astro';
+import Modal from '../../components/admin/Modal.astro';
+
+---
+
+<AdminLayout title="Contacts" activePage="contacts">
+  <div class="space-y-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Contacts</h1>
+        <p class="mt-2 text-gray-600">Manage contacts for judges, finalists, sponsors, and attendees</p>
+      </div>
+      <button
+        id="addContactBtn"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+      >
+        + Add Contact
+      </button>
+    </div>
+
+    <!-- Filter -->
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <div class="flex flex-wrap gap-4">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search contacts..."
+          class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 min-w-64"
+        />
+        <select id="contactTypeFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All Types</option>
+          <option value="judge">Judges</option>
+          <option value="finalist">Finalists</option>
+          <option value="sponsor">Sponsors</option>
+          <option value="attendee">Attendees</option>
+        </select>
+        <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All Status</option>
+          <option value="active">Active Only</option>
+          <option value="inactive">Inactive Only</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Contacts List -->
+    <div id="contactsList" class="space-y-4">
+      <!-- Loading state -->
+      <div class="text-center py-12">
+        <p class="text-gray-500">Loading contacts...</p>
+      </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <Modal id="contactModal" title="Add Contact">
+      <form id="contactForm" class="space-y-6 max-w-full">
+        <input type="hidden" id="contactId" name="id" />
+        <input type="hidden" id="contactType" name="contact_type" />
+
+        <!-- Contact Type Selection (only when adding) -->
+        <div id="contactTypeSelection" class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Contact Type</h3>
+          <div>
+            <label for="contact_type_select" class="block text-sm font-medium text-gray-700 mb-1">
+              Type *
+            </label>
+            <select
+              id="contact_type_select"
+              required
+              class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select type...</option>
+              <option value="judge">Judge</option>
+              <option value="finalist">Finalist</option>
+              <option value="sponsor">Sponsor</option>
+              <option value="attendee">Attendee</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Judge Selection (only for judge contacts) -->
+        <div id="judgeSelection" class="space-y-4 hidden">
+          <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Judge</h3>
+          <div>
+            <label for="judge_id" class="block text-sm font-medium text-gray-700 mb-1">
+              Select Judge *
+            </label>
+            <div class="searchable-dropdown relative" data-select-id="judge_id">
+              <button
+                type="button"
+                id="judge_id_btn"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg bg-white text-left flex items-center justify-between focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              >
+                <span id="judge_id_text" class="text-gray-400">Select a judge...</span>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <input type="hidden" id="judge_id" name="judge_id" />
+              <div id="judge_id_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-300 max-h-60 overflow-hidden">
+                <div class="px-2 py-1 border-b border-gray-200">
+                  <input
+                    type="text"
+                    id="judge_id_search"
+                    placeholder="Search judges..."
+                    class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div id="judge_id_options" class="max-h-48 overflow-y-auto">
+                  <!-- Options will be populated here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Finalist Selection (only for finalist contacts) -->
+        <div id="finalistSelection" class="space-y-4 hidden">
+          <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Finalist</h3>
+          <div>
+            <label for="finalist_id" class="block text-sm font-medium text-gray-700 mb-1">
+              Select Finalist *
+            </label>
+            <div class="searchable-dropdown relative" data-select-id="finalist_id">
+              <button
+                type="button"
+                id="finalist_id_btn"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg bg-white text-left flex items-center justify-between focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              >
+                <span id="finalist_id_text" class="text-gray-400">Select a finalist...</span>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <input type="hidden" id="finalist_id" name="finalist_id" />
+              <div id="finalist_id_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-300 max-h-60 overflow-hidden">
+                <div class="px-2 py-1 border-b border-gray-200">
+                  <input
+                    type="text"
+                    id="finalist_id_search"
+                    placeholder="Search finalists..."
+                    class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div id="finalist_id_options" class="max-h-48 overflow-y-auto">
+                  <!-- Options will be populated here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Contact Information</h3>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+              Email *
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              placeholder="contact@example.com"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">
+                First Name
+              </label>
+              <input
+                type="text"
+                id="first_name"
+                name="first_name"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="John"
+              />
+            </div>
+
+            <div>
+              <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">
+                Last Name
+              </label>
+              <input
+                type="text"
+                id="last_name"
+                name="last_name"
+                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="Doe"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="organization" class="block text-sm font-medium text-gray-700 mb-1">
+              Organization
+            </label>
+            <input
+              type="text"
+              id="organization"
+              name="organization"
+              class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              placeholder="Company Name"
+            />
+          </div>
+
+          <div>
+            <label class="flex items-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input
+                type="checkbox"
+                id="is_active"
+                name="is_active"
+                checked
+                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span class="text-sm text-gray-700">Active (can receive emails)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="contactModalError" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"></div>
+      </form>
+    </Modal>
+  </div>
+</AdminLayout>
+
+<script>
+  const accessToken = window.__SUPABASE_ACCESS_TOKEN__ || '';
+  let contacts: any[] = [];
+  let judges: any[] = [];
+  let finalists: any[] = [];
+  let filters = {
+    search: '',
+    contact_type: '',
+    status: ''
+  };
+
+  // Fetch contacts
+  async function loadContacts() {
+    try {
+      const params = new URLSearchParams();
+      if (filters.search) params.append('search', filters.search);
+      if (filters.contact_type) params.append('contact_type', filters.contact_type);
+      
+      const response = await fetch(`/api/contacts/?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch contacts');
+
+      const data = await response.json();
+      contacts = data.contacts || [];
+      
+      // Filter by status if needed
+      if (filters.status === 'active') {
+        contacts = contacts.filter(c => c.is_active);
+      } else if (filters.status === 'inactive') {
+        contacts = contacts.filter(c => !c.is_active);
+      }
+
+      renderContacts();
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+      document.getElementById('contactsList')!.innerHTML = `
+        <div class="text-center py-12">
+          <p class="text-red-500">Failed to load contacts. Please refresh the page.</p>
+        </div>
+      `;
+    }
+  }
+
+  // Fetch judges and finalists for dropdowns
+  async function loadJudges() {
+    try {
+      const response = await fetch('/api/judges/');
+      if (response.ok) {
+        const data = await response.json();
+        judges = data.judges || [];
+      }
+    } catch (error) {
+      console.error('Error loading judges:', error);
+    }
+  }
+
+  async function loadFinalists() {
+    try {
+      const response = await fetch('/api/finalists/?limit=1000');
+      if (response.ok) {
+        const data = await response.json();
+        finalists = data.finalists || [];
+      }
+    } catch (error) {
+      console.error('Error loading finalists:', error);
+    }
+  }
+
+  // Render contacts list
+  function renderContacts() {
+    const list = document.getElementById('contactsList')!;
+    
+    if (contacts.length === 0) {
+      list.innerHTML = `
+        <div class="text-center py-12">
+          <p class="text-gray-500">No contacts found. Add your first contact!</p>
+        </div>
+      `;
+      return;
+    }
+
+    const html = contacts.map(contact => {
+      const typeLabel = contact.contact_type.charAt(0).toUpperCase() + contact.contact_type.slice(1);
+      const name = [contact.first_name, contact.last_name].filter(Boolean).join(' ') || 'N/A';
+      
+      return `
+        <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-shadow">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <h3 class="text-lg font-semibold text-gray-900">${escapeHtml(name)}</h3>
+                <span class="px-2 py-1 text-xs font-medium rounded ${
+                  contact.contact_type === 'judge' ? 'bg-purple-100 text-purple-800' :
+                  contact.contact_type === 'finalist' ? 'bg-blue-100 text-blue-800' :
+                  contact.contact_type === 'sponsor' ? 'bg-green-100 text-green-800' :
+                  'bg-gray-100 text-gray-800'
+                }">${escapeHtml(typeLabel)}</span>
+                ${contact.is_active ? 
+                  '<span class="px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800">Active</span>' :
+                  '<span class="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-800">Inactive</span>'
+                }
+              </div>
+              <p class="text-sm text-gray-600 mb-1">
+                <span class="font-medium">Email:</span> ${escapeHtml(contact.email)}
+              </p>
+              ${contact.organization ? `
+                <p class="text-sm text-gray-600 mb-1">
+                  <span class="font-medium">Organization:</span> ${escapeHtml(contact.organization)}
+                </p>
+              ` : ''}
+              <p class="text-xs text-gray-400 mt-2 font-mono">ID: ${contact.id}</p>
+            </div>
+            <div class="flex space-x-2 ml-4">
+              <button
+                onclick="editContact('${contact.id}')"
+                class="px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                Edit
+              </button>
+              <button
+                onclick="deleteContact('${contact.id}', '${escapeHtml(contact.email)}')"
+                class="px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    list.innerHTML = html;
+  }
+
+  // Helper to escape HTML
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Modal controls
+  const modal = document.getElementById('contactModal')!;
+  const modalTitle = document.getElementById('contactModalTitle')!;
+  const form = document.getElementById('contactForm') as HTMLFormElement;
+  const modalError = document.getElementById('contactModalError')!;
+  
+  // Close button handlers
+  document.getElementById('contactModalCloseBtn')?.addEventListener('click', closeContactModal);
+  document.getElementById('contactModalCancelBtn')?.addEventListener('click', closeContactModal);
+
+  function openContactModal(title: string) {
+    if (modalTitle) modalTitle.textContent = title;
+    modalError.classList.add('hidden');
+    modal.classList.remove('hidden');
+  }
+
+  function closeContactModal() {
+    modal.classList.add('hidden');
+    form.reset();
+    (document.getElementById('contactId') as HTMLInputElement).value = '';
+    (document.getElementById('contactType') as HTMLInputElement).value = '';
+    
+    // Reset type-specific fields
+    document.getElementById('contactTypeSelection')!.classList.remove('hidden');
+    document.getElementById('judgeSelection')!.classList.add('hidden');
+    document.getElementById('finalistSelection')!.classList.add('hidden');
+    (document.getElementById('contact_type_select') as HTMLSelectElement).value = '';
+    
+    // Clear dropdowns
+    if ((window as any).clearDropdown_judge_id) {
+      (window as any).clearDropdown_judge_id();
+    }
+    if ((window as any).clearDropdown_finalist_id) {
+      (window as any).clearDropdown_finalist_id();
+    }
+  }
+
+  // Handle contact type selection
+  document.getElementById('contact_type_select')?.addEventListener('change', (e) => {
+    const type = (e.target as HTMLSelectElement).value;
+    (document.getElementById('contactType') as HTMLInputElement).value = type;
+    
+    // Show/hide type-specific fields
+    document.getElementById('judgeSelection')!.classList.toggle('hidden', type !== 'judge');
+    document.getElementById('finalistSelection')!.classList.toggle('hidden', type !== 'finalist');
+    
+    // Populate dropdowns
+    if (type === 'judge') {
+      // Clear first, then populate
+      if ((window as any).clearDropdown_judge_id) {
+        (window as any).clearDropdown_judge_id();
+      }
+      populateJudgeDropdown();
+    } else if (type === 'finalist') {
+      // Clear first, then populate
+      if ((window as any).clearDropdown_finalist_id) {
+        (window as any).clearDropdown_finalist_id();
+      }
+      populateFinalistDropdown();
+    }
+  });
+
+  function populateJudgeDropdown() {
+    const options = judges.map(judge => ({
+      id: judge.id,
+      text: `${judge.first_name} ${judge.last_name}${judge.organization ? ` - ${judge.organization}` : ''}`
+    }));
+    
+    if ((window as any).updateDropdown_judge_id) {
+      (window as any).updateDropdown_judge_id(options);
+    }
+  }
+
+  function populateFinalistDropdown() {
+    const options = finalists.map(finalist => ({
+      id: finalist.id,
+      text: `${finalist.title}${finalist.organization ? ` - ${finalist.organization}` : ''}`
+    }));
+    
+    if ((window as any).updateDropdown_finalist_id) {
+      (window as any).updateDropdown_finalist_id(options);
+    }
+  }
+
+  // Add contact button
+  document.getElementById('addContactBtn')!.addEventListener('click', () => {
+    openContactModal('Add Contact');
+  });
+
+  // Form submission
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    modalError.classList.add('hidden');
+
+    const contactId = (document.getElementById('contactId') as HTMLInputElement).value;
+    const contactType = (document.getElementById('contactType') as HTMLInputElement).value || 
+                        (document.getElementById('contact_type_select') as HTMLSelectElement).value;
+    const email = (document.getElementById('email') as HTMLInputElement).value;
+    const firstName = (document.getElementById('first_name') as HTMLInputElement).value;
+    const lastName = (document.getElementById('last_name') as HTMLInputElement).value;
+    const organization = (document.getElementById('organization') as HTMLInputElement).value;
+    const isActive = (document.getElementById('is_active') as HTMLInputElement).checked;
+    const judgeId = (document.getElementById('judge_id') as HTMLInputElement)?.value || '';
+    const finalistId = (document.getElementById('finalist_id') as HTMLInputElement)?.value || '';
+
+    if (!contactType) {
+      modalError.textContent = 'Please select a contact type';
+      modalError.classList.remove('hidden');
+      return;
+    }
+
+    if (contactType === 'judge' && !judgeId) {
+      modalError.textContent = 'Please select a judge';
+      modalError.classList.remove('hidden');
+      return;
+    }
+
+    if (contactType === 'finalist' && !finalistId) {
+      modalError.textContent = 'Please select a finalist';
+      modalError.classList.remove('hidden');
+      return;
+    }
+
+    try {
+      const url = '/api/contacts/';
+      const method = contactId ? 'PUT' : 'POST';
+      const body: any = {
+        email,
+        first_name: firstName || null,
+        last_name: lastName || null,
+        organization: organization || null,
+        is_active: isActive
+      };
+
+      if (contactId) {
+        body.id = contactId;
+      } else {
+        body.contact_type = contactType;
+        if (contactType === 'judge') body.judge_id = judgeId;
+        if (contactType === 'finalist') body.finalist_id = finalistId;
+      }
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(body)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save contact');
+      }
+
+      closeContactModal();
+      await loadContacts();
+    } catch (error) {
+      console.error('Error saving contact:', error);
+      modalError.textContent = error instanceof Error ? error.message : 'Failed to save contact';
+      modalError.classList.remove('hidden');
+    }
+  });
+
+  // Edit contact
+  (window as any).editContact = async function(id: string) {
+    const contact = contacts.find(c => c.id === id);
+    if (!contact) return;
+
+    openContactModal('Edit Contact');
+    
+    // Hide type selection for editing
+    document.getElementById('contactTypeSelection')!.classList.add('hidden');
+    (document.getElementById('contactType') as HTMLInputElement).value = contact.contact_type;
+    
+    // Show type-specific fields if needed
+    if (contact.contact_type === 'judge') {
+      document.getElementById('judgeSelection')!.classList.remove('hidden');
+      populateJudgeDropdown();
+      (document.getElementById('judge_id') as HTMLSelectElement).value = contact.judge_id || '';
+    } else if (contact.contact_type === 'finalist') {
+      document.getElementById('finalistSelection')!.classList.remove('hidden');
+      populateFinalistDropdown();
+      (document.getElementById('finalist_id') as HTMLSelectElement).value = contact.finalist_id || '';
+    }
+
+    // Populate form
+    (document.getElementById('contactId') as HTMLInputElement).value = contact.id;
+    (document.getElementById('email') as HTMLInputElement).value = contact.email || '';
+    (document.getElementById('first_name') as HTMLInputElement).value = contact.first_name || '';
+    (document.getElementById('last_name') as HTMLInputElement).value = contact.last_name || '';
+    (document.getElementById('organization') as HTMLInputElement).value = contact.organization || '';
+    (document.getElementById('is_active') as HTMLInputElement).checked = contact.is_active !== false;
+  };
+
+  // Delete contact
+  (window as any).deleteContact = async function(id: string, email: string) {
+    if (!confirm(`Are you sure you want to delete the contact "${email}"?`)) return;
+
+    try {
+      const response = await fetch('/api/contacts/', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ id })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete contact');
+      }
+
+      await loadContacts();
+    } catch (error) {
+      console.error('Error deleting contact:', error);
+      alert(error instanceof Error ? error.message : 'Failed to delete contact');
+    }
+  };
+
+  // Filters
+  let searchTimeout: NodeJS.Timeout;
+  document.getElementById('searchInput')!.addEventListener('input', (e) => {
+    filters.search = (e.target as HTMLInputElement).value;
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      loadContacts();
+    }, 500);
+  });
+
+  document.getElementById('contactTypeFilter')!.addEventListener('change', (e) => {
+    filters.contact_type = (e.target as HTMLSelectElement).value;
+    loadContacts();
+  });
+
+  document.getElementById('statusFilter')!.addEventListener('change', (e) => {
+    filters.status = (e.target as HTMLSelectElement).value;
+    loadContacts();
+  });
+
+  // Custom searchable dropdown functions (for finalist selection)
+  function initSearchableDropdown(dropdownId: string) {
+    const container = document.querySelector(`[data-select-id="${dropdownId}"]`) as HTMLElement;
+    if (!container) return;
+    
+    const button = document.getElementById(`${dropdownId}_btn`) as HTMLButtonElement;
+    const dropdown = document.getElementById(`${dropdownId}_dropdown`) as HTMLElement;
+    const searchInput = document.getElementById(`${dropdownId}_search`) as HTMLInputElement;
+    const optionsContainer = document.getElementById(`${dropdownId}_options`) as HTMLElement;
+    const hiddenInput = document.getElementById(dropdownId) as HTMLInputElement;
+    const textSpan = document.getElementById(`${dropdownId}_text`) as HTMLElement;
+    
+    if (!button || !dropdown || !optionsContainer) return;
+    
+    let isOpen = false;
+    let allOptions: { id: string; text: string }[] = [];
+    let filteredOptions: { id: string; text: string }[] = [];
+    
+    // Toggle dropdown
+    const toggleDropdown = () => {
+      isOpen = !isOpen;
+      if (isOpen) {
+        dropdown.classList.remove('hidden');
+        if (searchInput) {
+          setTimeout(() => searchInput.focus(), 0);
+        }
+      } else {
+        dropdown.classList.add('hidden');
+        if (searchInput) {
+          searchInput.value = '';
+          filteredOptions = [...allOptions];
+          renderOptions();
+        }
+      }
+    };
+    
+    // Render options
+    const renderOptions = () => {
+      if (filteredOptions.length === 0) {
+        optionsContainer.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">No options found</div>';
+        return;
+      }
+      
+      optionsContainer.innerHTML = filteredOptions.map(opt => `
+        <div
+          class="px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+          data-value="${opt.id}"
+        >
+          ${escapeHtml(opt.text)}
+        </div>
+      `).join('');
+      
+      // Add click handlers
+      optionsContainer.querySelectorAll('[data-value]').forEach(el => {
+        el.addEventListener('click', (e) => {
+          const value = (e.currentTarget as HTMLElement).dataset.value || '';
+          const option = allOptions.find(o => o.id === value);
+          if (option) {
+            selectOption(option);
+          }
+        });
+      });
+    };
+    
+    // Select an option
+    const selectOption = (option: { id: string; text: string }) => {
+      if (hiddenInput) {
+        hiddenInput.value = option.id;
+      }
+      if (textSpan) {
+        textSpan.textContent = option.text;
+        textSpan.classList.remove('text-gray-400');
+        textSpan.classList.add('text-gray-900');
+      }
+      toggleDropdown();
+    };
+    
+    // Update options
+    const updateOptions = (options: { id: string; text: string }[]) => {
+      allOptions = options;
+      filteredOptions = [...allOptions];
+      renderOptions();
+    };
+    
+    // Search filter
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const term = (e.target as HTMLInputElement).value.toLowerCase().trim();
+        filteredOptions = allOptions.filter(opt => 
+          opt.text.toLowerCase().includes(term)
+        );
+        renderOptions();
+      });
+    }
+    
+    // Button click
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleDropdown();
+    });
+    
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+      if (!container.contains(e.target as Node)) {
+        if (isOpen) {
+          toggleDropdown();
+        }
+      }
+    });
+    
+    // Store update function
+    (window as any)[`updateDropdown_${dropdownId}`] = updateOptions;
+    (window as any)[`clearDropdown_${dropdownId}`] = () => {
+      if (hiddenInput) hiddenInput.value = '';
+      if (textSpan) {
+        const placeholder = dropdownId === 'judge_id' ? 'Select a judge...' : 'Select a finalist...';
+        textSpan.textContent = placeholder;
+        textSpan.classList.remove('text-gray-900');
+        textSpan.classList.add('text-gray-400');
+      }
+    };
+  }
+
+  // Initialize
+  (async () => {
+    await Promise.all([loadJudges(), loadFinalists()]);
+    await loadContacts();
+    
+    // Initialize searchable dropdowns for judge and finalist selection
+    initSearchableDropdown('judge_id');
+    initSearchableDropdown('finalist_id');
+  })();
+</script>
+
