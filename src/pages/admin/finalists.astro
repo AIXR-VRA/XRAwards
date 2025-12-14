@@ -1218,13 +1218,13 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
           </div>
           <div class="flex space-x-2 ml-3">
             <button
-              onclick="editFinalistContact('${contact.id}')"
+              onclick="event.stopPropagation(); event.preventDefault(); editFinalistContact('${contact.id}', event);"
               class="px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
             >
               Edit
             </button>
             <button
-              onclick="deleteFinalistContact('${contact.id}', '${escapeHtml(contact.email)}')"
+              onclick="event.stopPropagation(); event.preventDefault(); deleteFinalistContact('${contact.id}', '${escapeHtml(contact.email)}', event);"
               class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors"
             >
               Delete
@@ -1254,9 +1254,28 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     // Set higher z-index for nested modal
     modal.style.zIndex = '60';
     modal.classList.remove('hidden');
+    
+    // Prevent backdrop clicks from closing parent modal
+    const backdrop = modal.querySelector('.bg-black\\/50') as HTMLElement;
+    if (backdrop) {
+      backdrop.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
+    
+    // Prevent modal content clicks from bubbling
+    const modalContent = modal.querySelector('.bg-white') as HTMLElement;
+    if (modalContent) {
+      modalContent.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
   }
 
-  function closeFinalistContactModal() {
+  function closeFinalistContactModal(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
     const modal = document.getElementById('finalistContactModal')!;
     const form = document.getElementById('finalistContactModalForm') as HTMLFormElement;
     modal.classList.add('hidden');
@@ -1266,7 +1285,11 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   }
 
   // Edit contact
-  (window as any).editFinalistContact = function(id: string) {
+  (window as any).editFinalistContact = function(id: string, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     const contact = finalistContacts.find(c => c.id === id);
     if (!contact) return;
 
@@ -1280,7 +1303,11 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   };
 
   // Delete contact
-  (window as any).deleteFinalistContact = async function(id: string, email: string) {
+  (window as any).deleteFinalistContact = async function(id: string, email: string, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     if (!confirm(`Are you sure you want to delete the contact "${email}"?`)) return;
 
     try {
@@ -1306,8 +1333,14 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   };
 
   // Contact modal close handlers
-  document.getElementById('finalistContactModalCloseBtn')?.addEventListener('click', closeFinalistContactModal);
-  document.getElementById('finalistContactModalCancelBtn')?.addEventListener('click', closeFinalistContactModal);
+  document.getElementById('finalistContactModalCloseBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeFinalistContactModal(e);
+  });
+  document.getElementById('finalistContactModalCancelBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeFinalistContactModal(e);
+  });
 
   // Finalist contact form submission
   const finalistContactForm = document.getElementById('finalistContactModalForm') as HTMLFormElement;

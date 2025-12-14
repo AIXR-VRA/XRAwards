@@ -853,13 +853,13 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
           </div>
           <div class="flex space-x-2 ml-3">
             <button
-              onclick="editJudgeContact('${contact.id}')"
+              onclick="event.stopPropagation(); event.preventDefault(); editJudgeContact('${contact.id}', event);"
               class="px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
             >
               Edit
             </button>
             <button
-              onclick="deleteJudgeContact('${contact.id}', '${escapeHtml(contact.email)}')"
+              onclick="event.stopPropagation(); event.preventDefault(); deleteJudgeContact('${contact.id}', '${escapeHtml(contact.email)}', event);"
               class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors"
             >
               Delete
@@ -889,9 +889,28 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     // Set higher z-index for nested modal
     modal.style.zIndex = '60';
     modal.classList.remove('hidden');
+    
+    // Prevent backdrop clicks from closing parent modal
+    const backdrop = modal.querySelector('.bg-black\\/50') as HTMLElement;
+    if (backdrop) {
+      backdrop.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
+    
+    // Prevent modal content clicks from bubbling
+    const modalContent = modal.querySelector('.bg-white') as HTMLElement;
+    if (modalContent) {
+      modalContent.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
   }
 
-  function closeJudgeContactModal() {
+  function closeJudgeContactModal(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
     const modal = document.getElementById('judgeContactModal')!;
     const form = document.getElementById('judgeContactModalForm') as HTMLFormElement;
     modal.classList.add('hidden');
@@ -901,7 +920,11 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   }
 
   // Edit contact
-  (window as any).editJudgeContact = function(id: string) {
+  (window as any).editJudgeContact = function(id: string, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     const contact = judgeContacts.find(c => c.id === id);
     if (!contact) return;
 
@@ -915,7 +938,11 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   };
 
   // Delete contact
-  (window as any).deleteJudgeContact = async function(id: string, email: string) {
+  (window as any).deleteJudgeContact = async function(id: string, email: string, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     if (!confirm(`Are you sure you want to delete the contact "${email}"?`)) return;
 
     try {
@@ -941,8 +968,14 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   };
 
   // Contact modal close handlers
-  document.getElementById('judgeContactModalCloseBtn')?.addEventListener('click', closeJudgeContactModal);
-  document.getElementById('judgeContactModalCancelBtn')?.addEventListener('click', closeJudgeContactModal);
+  document.getElementById('judgeContactModalCloseBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeJudgeContactModal(e);
+  });
+  document.getElementById('judgeContactModalCancelBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeJudgeContactModal(e);
+  });
 
   // Judge contact form submission
   const judgeContactForm = document.getElementById('judgeContactModalForm') as HTMLFormElement;
