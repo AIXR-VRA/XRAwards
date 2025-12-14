@@ -77,9 +77,18 @@ export interface GetMediaResponse {
  */
 export async function uploadMedia(request: UploadMediaRequest): Promise<UploadMediaResponse> {
   try {
-    // Convert file to base64
+    // Convert file to base64 using chunked approach (avoids stack overflow for large files)
     const fileBuffer = await request.file.arrayBuffer();
-    const base64File = btoa(String.fromCharCode(...new Uint8Array(fileBuffer)));
+    const uint8Array = new Uint8Array(fileBuffer);
+    
+    // Process in chunks to avoid "Maximum call stack size exceeded" error
+    let base64File = '';
+    const chunkSize = 8192; // Process 8KB at a time
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.subarray(i, i + chunkSize);
+      base64File += String.fromCharCode.apply(null, chunk as unknown as number[]);
+    }
+    base64File = btoa(base64File);
 
     // Prepare request body
     const requestBody = {
