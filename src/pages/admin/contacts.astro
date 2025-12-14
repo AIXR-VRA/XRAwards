@@ -57,7 +57,7 @@ import Modal from '../../components/admin/Modal.astro';
 
     <!-- Add/Edit Modal -->
     <Modal id="contactModal" title="Add Contact">
-      <form id="contactForm" class="space-y-6 max-w-full">
+      <form id="contactModalForm" class="space-y-6 max-w-full">
         <input type="hidden" id="contactId" name="id" />
         <input type="hidden" id="contactType" name="contact_type" />
 
@@ -382,8 +382,12 @@ import Modal from '../../components/admin/Modal.astro';
   // Modal controls
   const modal = document.getElementById('contactModal')!;
   const modalTitle = document.getElementById('contactModalTitle')!;
-  const form = document.getElementById('contactForm') as HTMLFormElement;
+  const form = document.getElementById('contactModalForm') as HTMLFormElement;
   const modalError = document.getElementById('contactModalError')!;
+  
+  if (!form) {
+    console.error('Contact form not found!');
+  }
   
   // Close button handlers
   document.getElementById('contactModalCloseBtn')?.addEventListener('click', closeContactModal);
@@ -391,21 +395,28 @@ import Modal from '../../components/admin/Modal.astro';
 
   function openContactModal(title: string) {
     if (modalTitle) modalTitle.textContent = title;
-    modalError.classList.add('hidden');
+    if (modalError) modalError.classList.add('hidden');
     modal.classList.remove('hidden');
   }
 
   function closeContactModal() {
     modal.classList.add('hidden');
-    form.reset();
-    (document.getElementById('contactId') as HTMLInputElement).value = '';
-    (document.getElementById('contactType') as HTMLInputElement).value = '';
+    if (form) form.reset();
+    const contactIdEl = document.getElementById('contactId') as HTMLInputElement;
+    const contactTypeEl = document.getElementById('contactType') as HTMLInputElement;
+    if (contactIdEl) contactIdEl.value = '';
+    if (contactTypeEl) contactTypeEl.value = '';
     
     // Reset type-specific fields
-    document.getElementById('contactTypeSelection')!.classList.remove('hidden');
-    document.getElementById('judgeSelection')!.classList.add('hidden');
-    document.getElementById('finalistSelection')!.classList.add('hidden');
-    (document.getElementById('contact_type_select') as HTMLSelectElement).value = '';
+    const typeSelection = document.getElementById('contactTypeSelection');
+    const judgeSelection = document.getElementById('judgeSelection');
+    const finalistSelection = document.getElementById('finalistSelection');
+    const typeSelect = document.getElementById('contact_type_select') as HTMLSelectElement;
+    
+    if (typeSelection) typeSelection.classList.remove('hidden');
+    if (judgeSelection) judgeSelection.classList.add('hidden');
+    if (finalistSelection) finalistSelection.classList.add('hidden');
+    if (typeSelect) typeSelect.value = '';
     
     // Clear dropdowns
     if ((window as any).clearDropdown_judge_id) {
@@ -469,8 +480,15 @@ import Modal from '../../components/admin/Modal.astro';
   });
 
   // Form submission
-  form.addEventListener('submit', async (e) => {
+  if (!form) {
+    console.error('Cannot attach form submit handler - form not found');
+  } else {
+    console.log('Attaching form submit handler');
+  }
+  
+  form?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    console.log('Form submitted');
     modalError.classList.add('hidden');
 
     const contactId = (document.getElementById('contactId') as HTMLInputElement).value;
@@ -483,6 +501,8 @@ import Modal from '../../components/admin/Modal.astro';
     const isActive = (document.getElementById('is_active') as HTMLInputElement).checked;
     const judgeId = (document.getElementById('judge_id') as HTMLInputElement)?.value || '';
     const finalistId = (document.getElementById('finalist_id') as HTMLInputElement)?.value || '';
+
+    console.log('Form data:', { contactId, contactType, email, firstName, lastName, organization, isActive, judgeId, finalistId });
 
     if (!contactType) {
       modalError.textContent = 'Please select a contact type';
@@ -498,6 +518,12 @@ import Modal from '../../components/admin/Modal.astro';
 
     if (contactType === 'finalist' && !finalistId) {
       modalError.textContent = 'Please select a finalist';
+      modalError.classList.remove('hidden');
+      return;
+    }
+
+    if (!email) {
+      modalError.textContent = 'Email is required';
       modalError.classList.remove('hidden');
       return;
     }
@@ -521,6 +547,7 @@ import Modal from '../../components/admin/Modal.astro';
         if (contactType === 'finalist') body.finalist_id = finalistId;
       }
 
+      console.log('Sending request:', { url, method, body });
       const response = await fetch(url, {
         method,
         headers: {
@@ -530,18 +557,23 @@ import Modal from '../../components/admin/Modal.astro';
         body: JSON.stringify(body)
       });
 
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to save contact');
       }
 
+      console.log('Contact saved successfully');
       closeContactModal();
       await loadContacts();
     } catch (error) {
       console.error('Error saving contact:', error);
-      modalError.textContent = error instanceof Error ? error.message : 'Failed to save contact';
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save contact';
+      modalError.textContent = errorMessage;
       modalError.classList.remove('hidden');
+      console.log('Error displayed in modal');
     }
   });
 

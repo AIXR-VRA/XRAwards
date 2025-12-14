@@ -1251,15 +1251,18 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     const modal = document.getElementById('finalistContactModal')!;
     const modalTitle = document.getElementById('finalistContactModalTitle')!;
     if (modalTitle) modalTitle.textContent = title;
+    // Set higher z-index for nested modal
+    modal.style.zIndex = '60';
     modal.classList.remove('hidden');
   }
 
   function closeFinalistContactModal() {
     const modal = document.getElementById('finalistContactModal')!;
-    const form = document.getElementById('finalistContactForm') as HTMLFormElement;
+    const form = document.getElementById('finalistContactModalForm') as HTMLFormElement;
     modal.classList.add('hidden');
-    form.reset();
-    (document.getElementById('finalistContactId') as HTMLInputElement).value = '';
+    if (form) form.reset();
+    const contactIdEl = document.getElementById('finalistContactId') as HTMLInputElement;
+    if (contactIdEl) contactIdEl.value = '';
   }
 
   // Edit contact
@@ -1307,8 +1310,16 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   document.getElementById('finalistContactModalCancelBtn')?.addEventListener('click', closeFinalistContactModal);
 
   // Finalist contact form submission
-  document.getElementById('finalistContactForm')?.addEventListener('submit', async (e) => {
+  const finalistContactForm = document.getElementById('finalistContactModalForm') as HTMLFormElement;
+  if (!finalistContactForm) {
+    console.error('Finalist contact form not found!');
+  } else {
+    console.log('Attaching finalist contact form submit handler');
+  }
+  
+  finalistContactForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    console.log('Finalist contact form submitted');
     if (!currentFinalistId) {
       alert('Please save the finalist first before adding contacts.');
       return;
@@ -1384,7 +1395,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
 
 <!-- Contact Modal for Finalists -->
 <Modal id="finalistContactModal" title="Add Contact">
-  <form id="finalistContactForm" class="space-y-4">
+  <form id="finalistContactModalForm" class="space-y-4">
     <input type="hidden" id="finalistContactId" />
     
     <div>

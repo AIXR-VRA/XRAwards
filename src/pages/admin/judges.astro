@@ -886,15 +886,18 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     const modal = document.getElementById('judgeContactModal')!;
     const modalTitle = document.getElementById('judgeContactModalTitle')!;
     if (modalTitle) modalTitle.textContent = title;
+    // Set higher z-index for nested modal
+    modal.style.zIndex = '60';
     modal.classList.remove('hidden');
   }
 
   function closeJudgeContactModal() {
     const modal = document.getElementById('judgeContactModal')!;
-    const form = document.getElementById('judgeContactForm') as HTMLFormElement;
+    const form = document.getElementById('judgeContactModalForm') as HTMLFormElement;
     modal.classList.add('hidden');
-    form.reset();
-    (document.getElementById('judgeContactId') as HTMLInputElement).value = '';
+    if (form) form.reset();
+    const contactIdEl = document.getElementById('judgeContactId') as HTMLInputElement;
+    if (contactIdEl) contactIdEl.value = '';
   }
 
   // Edit contact
@@ -942,8 +945,16 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   document.getElementById('judgeContactModalCancelBtn')?.addEventListener('click', closeJudgeContactModal);
 
   // Judge contact form submission
-  document.getElementById('judgeContactForm')?.addEventListener('submit', async (e) => {
+  const judgeContactForm = document.getElementById('judgeContactModalForm') as HTMLFormElement;
+  if (!judgeContactForm) {
+    console.error('Judge contact form not found!');
+  } else {
+    console.log('Attaching judge contact form submit handler');
+  }
+  
+  judgeContactForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    console.log('Judge contact form submitted');
     if (!currentJudgeId) {
       alert('Please save the judge first before adding contacts.');
       return;
@@ -1018,7 +1029,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
 
 <!-- Contact Modal for Judges -->
 <Modal id="judgeContactModal" title="Add Contact">
-  <form id="judgeContactForm" class="space-y-4">
+  <form id="judgeContactModalForm" class="space-y-4">
     <input type="hidden" id="judgeContactId" />
     
     <div>
