@@ -1240,11 +1240,13 @@ The XR Awards Team"
     // Add each available contact
     availableContacts.forEach(contact => {
       const name = [contact.first_name, contact.last_name].filter(Boolean).join(' ') || contact.related_name || 'Unknown';
+      const firstName = contact.first_name || contact.related_name?.split(' ')[0] || 'there';
       const email = contact.email || '';
       const option = document.createElement('option');
       option.value = contact.id;
       option.textContent = `${name}${email ? ` (${email})` : ''}`;
       option.dataset.name = name;
+      option.dataset.firstName = firstName;
       previewAsSelect.appendChild(option);
     });
   }
@@ -1357,9 +1359,9 @@ The XR Awards Team"
     const subject = getCurrentSubject();
     const preheader = getCurrentPreheader();
     
-    // Get recipient name and ID from preview dropdown
+    // Get recipient first name and ID from preview dropdown
     const previewRecipientOption = previewAsSelect.selectedOptions[0];
-    const recipientName = previewRecipientOption?.dataset.name || 'there';
+    const recipientName = previewRecipientOption?.dataset.firstName || 'there';
     const recipientId = previewRecipientOption?.value || undefined;
     
     // Replace dynamic text in message content before converting to HTML
