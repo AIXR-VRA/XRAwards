@@ -136,9 +136,62 @@ import AdminLayout from '../../../components/admin/AdminLayout.astro';
           <label for="messageContent" class="block text-sm font-medium text-gray-700 mb-2">
             Message Content
           </label>
-          <p class="text-xs text-gray-500 mb-3">
-            Write your message below. You can use simple formatting: **bold**, *italic*, bullet points (- item), and [links](url).
+          <p class="text-xs text-gray-500 mb-2">
+            Write your message below. Use the toolbar or type markdown manually.
           </p>
+          <!-- Formatting Toolbar -->
+          <div class="flex items-center gap-1 mb-2 pb-2 border-b border-gray-200">
+            <button
+              type="button"
+              id="btnBold"
+              title="Bold (Ctrl+B)"
+              class="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+                <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+              </svg>
+            </button>
+            <button
+              type="button"
+              id="btnItalic"
+              title="Italic (Ctrl+I)"
+              class="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <line x1="19" y1="4" x2="10" y2="4"></line>
+                <line x1="14" y1="20" x2="5" y2="20"></line>
+                <line x1="15" y1="4" x2="9" y2="20"></line>
+              </svg>
+            </button>
+            <button
+              type="button"
+              id="btnLink"
+              title="Insert Link (Ctrl+K)"
+              class="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+            </button>
+            <div class="w-px h-4 bg-gray-300 mx-1"></div>
+            <button
+              type="button"
+              id="btnBullet"
+              title="Bullet List"
+              class="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <line x1="9" y1="6" x2="20" y2="6"></line>
+                <line x1="9" y1="12" x2="20" y2="12"></line>
+                <line x1="9" y1="18" x2="20" y2="18"></line>
+                <circle cx="4" cy="6" r="1.5" fill="currentColor"></circle>
+                <circle cx="4" cy="12" r="1.5" fill="currentColor"></circle>
+                <circle cx="4" cy="18" r="1.5" fill="currentColor"></circle>
+              </svg>
+            </button>
+          </div>
           <textarea
             id="messageContent"
             rows="12"
@@ -378,6 +431,12 @@ The XR Awards Team"
   const ctaText = document.getElementById('ctaText') as HTMLInputElement;
   const ctaLink = document.getElementById('ctaLink') as HTMLInputElement;
   
+  // Toolbar buttons
+  const btnBold = document.getElementById('btnBold') as HTMLButtonElement;
+  const btnItalic = document.getElementById('btnItalic') as HTMLButtonElement;
+  const btnLink = document.getElementById('btnLink') as HTMLButtonElement;
+  const btnBullet = document.getElementById('btnBullet') as HTMLButtonElement;
+  
   // Modal elements
   const scheduleModal = document.getElementById('scheduleModal') as HTMLElement;
   const closeModalBtn = document.getElementById('closeModalBtn') as HTMLButtonElement;
@@ -410,8 +469,8 @@ The XR Awards Team"
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       // Italic
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      // Links
-      .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" style="color: #4924EB; text-decoration: underline;">$1</a>')
+      // Links - light blue for visibility on purple background
+      .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" style="color: #93C5FD; text-decoration: underline;">$1</a>')
       // Line breaks to paragraphs
       .split(/\n\n+/)
       .map(para => para.trim())
@@ -855,6 +914,111 @@ The XR Awards Team"
       doc.close();
     }
   }
+
+  // Formatting toolbar helpers
+  function wrapSelection(before: string, after: string) {
+    const start = messageContent.selectionStart;
+    const end = messageContent.selectionEnd;
+    const text = messageContent.value;
+    const selected = text.substring(start, end);
+    
+    messageContent.value = text.substring(0, start) + before + selected + after + text.substring(end);
+    
+    // Position cursor after the wrapped text or select the placeholder
+    if (selected) {
+      messageContent.selectionStart = start + before.length;
+      messageContent.selectionEnd = end + before.length;
+    } else {
+      messageContent.selectionStart = start + before.length;
+      messageContent.selectionEnd = start + before.length;
+    }
+    
+    messageContent.focus();
+    charCount.textContent = messageContent.value.length.toString();
+    updatePreview();
+  }
+
+  function insertAtCursor(text: string) {
+    const start = messageContent.selectionStart;
+    const end = messageContent.selectionEnd;
+    const content = messageContent.value;
+    
+    messageContent.value = content.substring(0, start) + text + content.substring(end);
+    messageContent.selectionStart = messageContent.selectionEnd = start + text.length;
+    
+    messageContent.focus();
+    charCount.textContent = messageContent.value.length.toString();
+    updatePreview();
+  }
+
+  // Toolbar button handlers
+  btnBold.addEventListener('click', () => wrapSelection('**', '**'));
+  btnItalic.addEventListener('click', () => wrapSelection('*', '*'));
+  
+  btnLink.addEventListener('click', () => {
+    const start = messageContent.selectionStart;
+    const end = messageContent.selectionEnd;
+    const selected = messageContent.value.substring(start, end);
+    
+    if (selected) {
+      // Wrap selected text as link
+      const url = prompt('Enter URL:', 'https://');
+      if (url) {
+        wrapSelection(`[`, `](${url})`);
+      }
+    } else {
+      // Insert link placeholder
+      const linkText = prompt('Enter link text:', 'click here');
+      if (linkText) {
+        const url = prompt('Enter URL:', 'https://');
+        if (url) {
+          insertAtCursor(`[${linkText}](${url})`);
+        }
+      }
+    }
+  });
+
+  btnBullet.addEventListener('click', () => {
+    const start = messageContent.selectionStart;
+    const text = messageContent.value;
+    
+    // Find the start of the current line
+    let lineStart = start;
+    while (lineStart > 0 && text[lineStart - 1] !== '\n') {
+      lineStart--;
+    }
+    
+    // Check if we're already on a bullet line
+    if (text.substring(lineStart, lineStart + 2) === '- ') {
+      // Remove bullet
+      messageContent.value = text.substring(0, lineStart) + text.substring(lineStart + 2);
+      messageContent.selectionStart = messageContent.selectionEnd = start - 2;
+    } else {
+      // Add bullet
+      messageContent.value = text.substring(0, lineStart) + '- ' + text.substring(lineStart);
+      messageContent.selectionStart = messageContent.selectionEnd = start + 2;
+    }
+    
+    messageContent.focus();
+    charCount.textContent = messageContent.value.length.toString();
+    updatePreview();
+  });
+
+  // Keyboard shortcuts
+  messageContent.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === 'b') {
+        e.preventDefault();
+        wrapSelection('**', '**');
+      } else if (e.key === 'i') {
+        e.preventDefault();
+        wrapSelection('*', '*');
+      } else if (e.key === 'k') {
+        e.preventDefault();
+        btnLink.click();
+      }
+    }
+  });
 
   // Update character count
   messageContent.addEventListener('input', () => {
