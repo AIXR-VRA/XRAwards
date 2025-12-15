@@ -1001,6 +1001,34 @@ The XR Awards Team"
         throw new Error(data.error || 'Failed to create communication');
       }
 
+      // If not scheduled, trigger the send-communication edge function
+      if (!scheduledAt && data.communication?.id) {
+        console.log('📧 Triggering email send for communication:', data.communication.id);
+        
+        // Get Supabase URL from window (set by AdminLayout)
+        const supabaseUrl = window.__SUPABASE_URL__;
+        
+        const sendResponse = await fetch(`${supabaseUrl}/functions/v1/send-communication`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+          },
+          body: JSON.stringify({
+            communication_id: data.communication.id
+          })
+        });
+
+        const sendData = await sendResponse.json();
+        
+        if (!sendResponse.ok) {
+          console.error('Warning: Email sending may have failed:', sendData.error);
+          // Don't throw - the communication was created, just show a warning
+        } else {
+          console.log('✅ Email sending triggered successfully');
+        }
+      }
+
       // Success - redirect to communications list
       window.location.href = '/admin/communications/';
     } catch (error) {

@@ -28,6 +28,7 @@ const { user, supabase: serverSupabase } = authResult;
 // Get the session to pass access token to client-side scripts
 const { data: { session } } = await serverSupabase.auth.getSession();
 const accessToken = session?.access_token || '';
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', href: '/admin/' },
@@ -53,9 +54,10 @@ const navItems = [
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body class="bg-gray-50 min-h-screen">
-    <!-- Pass auth token to client-side scripts -->
-    <script is:inline define:vars={{ accessToken }}>
+    <!-- Pass auth token and Supabase URL to client-side scripts -->
+    <script is:inline define:vars={{ accessToken, supabaseUrl }}>
       window.__SUPABASE_ACCESS_TOKEN__ = accessToken;
+      window.__SUPABASE_URL__ = supabaseUrl;
     </script>
     <div class="flex h-screen">
       <!-- Sidebar -->
