@@ -178,7 +178,7 @@ serve(async (req: Request) => {
       .update({ status: 'sending' })
       .eq('id', communication_id)
 
-    // Fetch pending recipients with contact info
+    // Fetch pending recipients with contact info and finalist details
     const { data: recipients, error: recipientsError } = await supabaseClient
       .from('communication_recipients')
       .select(`
@@ -190,7 +190,36 @@ serve(async (req: Request) => {
           first_name,
           last_name,
           organization,
-          unsubscribe_token
+          unsubscribe_token,
+          contact_finalists (
+            finalist_id,
+            finalists (
+              id,
+              title,
+              category_id,
+              is_winner,
+              event_id,
+              categories (
+                id,
+                name
+              ),
+              event_details (
+                id,
+                event_name,
+                event_year,
+                location,
+                awards_ceremony
+              ),
+              finalist_accolades (
+                accolade_id,
+                accolades (
+                  id,
+                  name,
+                  code
+                )
+              )
+            )
+          )
         )
       `)
       .eq('communication_id', communication_id)
@@ -363,14 +392,71 @@ async function sendBatch(
 ): Promise<{ sent: number; failed: number }> {
   // Prepare emails for batch send
   const emails: ResendEmail[] = recipients.map(recipient => {
-    const contact = recipient.contacts as Contact
+    const contact = recipient.contacts as any
     const recipientName = contact.first_name || 'there'
+    
+    // Extract finalist entries with categories and accolades
+    const finalistEntries = contact.contact_finalists?.map((cf: any) => {
+      const f = cf.finalists
+      if (!f) return null
+      return {
+        category_name: f.categories?.name || null,
+        is_winner: f.is_winner || false,
+        event_name: f.event_details?.event_name || null,
+        event_year: f.event_details?.event_year || null,
+        event_location: f.event_details?.location || null,
+        awards_ceremony: f.event_details?.awards_ceremony || null,
+        accolades: f.finalist_accolades?.map((fa: any) => ({
+          name: fa.accolades?.name,
+          code: fa.accolades?.code
+        })) || []
+      }
+    }).filter(Boolean) || []
+    
+    // Get primary event info (from first finalist entry or use communication event)
+    const primaryEvent = finalistEntries[0] || {}
+    const eventName = primaryEvent.event_name || 'XR Awards'
+    const eventDate = primaryEvent.awards_ceremony 
+      ? new Date(primaryEvent.awards_ceremony).toLocaleDateString('en-GB', { 
+          day: 'numeric', 
+          month: 'long', 
+          year: 'numeric' 
+        })
+      : ''
+    const eventLocation = primaryEvent.event_location || ''
+    
+    // Build categories with status text
+    const categoriesText = finalistEntries
+      .map((entry: any) => {
+        if (!entry.category_name) return null
+        const status = entry.is_winner ? ' (Winner)' : ' (Finalist)'
+        return `${entry.category_name}${status}`
+      })
+      .filter(Boolean)
+      .join(', ') || 'None'
+    
+    // Build accolades with categories text
+    const accoladesText = finalistEntries
+      .flatMap((entry: any) => {
+        if (!entry.accolades || entry.accolades.length === 0) return []
+        return entry.accolades.map((acc: any) => {
+          const categoryPart = entry.category_name ? ` in ${entry.category_name}` : ''
+          return `${acc.name}${categoryPart}`
+        })
+      })
+      .filter(Boolean)
+      .join(', ') || 'None'
     
     // Replace recipient-specific placeholders in HTML
     let html = communication.html_content
       .replace(/\{\{recipient_name_or_default\}\}/g, recipientName)
       .replace(/\{\{recipient_email\}\}/g, contact.email)
       .replace(/\{\{organization_name\}\}/g, contact.organization || '')
+      .replace(/\{\{event_name\}\}/g, eventName)
+      .replace(/\{\{event_date\}\}/g, eventDate)
+      .replace(/\{\{event_location\}\}/g, eventLocation)
+      .replace(/\{\{categories_with_status\}\}/g, categoriesText)
+      .replace(/\{\{accolades_with_categories\}\}/g, accoladesText)
     
     // Add unsubscribe link if token exists
     if (contact.unsubscribe_token) {

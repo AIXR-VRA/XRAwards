@@ -131,10 +131,17 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
             image_url,
             is_winner,
             event_id,
+            category_id,
+            categories (
+              id,
+              name
+            ),
             event_details (
               id,
               event_name,
-              event_year
+              event_year,
+              location,
+              awards_ceremony
             ),
             finalist_accolades (
               accolade_id,
@@ -223,6 +230,29 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
         }
       }
 
+      // Collect all finalist entries with categories and accolades
+      const finalistEntries = c.contact_finalists?.map((cf: any) => {
+        const f = cf.finalists;
+        if (!f) return null;
+        return {
+          id: f.id,
+          title: f.title,
+          category_id: f.category_id,
+          category_name: f.categories?.name || null,
+          is_winner: f.is_winner,
+          event_id: f.event_id,
+          event_name: f.event_details?.event_name || null,
+          event_year: f.event_details?.event_year || null,
+          event_location: f.event_details?.location || null,
+          awards_ceremony: f.event_details?.awards_ceremony || null,
+          accolades: f.finalist_accolades?.map((fa: any) => ({
+            id: fa.accolades?.id,
+            name: fa.accolades?.name,
+            code: fa.accolades?.code
+          })) || []
+        };
+      }).filter(Boolean) || [];
+
       return {
         ...c,
         contact_types: types,
@@ -233,7 +263,8 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
         event_info: eventInfo,
         is_winner: winner,
         has_accolades: hasAccolades,
-        contact_event_ids: [...new Set(contactEventIds)] // Unique event IDs
+        contact_event_ids: [...new Set(contactEventIds)], // Unique event IDs
+        finalist_entries: finalistEntries // All finalist entries with full details
       };
     });
 
