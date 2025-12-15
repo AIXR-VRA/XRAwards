@@ -323,22 +323,27 @@ async function verifyWebhookSignature(
 async function updateCommunicationFailedCount(supabase: any, communicationId: string) {
   const { data: comm } = await supabase
     .from('communications')
-    .select('failed_count, sent_count')
+    .select('failed_count, sent_count, recipient_count')
     .eq('id', communicationId)
     .single()
 
   if (comm) {
     const newFailedCount = (comm.failed_count || 0) + 1
-    const newSentCount = Math.max(0, (comm.sent_count || 0) - 1)
+    const recipientCount = comm.recipient_count || 1
+    
+    // Determine status based on whether all recipients failed
+    // If failed_count equals recipient_count, all failed - otherwise partially failed
+    const newStatus = newFailedCount >= recipientCount ? 'failed' : 'partially_failed'
     
     await supabase
       .from('communications')
       .update({ 
         failed_count: newFailedCount,
-        sent_count: newSentCount,
-        status: newSentCount === 0 ? 'failed' : 'partially_failed'
+        status: newStatus
       })
       .eq('id', communicationId)
+    
+    console.log(`📊 Updated communication ${communicationId}: failed_count=${newFailedCount}, status=${newStatus}`)
   }
 }
 
@@ -354,12 +359,25 @@ async function markContactBounced(supabase: any, recipientId: string) {
     .single()
 
   if (recipient?.contact_id) {
-    // Mark contact as inactive
+    // First get the current metadata
+    const { data: contact } = await supabase
+      .from('contacts')
+      .select('metadata')
+      .eq('id', recipient.contact_id)
+      .single()
+    
+    // Merge bounce_reason into existing metadata
+    const updatedMetadata = {
+      ...(contact?.metadata || {}),
+      bounce_reason: 'hard_bounce'
+    }
+    
+    // Mark contact as inactive with updated metadata
     await supabase
       .from('contacts')
       .update({ 
         is_active: false,
-        metadata: supabase.sql`metadata || '{"bounce_reason": "hard_bounce"}'::jsonb`
+        metadata: updatedMetadata
       })
       .eq('id', recipient.contact_id)
     

@@ -73,27 +73,47 @@ serve(async (req: Request) => {
       )
     }
 
-    // Initialize Supabase client with user auth
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-      }
-    )
-
-    // Verify user authentication
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-    if (authError || !user) {
-      console.error('❌ Authentication failed:', authError?.message)
-      return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const authToken = authHeader.replace('Bearer ', '')
+    
+    // Check if this is a service role key call (from cron job)
+    const isServiceRoleCall = authToken === serviceRoleKey
+    
+    let supabaseClient: any
+    
+    if (isServiceRoleCall) {
+      // Service role auth (from cron/scheduled jobs)
+      console.log('✅ Authenticated via service role key (cron job)')
+      supabaseClient = createClient(supabaseUrl, serviceRoleKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      })
+    } else {
+      // User auth (from frontend)
+      supabaseClient = createClient(
+        supabaseUrl,
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        {
+          global: {
+            headers: { Authorization: authHeader },
+          },
+        }
       )
+      
+      // Verify user authentication
+      const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+      if (authError || !user) {
+        console.error('❌ Authentication failed:', authError?.message)
+        return new Response(
+          JSON.stringify({ success: false, error: 'Unauthorized' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      console.log('✅ User authenticated:', user.email)
     }
-    console.log('✅ User authenticated:', user.email)
 
     // Parse request body
     const body: SendRequest = await req.json()
