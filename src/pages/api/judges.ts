@@ -15,7 +15,7 @@ export const GET: APIRoute = async ({ cookies }) => {
     // GET doesn't require authentication for public data
     const supabase = createSecureSupabaseClient(cookies);
 
-    // Fetch judges with their events and tags
+    // Fetch judges with their events, tags, and contacts
     const { data, error } = await supabase
       .from('judges')
       .select(`
@@ -27,17 +27,31 @@ export const GET: APIRoute = async ({ cookies }) => {
         judge_tags (
           tag_id,
           tags (*)
+        ),
+        contact_judges (
+          contact_id,
+          contacts (
+            id,
+            email,
+            first_name,
+            last_name,
+            organization,
+            job_title,
+            phone_number,
+            is_active
+          )
         )
       `)
       .order('last_name', { ascending: true });
 
     if (error) throw error;
 
-    // Transform the data to include events and tags arrays
+    // Transform the data to include events, tags, and contacts arrays
     const judgesWithRelations = data?.map(judge => ({
       ...judge,
       events: judge.judge_events?.map((je: any) => je.event_details) || [],
-      tags: judge.judge_tags?.map((jt: any) => jt.tags) || []
+      tags: judge.judge_tags?.map((jt: any) => jt.tags) || [],
+      contacts: judge.contact_judges?.map((cj: any) => cj.contacts) || []
     }));
 
     return new Response(

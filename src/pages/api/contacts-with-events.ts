@@ -43,21 +43,73 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
     // Build response based on filters
     let allContacts: any[] = [];
 
-    // If filtering by event, we need to get contacts through their relationships
+    // If filtering by event, we need to get contacts through their relationships (using junction tables)
     if (eventId) {
-      // Get judge contacts for this event
+      // Get judge contacts for this event via contact_judges junction table
       if (!contactType || contactType === 'judge') {
         const { data: judgeContacts, error: judgeError } = await supabase
           .from('contacts')
           .select(`
             *,
-            judges!inner (
-              id,
-              first_name,
-              last_name,
-              organization,
-              profile_image_url,
-              judge_events!inner (
+            contact_judges!inner (
+              judge_id,
+              judges!inner (
+                id,
+                first_name,
+                last_name,
+                organization,
+                profile_image_url,
+                judge_events!inner (
+                  event_id,
+                  event_details (
+                    id,
+                    event_name,
+                    event_year
+                  )
+                )
+              )
+            )
+          `)
+          .eq('contact_type', 'judge');
+
+        if (judgeError) {
+          console.error('Error fetching judge contacts:', judgeError);
+        } else if (judgeContacts) {
+          // Filter by event_id through the nested relationships
+          const contactsWithEvents = judgeContacts.filter((c: any) =>
+            c.contact_judges?.some((cj: any) =>
+              cj.judges?.judge_events?.some((je: any) => je.event_id === eventId)
+            )
+          );
+          // Transform to include event info
+          allContacts.push(...contactsWithEvents.map((c: any) => {
+            const judge = c.contact_judges?.[0]?.judges;
+            const eventInfo = judge?.judge_events?.find((je: any) => je.event_id === eventId)?.event_details;
+            return {
+              ...c,
+              event_info: eventInfo,
+              related_name: judge ? `${judge.first_name} ${judge.last_name}` : null,
+              related_org: judge?.organization,
+              related_image: judge?.profile_image_url
+            };
+          }));
+        }
+      }
+
+      // Get finalist contacts for this event via contact_finalists junction table
+      if (!contactType || contactType === 'finalist') {
+        const { data: finalistContacts, error: finalistError } = await supabase
+          .from('contacts')
+          .select(`
+            *,
+            contact_finalists!inner (
+              finalist_id,
+              finalists!inner (
+                id,
+                title,
+                organization,
+                image_url,
+                is_winner,
                 event_id,
                 event_details (
                   id,
@@ -67,141 +119,118 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
               )
             )
           `)
-          .eq('contact_type', 'judge')
-          .not('judge_id', 'is', null);
+          .eq('contact_type', 'finalist');
 
-        if (judgeError) {
-          console.error('Error fetching judge contacts:', judgeError);
-        } else if (judgeContacts) {
-          // Filter by event_id
-          const filtered = judgeContacts.filter((c: any) => 
-            c.judges?.judge_events?.some((je: any) => je.event_id === eventId)
+        if (finalistError) {
+          console.error('Error fetching finalist contacts:', finalistError);
+        } else if (finalistContacts) {
+          // Filter by event_id and optionally by winner status
+          const filtered = finalistContacts.filter((c: any) =>
+            c.contact_finalists?.some((cf: any) => {
+              const matchesEvent = cf.finalists?.event_id === eventId;
+              const matchesWinner = isWinner === 'true' ? cf.finalists?.is_winner === true :
+                                   isWinner === 'false' ? cf.finalists?.is_winner === false : true;
+              return matchesEvent && matchesWinner;
+            })
           );
-          // Transform to include event info
-          allContacts.push(...filtered.map((c: any) => ({
-            ...c,
-            event_info: c.judges?.judge_events?.find((je: any) => je.event_id === eventId)?.event_details,
-            related_name: c.judges ? `${c.judges.first_name} ${c.judges.last_name}` : null,
-            related_org: c.judges?.organization,
-            related_image: c.judges?.profile_image_url
-          })));
+          allContacts.push(...filtered.map((c: any) => {
+            const finalist = c.contact_finalists?.find((cf: any) => cf.finalists?.event_id === eventId)?.finalists;
+            return {
+              ...c,
+              event_info: finalist?.event_details,
+              related_name: finalist?.title,
+              related_org: finalist?.organization,
+              related_image: finalist?.image_url,
+              is_winner: finalist?.is_winner
+            };
+          }));
         }
       }
 
-      // Get finalist contacts for this event
-      if (!contactType || contactType === 'finalist') {
-        let finalistQuery = supabase
+      // Get sponsor contacts for this event via contact_sponsors junction table
+      if (!contactType || contactType === 'sponsor') {
+        const { data: sponsorContacts, error: sponsorError } = await supabase
           .from('contacts')
           .select(`
             *,
-            finalists!inner (
+            contact_sponsors!inner (
+              sponsor_id,
+              sponsors!inner (
+                id,
+                name,
+                logo_url,
+                sponsor_events (
+                  event_id,
+                  event_details (
+                    id,
+                    event_name,
+                    event_year
+                  )
+                )
+              )
+            )
+          `)
+          .eq('contact_type', 'sponsor');
+
+        if (sponsorError) {
+          console.error('Error fetching sponsor contacts:', sponsorError);
+        } else if (sponsorContacts) {
+          // Filter by event_id if sponsors have event relationships
+          const filtered = sponsorContacts.filter((c: any) =>
+            c.contact_sponsors?.some((cs: any) =>
+              cs.sponsors?.sponsor_events?.some((se: any) => se.event_id === eventId)
+            )
+          );
+          allContacts.push(...filtered.map((c: any) => {
+            const sponsor = c.contact_sponsors?.[0]?.sponsors;
+            const eventInfo = sponsor?.sponsor_events?.find((se: any) => se.event_id === eventId)?.event_details;
+            return {
+              ...c,
+              event_info: eventInfo,
+              related_name: sponsor?.name,
+              related_image: sponsor?.logo_url
+            };
+          }));
+        }
+      }
+    } else {
+      // No event filter - get all contacts with their relationships via junction tables
+      let query = supabase
+        .from('contacts')
+        .select(`
+          *,
+          contact_judges (
+            judge_id,
+            judges (
+              id,
+              first_name,
+              last_name,
+              organization,
+              profile_image_url
+            )
+          ),
+          contact_finalists (
+            finalist_id,
+            finalists (
               id,
               title,
               organization,
               image_url,
               is_winner,
-              event_id,
               event_details (
                 id,
                 event_name,
                 event_year
               )
             )
-          `)
-          .eq('contact_type', 'finalist')
-          .not('finalist_id', 'is', null)
-          .eq('finalists.event_id', eventId);
-
-        // Apply winner filter if specified
-        if (isWinner === 'true') {
-          finalistQuery = finalistQuery.eq('finalists.is_winner', true);
-        } else if (isWinner === 'false') {
-          finalistQuery = finalistQuery.eq('finalists.is_winner', false);
-        }
-
-        const { data: finalistContacts, error: finalistError } = await finalistQuery;
-
-        if (finalistError) {
-          console.error('Error fetching finalist contacts:', finalistError);
-        } else if (finalistContacts) {
-          allContacts.push(...finalistContacts.map((c: any) => ({
-            ...c,
-            event_info: c.finalists?.event_details,
-            related_name: c.finalists?.title,
-            related_org: c.finalists?.organization,
-            related_image: c.finalists?.image_url,
-            is_winner: c.finalists?.is_winner
-          })));
-        }
-      }
-
-      // Get sponsor contacts for this event (sponsors may have event relationships)
-      if (!contactType || contactType === 'sponsor') {
-        const { data: sponsorContacts, error: sponsorError } = await supabase
-          .from('contacts')
-          .select(`
-            *,
-            sponsors!inner (
+          ),
+          contact_sponsors (
+            sponsor_id,
+            sponsors (
               id,
               name,
-              logo_url,
-              sponsor_events (
-                event_id,
-                event_details (
-                  id,
-                  event_name,
-                  event_year
-                )
-              )
+              logo_url
             )
-          `)
-          .eq('contact_type', 'sponsor')
-          .not('sponsor_id', 'is', null);
-
-        if (sponsorError) {
-          console.error('Error fetching sponsor contacts:', sponsorError);
-        } else if (sponsorContacts) {
-          // Filter by event_id if sponsors have event relationships
-          const filtered = sponsorContacts.filter((c: any) => 
-            c.sponsors?.sponsor_events?.some((se: any) => se.event_id === eventId)
-          );
-          allContacts.push(...filtered.map((c: any) => ({
-            ...c,
-            event_info: c.sponsors?.sponsor_events?.find((se: any) => se.event_id === eventId)?.event_details,
-            related_name: c.sponsors?.name,
-            related_image: c.sponsors?.logo_url
-          })));
-        }
-      }
-    } else {
-      // No event filter - get all contacts with their relationships
-      let query = supabase
-        .from('contacts')
-        .select(`
-          *,
-          judges (
-            id,
-            first_name,
-            last_name,
-            organization,
-            profile_image_url
-          ),
-          finalists (
-            id,
-            title,
-            organization,
-            image_url,
-            is_winner,
-            event_details (
-              id,
-              event_name,
-              event_year
-            )
-          ),
-          sponsors (
-            id,
-            name,
-            logo_url
           )
         `)
         .order('created_at', { ascending: false });
@@ -223,19 +252,28 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
         let eventInfo = null;
         let winner = null;
 
-        if (c.contact_type === 'judge' && c.judges) {
-          relatedName = `${c.judges.first_name} ${c.judges.last_name}`;
-          relatedOrg = c.judges.organization;
-          relatedImage = c.judges.profile_image_url;
-        } else if (c.contact_type === 'finalist' && c.finalists) {
-          relatedName = c.finalists.title;
-          relatedOrg = c.finalists.organization;
-          relatedImage = c.finalists.image_url;
-          eventInfo = c.finalists.event_details;
-          winner = c.finalists.is_winner;
-        } else if (c.contact_type === 'sponsor' && c.sponsors) {
-          relatedName = c.sponsors.name;
-          relatedImage = c.sponsors.logo_url;
+        if (c.contact_type === 'judge' && c.contact_judges?.length > 0) {
+          const judge = c.contact_judges[0]?.judges;
+          if (judge) {
+            relatedName = `${judge.first_name} ${judge.last_name}`;
+            relatedOrg = judge.organization;
+            relatedImage = judge.profile_image_url;
+          }
+        } else if (c.contact_type === 'finalist' && c.contact_finalists?.length > 0) {
+          const finalist = c.contact_finalists[0]?.finalists;
+          if (finalist) {
+            relatedName = finalist.title;
+            relatedOrg = finalist.organization;
+            relatedImage = finalist.image_url;
+            eventInfo = finalist.event_details;
+            winner = finalist.is_winner;
+          }
+        } else if (c.contact_type === 'sponsor' && c.contact_sponsors?.length > 0) {
+          const sponsor = c.contact_sponsors[0]?.sponsors;
+          if (sponsor) {
+            relatedName = sponsor.name;
+            relatedImage = sponsor.logo_url;
+          }
         }
 
         return {

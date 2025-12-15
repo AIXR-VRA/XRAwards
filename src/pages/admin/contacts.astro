@@ -214,6 +214,84 @@ import Modal from '../../components/admin/Modal.astro';
           </div>
 
           <div>
+            <label for="job_title" class="block text-sm font-medium text-gray-700 mb-1">
+              Job Title
+            </label>
+            <input
+              type="text"
+              id="job_title"
+              name="job_title"
+              class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., CEO, Marketing Director"
+            />
+          </div>
+
+          <div>
+            <label for="phone_number" class="block text-sm font-medium text-gray-700 mb-1">
+              Phone Number
+            </label>
+            <div class="flex gap-2">
+              <select
+                id="phone_country_code"
+                name="phone_country_code"
+                class="px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-white"
+                style="min-width: 120px;"
+              >
+                <option value="+1">🇺🇸 +1</option>
+                <option value="+44">🇬🇧 +44</option>
+                <option value="+33">🇫🇷 +33</option>
+                <option value="+49">🇩🇪 +49</option>
+                <option value="+81">🇯🇵 +81</option>
+                <option value="+86">🇨🇳 +86</option>
+                <option value="+91">🇮🇳 +91</option>
+                <option value="+61">🇦🇺 +61</option>
+                <option value="+55">🇧🇷 +55</option>
+                <option value="+52">🇲🇽 +52</option>
+                <option value="+34">🇪🇸 +34</option>
+                <option value="+39">🇮🇹 +39</option>
+                <option value="+31">🇳🇱 +31</option>
+                <option value="+46">🇸🇪 +46</option>
+                <option value="+47">🇳🇴 +47</option>
+                <option value="+41">🇨🇭 +41</option>
+                <option value="+32">🇧🇪 +32</option>
+                <option value="+45">🇩🇰 +45</option>
+                <option value="+358">🇫🇮 +358</option>
+                <option value="+353">🇮🇪 +353</option>
+                <option value="+351">🇵🇹 +351</option>
+                <option value="+30">🇬🇷 +30</option>
+                <option value="+48">🇵🇱 +48</option>
+                <option value="+420">🇨🇿 +420</option>
+                <option value="+36">🇭🇺 +36</option>
+                <option value="+7">🇷🇺 +7</option>
+                <option value="+82">🇰🇷 +82</option>
+                <option value="+65">🇸🇬 +65</option>
+                <option value="+852">🇭🇰 +852</option>
+                <option value="+886">🇹🇼 +886</option>
+                <option value="+971">🇦🇪 +971</option>
+                <option value="+966">🇸🇦 +966</option>
+                <option value="+27">🇿🇦 +27</option>
+                <option value="+20">🇪🇬 +20</option>
+                <option value="+234">🇳🇬 +234</option>
+                <option value="+254">🇰🇪 +254</option>
+                <option value="+212">🇲🇦 +212</option>
+                <option value="+54">🇦🇷 +54</option>
+                <option value="+56">🇨🇱 +56</option>
+                <option value="+57">🇨🇴 +57</option>
+                <option value="+51">🇵🇪 +51</option>
+                <option value="+64">🇳🇿 +64</option>
+              </select>
+              <input
+                type="tel"
+                id="phone_number"
+                name="phone_number"
+                class="flex-1 px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                placeholder="1234567890"
+              />
+            </div>
+            <p class="mt-1 text-xs text-gray-500">Enter phone number without country code (e.g., 1234567890)</p>
+          </div>
+
+          <div>
             <label class="flex items-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
               <input
                 type="checkbox"
@@ -348,6 +426,16 @@ import Modal from '../../components/admin/Modal.astro';
                   <span class="font-medium">Organization:</span> ${escapeHtml(contact.organization)}
                 </p>
               ` : ''}
+              ${contact.job_title ? `
+                <p class="text-sm text-gray-600 mb-1">
+                  <span class="font-medium">Job Title:</span> ${escapeHtml(contact.job_title)}
+                </p>
+              ` : ''}
+              ${contact.phone_number ? `
+                <p class="text-sm text-gray-600 mb-1">
+                  <span class="font-medium">Phone:</span> ${escapeHtml(contact.phone_number)}
+                </p>
+              ` : ''}
               <p class="text-xs text-gray-400 mt-2 font-mono">ID: ${contact.id}</p>
             </div>
             <div class="flex space-x-2 ml-4">
@@ -406,6 +494,12 @@ import Modal from '../../components/admin/Modal.astro';
     const contactTypeEl = document.getElementById('contactType') as HTMLInputElement;
     if (contactIdEl) contactIdEl.value = '';
     if (contactTypeEl) contactTypeEl.value = '';
+    
+    // Reset phone number fields
+    const phoneCountryCodeEl = document.getElementById('phone_country_code') as HTMLSelectElement;
+    const phoneNumberEl = document.getElementById('phone_number') as HTMLInputElement;
+    if (phoneCountryCodeEl) phoneCountryCodeEl.value = '+1';
+    if (phoneNumberEl) phoneNumberEl.value = '';
     
     // Reset type-specific fields
     const typeSelection = document.getElementById('contactTypeSelection');
@@ -498,11 +592,15 @@ import Modal from '../../components/admin/Modal.astro';
     const firstName = (document.getElementById('first_name') as HTMLInputElement).value;
     const lastName = (document.getElementById('last_name') as HTMLInputElement).value;
     const organization = (document.getElementById('organization') as HTMLInputElement).value;
+    const jobTitle = (document.getElementById('job_title') as HTMLInputElement).value;
+    const countryCode = (document.getElementById('phone_country_code') as HTMLSelectElement).value;
+    const phoneNumber = (document.getElementById('phone_number') as HTMLInputElement).value;
+    const fullPhoneNumber = phoneNumber ? `${countryCode}${phoneNumber}` : null;
     const isActive = (document.getElementById('is_active') as HTMLInputElement).checked;
     const judgeId = (document.getElementById('judge_id') as HTMLInputElement)?.value || '';
     const finalistId = (document.getElementById('finalist_id') as HTMLInputElement)?.value || '';
 
-    console.log('Form data:', { contactId, contactType, email, firstName, lastName, organization, isActive, judgeId, finalistId });
+    console.log('Form data:', { contactId, contactType, email, firstName, lastName, organization, jobTitle, fullPhoneNumber, isActive, judgeId, finalistId });
 
     if (!contactType) {
       modalError.textContent = 'Please select a contact type';
@@ -536,6 +634,8 @@ import Modal from '../../components/admin/Modal.astro';
         first_name: firstName || null,
         last_name: lastName || null,
         organization: organization || null,
+        job_title: jobTitle || null,
+        phone_number: fullPhoneNumber,
         is_active: isActive
       };
 
@@ -605,6 +705,34 @@ import Modal from '../../components/admin/Modal.astro';
     (document.getElementById('first_name') as HTMLInputElement).value = contact.first_name || '';
     (document.getElementById('last_name') as HTMLInputElement).value = contact.last_name || '';
     (document.getElementById('organization') as HTMLInputElement).value = contact.organization || '';
+    (document.getElementById('job_title') as HTMLInputElement).value = contact.job_title || '';
+    
+    // Parse and populate phone number
+    if (contact.phone_number) {
+      const phoneMatch = contact.phone_number.match(/^(\+\d{1,4})(.+)$/);
+      if (phoneMatch) {
+        const countryCode = phoneMatch[1];
+        const phoneNumber = phoneMatch[2];
+        const countryCodeSelect = document.getElementById('phone_country_code') as HTMLSelectElement;
+        if (countryCodeSelect) {
+          // Try to find matching country code, default to +1 if not found
+          const option = Array.from(countryCodeSelect.options).find(opt => opt.value === countryCode);
+          if (option) {
+            countryCodeSelect.value = countryCode;
+          } else {
+            countryCodeSelect.value = '+1';
+          }
+        }
+        (document.getElementById('phone_number') as HTMLInputElement).value = phoneNumber;
+      } else {
+        // If no country code, assume it's just the number
+        (document.getElementById('phone_number') as HTMLInputElement).value = contact.phone_number;
+      }
+    } else {
+      (document.getElementById('phone_number') as HTMLInputElement).value = '';
+      (document.getElementById('phone_country_code') as HTMLSelectElement).value = '+1';
+    }
+    
     (document.getElementById('is_active') as HTMLInputElement).checked = contact.is_active !== false;
   };
 
