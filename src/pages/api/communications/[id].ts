@@ -157,10 +157,11 @@ export const GET: APIRoute = async ({ params, cookies, request }) => {
       }
     });
 
-    // Calculate rates based on delivered/sent emails
-    const deliveredOrSent = stats.delivered + stats.sent;
-    const openRate = deliveredOrSent > 0 ? Math.round((stats.opened / deliveredOrSent) * 100) : 0;
-    const clickRate = stats.opened > 0 ? Math.round((stats.clicked / stats.opened) * 100) : 0;
+    // Calculate rates based on delivered emails (only delivered emails can be opened/clicked)
+    // Include bounced in the base since they were delivered before bouncing
+    const deliveredBase = stats.delivered;
+    const openRate = deliveredBase > 0 ? Math.round((stats.opened / deliveredBase) * 100) : 0;
+    const clickRate = deliveredBase > 0 ? Math.round((stats.clicked / deliveredBase) * 100) : 0;
 
     // Transform recipients to add derived contact_types
     const transformedRecipients = (recipients || []).map((r: any) => {

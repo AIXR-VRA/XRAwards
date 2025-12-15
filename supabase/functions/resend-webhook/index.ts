@@ -160,27 +160,27 @@ serve(async (req: Request) => {
         break
 
       case 'email.bounced':
-        // Email bounced - permanent failure
+        // Email bounced - the email WAS sent successfully, it just bounced afterward
+        // This is NOT a send failure, so we don't update communication status
         updateData.status = 'bounced'
         updateData.error_message = payload.data.bounce?.message || 'Email bounced'
         
-        // Increment failed_count on the communication
-        await updateCommunicationFailedCount(supabase, recipient.communication_id)
-        
-        // Optionally mark contact as inactive for permanent bounces
+        // Mark contact as inactive for permanent bounces (to prevent future sends)
         if (payload.data.bounce?.type === 'Permanent') {
           await markContactBounced(supabase, recipient.id)
         }
+        console.log(`📭 Email bounced for recipient ${recipient.id} (type: ${payload.data.bounce?.type})`)
         break
 
       case 'email.complained':
-        // Recipient marked as spam
+        // Recipient marked as spam - email WAS delivered, they just complained
+        // This is NOT a send failure, so we don't update communication status
         updateData.status = 'bounced'
         updateData.error_message = 'Marked as spam'
         
-        // Increment failed_count and potentially deactivate contact
-        await updateCommunicationFailedCount(supabase, recipient.communication_id)
+        // Mark contact as inactive to prevent future sends
         await markContactBounced(supabase, recipient.id)
+        console.log(`🚫 Email marked as spam by recipient ${recipient.id}`)
         break
 
       case 'email.opened':

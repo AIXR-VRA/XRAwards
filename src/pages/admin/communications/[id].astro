@@ -51,18 +51,14 @@ const { id } = Astro.params;
       <!-- Stats Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
         <div class="bg-white border border-gray-200 rounded-lg p-3">
-          <p class="text-xs font-medium text-gray-500 uppercase">Recipients</p>
-          <p id="statTotal" class="text-lg font-bold text-gray-900">-</p>
-          <p class="text-xs text-gray-400 mt-0.5">
-            <span id="statDelivered" class="text-green-600">-</span> delivered
-          </p>
+          <p class="text-xs font-medium text-gray-500 uppercase">Delivered</p>
+          <p id="statDelivered" class="text-lg font-bold text-green-600">-</p>
+          <p id="statDeliveryRate" class="text-xs text-gray-400 mt-0.5">-</p>
         </div>
         <div class="bg-white border border-gray-200 rounded-lg p-3">
-          <p class="text-xs font-medium text-gray-500 uppercase">Issues</p>
-          <p id="statBounced" class="text-lg font-bold text-red-600">-</p>
-          <p class="text-xs text-gray-400 mt-0.5">
-            <span id="statFailed">-</span> failed, <span id="statPending">-</span> pending
-          </p>
+          <p class="text-xs font-medium text-gray-500 uppercase">Bounced</p>
+          <p id="statBounced" class="text-lg font-bold text-amber-600">-</p>
+          <p id="statBouncedDetail" class="text-xs text-gray-400 mt-0.5">-</p>
         </div>
         <div class="bg-white border border-gray-200 rounded-lg p-3">
           <p class="text-xs font-medium text-gray-500 uppercase">Opens</p>
@@ -87,7 +83,7 @@ const { id } = Astro.params;
         <div class="bg-white border border-gray-200 rounded-lg p-3">
           <p class="text-xs font-medium text-gray-500 uppercase">Status</p>
           <p id="statStatus" class="text-lg font-bold text-gray-900">-</p>
-          <p id="statSent" class="text-xs text-gray-400 mt-0.5">- sent</p>
+          <p id="statSentRate" class="text-xs text-gray-400 mt-0.5">-</p>
         </div>
       </div>
 
@@ -356,19 +352,39 @@ const { id } = Astro.params;
     }
 
     // Render stats
-    document.getElementById('statTotal').textContent = stats.total || 0;
-    document.getElementById('statPending').textContent = stats.pending || 0;
-    document.getElementById('statSent').textContent = `${stats.sent || 0} sent`;
-    document.getElementById('statDelivered').textContent = stats.delivered || 0;
-    document.getElementById('statBounced').textContent = stats.bounced || 0;
-    document.getElementById('statFailed').textContent = stats.failed || 0;
+    const total = stats.total || 0;
+    const delivered = stats.delivered || 0;
+    const bounced = stats.bounced || 0;
+    const failed = stats.failed || 0;
+    const pending = stats.pending || 0;
+    const sent = stats.sent || 0;
+    
+    // Delivered card: X of Y delivered (Z%)
+    document.getElementById('statDelivered').textContent = delivered;
+    const deliveryRate = total > 0 ? Math.round((delivered / total) * 100) : 0;
+    document.getElementById('statDeliveryRate').textContent = `${delivered} of ${total} delivered (${deliveryRate}%)`;
+    
+    // Bounced card: shows bounces (post-delivery issues, not send failures)
+    document.getElementById('statBounced').textContent = bounced;
+    if (bounced > 0) {
+      document.getElementById('statBouncedDetail').textContent = 'Post-delivery bounce';
+    } else {
+      document.getElementById('statBouncedDetail').textContent = 'No bounces';
+    }
+    
+    // Opens and clicks
     document.getElementById('statOpened').textContent = stats.opened || 0;
     document.getElementById('statClicked').textContent = stats.clicked || 0;
     document.getElementById('statTotalOpens').textContent = stats.totalOpens || 0;
     document.getElementById('statTotalClicks').textContent = stats.totalClicks || 0;
     document.getElementById('statOpenRate').textContent = `(${stats.openRate || 0}%)`;
     document.getElementById('statClickRate').textContent = `(${stats.clickRate || 0}%)`;
+    
+    // Status card: X of Y sent (Z%) - sent = delivered + sent + bounced (all successfully sent)
     document.getElementById('statStatus').innerHTML = getStatusBadge(communication.status);
+    const successfullySent = delivered + sent + bounced; // bounced emails WERE sent successfully
+    const sentRate = total > 0 ? Math.round((successfullySent / total) * 100) : 0;
+    document.getElementById('statSentRate').textContent = `${successfullySent} of ${total} sent (${sentRate}%)`;
 
     // Render clicked URLs if any
     if (stats.clickedUrls && stats.clickedUrls.length > 0) {
