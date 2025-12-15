@@ -311,6 +311,8 @@ The XR Awards Team"
                   />
                 </div>
               </div>
+              <p id="timezoneDisplay" class="text-xs text-gray-500 mt-1"></p>
+              <p id="scheduleValidationError" class="hidden text-xs text-red-500 mt-1">Please select a future date and time</p>
             </div>
           </div>
 
@@ -388,6 +390,8 @@ The XR Awards Team"
   const scheduleDateTimeWrapper = document.getElementById('scheduleDateTimeWrapper') as HTMLElement;
   const scheduleDate = document.getElementById('scheduleDate') as HTMLInputElement;
   const scheduleTime = document.getElementById('scheduleTime') as HTMLInputElement;
+  const timezoneDisplay = document.getElementById('timezoneDisplay') as HTMLElement;
+  const scheduleValidationError = document.getElementById('scheduleValidationError') as HTMLElement;
 
   // Escape HTML
   function escapeHtml(text: string | null): string {
@@ -475,7 +479,7 @@ The XR Awards Team"
   // Get FAQ content based on event status
   function getFaqContent(): string {
     const ticketsUrl = activeEvent?.tickets_portal_url || 'https://events.unitedxr.eu/2025';
-    const winnersUrl = activeEvent ? `/winners-and-finalists-${activeEvent.event_year}/` : '/finalists/';
+    const winnersUrl = `https://xrawards.aixr.org/winners-and-finalists-${activeEvent?.event_year || new Date().getFullYear()}/`;
     
     // Determine if ceremony has passed
     const now = new Date();
@@ -888,6 +892,65 @@ The XR Awards Team"
   messageContent.addEventListener('input', updateScheduleButton);
   senderSelect.addEventListener('change', updateScheduleButton);
 
+  // Get browser timezone name
+  function getBrowserTimezone(): string {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+      return 'Local Time';
+    }
+  }
+
+  // Get minimum time for today (now + 5 minutes, rounded to nearest 5)
+  function getMinTimeForToday(): string {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 5);
+    // Round up to nearest 5 minutes
+    const mins = Math.ceil(now.getMinutes() / 5) * 5;
+    now.setMinutes(mins);
+    return now.toTimeString().slice(0, 5);
+  }
+
+  // Check if selected datetime is in the future
+  function isScheduledTimeValid(): boolean {
+    if (!scheduleDate.value || !scheduleTime.value) return false;
+    const selected = new Date(`${scheduleDate.value}T${scheduleTime.value}`);
+    const now = new Date();
+    return selected > now;
+  }
+
+  // Update time constraints based on selected date
+  function updateTimeConstraints() {
+    const today = new Date().toISOString().split('T')[0];
+    if (scheduleDate.value === today) {
+      const minTime = getMinTimeForToday();
+      scheduleTime.min = minTime;
+      // If current time is before min, update it
+      if (scheduleTime.value < minTime) {
+        scheduleTime.value = minTime;
+      }
+    } else {
+      scheduleTime.min = '00:00';
+    }
+    validateScheduleTime();
+  }
+
+  // Validate and show/hide error
+  function validateScheduleTime() {
+    const sendTimeValue = (document.querySelector('input[name="sendTime"]:checked') as HTMLInputElement)?.value;
+    if (sendTimeValue !== 'scheduled') {
+      scheduleValidationError.classList.add('hidden');
+      return true;
+    }
+    if (isScheduledTimeValid()) {
+      scheduleValidationError.classList.add('hidden');
+      return true;
+    } else {
+      scheduleValidationError.classList.remove('hidden');
+      return false;
+    }
+  }
+
   // Open schedule modal
   scheduleBtn.addEventListener('click', () => {
     // Update modal summary
@@ -899,6 +962,7 @@ The XR Awards Team"
 
     // Reset modal state
     modalError.classList.add('hidden');
+    scheduleValidationError.classList.add('hidden');
     (document.querySelector('input[name="sendTime"][value="now"]') as HTMLInputElement).checked = true;
     scheduleDateTimeWrapper.classList.add('hidden');
 
@@ -906,7 +970,14 @@ The XR Awards Team"
     const today = new Date().toISOString().split('T')[0];
     scheduleDate.min = today;
     scheduleDate.value = today;
-    scheduleTime.value = '09:00';
+    
+    // Set minimum time to now + 5 mins if today
+    const minTime = getMinTimeForToday();
+    scheduleTime.min = minTime;
+    scheduleTime.value = minTime;
+
+    // Display timezone
+    timezoneDisplay.textContent = `Timezone: ${getBrowserTimezone()}`;
 
     scheduleModal.classList.remove('hidden');
   });
@@ -924,11 +995,17 @@ The XR Awards Team"
       const value = (e.target as HTMLInputElement).value;
       if (value === 'scheduled') {
         scheduleDateTimeWrapper.classList.remove('hidden');
+        updateTimeConstraints();
       } else {
         scheduleDateTimeWrapper.classList.add('hidden');
+        scheduleValidationError.classList.add('hidden');
       }
     });
   });
+
+  // Validate on date/time change
+  scheduleDate.addEventListener('change', updateTimeConstraints);
+  scheduleTime.addEventListener('change', validateScheduleTime);
 
   // Confirm and send
   confirmSendBtn.addEventListener('click', async () => {
@@ -973,6 +1050,9 @@ The XR Awards Team"
       if (sendTimeValue === 'scheduled') {
         if (!scheduleDate.value || !scheduleTime.value) {
           throw new Error('Please select a date and time for scheduled sending');
+        }
+        if (!isScheduledTimeValid()) {
+          throw new Error('Please select a future date and time');
         }
         scheduledAt = new Date(`${scheduleDate.value}T${scheduleTime.value}`).toISOString();
       }
