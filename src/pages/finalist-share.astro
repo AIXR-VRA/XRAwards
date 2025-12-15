@@ -11,7 +11,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import CTAFooter from '../components/CTAFooter.astro';
 import { Image } from 'astro:assets';
-import { getR2ImageUrl } from '../utils/r2';
+import { getR2ImageUrl, getOptimizedR2Image } from '../utils/r2';
 import { supabase } from '../utils/supabase';
 import { getEventPhase } from '../utils/date-checker';
 
@@ -85,6 +85,10 @@ if (finalistsError) {
 // Get the logo images for the social share card
 const logoUrl = getR2ImageUrl('/images/2025/12/xra-logo_1765616281600.png');
 const euLogoUrl = getR2ImageUrl('/images/2025/12/european-xr-awards-logo_1765616346565.png');
+
+// Product images for purchase CTAs
+const trophyImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-main-trophy-design_1760351347176.png');
+const accoladesImageUrl = getR2ImageUrl('/images/2025/10/xr-awards-accolades-tropy-design_1760351357634.png');
 
 // Category tag IDs
 const EU_CATEGORY_ID = 'bf2511f3-267e-4acb-ba79-a6003f715fe3';
@@ -443,6 +447,189 @@ const safeFinalists = finalists || [];
                   <li>✗ Breaking brand guidelines</li>
                   <li>✗ Payment/login screens</li>
                 </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Physical Awards Purchase Section -->
+    <section id="purchase-section" class="py-8 md:py-12 bg-gray-50 hidden">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Order Physical Awards</h2>
+        
+        <!-- Two-column grid layout (when both cards shown) -->
+        <div id="purchase-cards-grid" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Trophy Card Grid Version -->
+          <div id="trophy-card-grid" class="hidden bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="aspect-square bg-gray-50 overflow-hidden">
+              <img src={trophyImageUrl} alt="XR Awards Trophy" class="w-full h-full object-cover object-left" loading="lazy" />
+            </div>
+            <div class="p-5 bg-[#0E1022] text-left">
+              <h3 class="text-base font-semibold text-white mb-2">Duplicate Trophy</h3>
+              <p class="text-sm text-gray-300 mb-4 leading-relaxed">
+                Want another trophy for your office or team? Each trophy is 100% custom made to order, fully handmade and machined in the UK.
+              </p>
+              <ul class="text-xs text-gray-400 space-y-1 mb-4">
+                <li>• Only for Award Category Winners</li>
+                <li>• Manufacturing & insurance included</li>
+              </ul>
+              <div class="flex items-center justify-between pt-4 border-t border-gray-700">
+                <div>
+                  <span class="text-base font-bold text-white">£820</span>
+                  <span class="text-xs text-gray-400 ml-1">+VAT</span>
+                </div>
+                <a 
+                  href="https://buy.stripe.com/00w9AU99o28E7HdaEAa7C0g"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 px-4 py-2 bg-[#4923EB] text-white text-sm font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Order Now
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Accolade Card Grid Version -->
+          <div id="accolade-card-grid" class="hidden bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="aspect-square bg-gray-50 overflow-hidden">
+              <img src={accoladesImageUrl} alt="XR Accolade Award" class="w-full h-full object-cover" loading="lazy" />
+            </div>
+            <div class="p-5 bg-[#0E1022]">
+              <h3 class="text-base font-semibold text-white mb-2">Physical Accolade</h3>
+              <p class="text-sm text-gray-300 mb-4 leading-relaxed">
+                Accolades are digital awards, but you can order a physical version to showcase your achievement. 100% solid metal, half the size of the main trophy.
+              </p>
+              <ul class="text-xs text-gray-400 space-y-1 mb-4">
+                <li>• Only for Accolade Winners</li>
+                <li>• Manufacturing & insurance included</li>
+              </ul>
+              <div class="flex items-center justify-between pt-4 border-t border-gray-700">
+                <div>
+                  <span class="text-base font-bold text-white">£395</span>
+                  <span class="text-xs text-gray-400 ml-1">+VAT</span>
+                </div>
+                <a 
+                  href="https://buy.stripe.com/aFa7sMgBQ7sYaTp4gca7C0h"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 px-4 py-2 bg-[#4923EB] text-white text-sm font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Order Now
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Full-width horizontal layout (when single card shown) -->
+        <!-- Trophy Full Width -->
+        <div id="trophy-card-full" class="hidden bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
+            <div class="bg-gray-50 overflow-hidden min-h-[300px] md:min-h-[400px]">
+              <img src={trophyImageUrl} alt="XR Awards Trophy" class="w-full h-full object-cover object-left" loading="lazy" />
+            </div>
+            <div class="p-6 md:p-8 flex flex-col justify-center bg-[#0E1022] text-left">
+              <h3 class="text-xl font-semibold text-white mb-3">Duplicate Trophy</h3>
+              <p class="text-sm text-gray-300 mb-4 leading-relaxed">
+                Want another trophy for your office or team? Each trophy is 100% custom made to order, fully handmade and machined in the UK. A perfect keepsake to celebrate your achievement.
+              </p>
+              <ul class="text-sm text-gray-400 space-y-2 mb-6">
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Only for Award Category Winners
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Fully handmade and machined in the UK
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Manufacturing & insurance included
+                </li>
+              </ul>
+              <div class="flex items-center gap-4 pt-4 border-t border-gray-700">
+                <div>
+                  <span class="text-lg font-bold text-white">£820</span>
+                  <span class="text-xs text-gray-400 ml-1">+VAT</span>
+                </div>
+                <a 
+                  href="https://buy.stripe.com/00w9AU99o28E7HdaEAa7C0g"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#4923EB] text-white text-sm font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Order Now
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Accolade Full Width -->
+        <div id="accolade-card-full" class="hidden bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
+            <div class="bg-gray-50 overflow-hidden min-h-[300px] md:min-h-[400px]">
+              <img src={accoladesImageUrl} alt="XR Accolade Award" class="w-full h-full object-cover" loading="lazy" />
+            </div>
+            <div class="p-6 md:p-8 flex flex-col justify-center bg-[#0E1022]">
+              <h3 class="text-xl font-semibold text-white mb-3">Physical Accolade</h3>
+              <p class="text-sm text-gray-300 mb-4 leading-relaxed">
+                Accolades are digital awards, but you can order a physical version to showcase your achievement. 100% solid metal, half the size of the main trophy, it's a perfect keepsake for your desk or office.
+              </p>
+              <ul class="text-sm text-gray-400 space-y-2 mb-6">
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Only for Accolade Winners
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Fully handmade and machined in the UK
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Manufacturing & insurance included
+                </li>
+              </ul>
+              <div class="flex items-center gap-4 pt-4 border-t border-gray-700">
+                <div>
+                  <span class="text-lg font-bold text-white">£395</span>
+                  <span class="text-xs text-gray-400 ml-1">+VAT</span>
+                </div>
+                <a 
+                  href="https://buy.stripe.com/aFa7sMgBQ7sYaTp4gca7C0h"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#4923EB] text-white text-sm font-medium rounded-lg hover:bg-[#3a1bb8] transition-colors"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Order Now
+                </a>
               </div>
             </div>
           </div>
@@ -906,6 +1093,7 @@ const safeFinalists = finalists || [];
       updateFinalistCrests();
       updateAccoladeCrests();
       updateWinnerCrests();
+      updatePurchaseSection();
     }
 
     function selectFinalistById(finalistId) {
@@ -931,6 +1119,7 @@ const safeFinalists = finalists || [];
       updateFinalistCrests();
       updateAccoladeCrests();
       updateWinnerCrests();
+      updatePurchaseSection();
     }
 
     function loadFromURL() {
@@ -982,6 +1171,7 @@ const safeFinalists = finalists || [];
       document.getElementById('finalist-crests-section')?.classList.add('hidden');
       document.getElementById('accolade-crests-section')?.classList.add('hidden');
       document.getElementById('winner-crests-section')?.classList.add('hidden');
+      purchaseSection?.classList.add('hidden');
     }
 
     async function updatePreview() {
@@ -1126,18 +1316,62 @@ const safeFinalists = finalists || [];
     const mainToolSection = document.getElementById('main-tool-section');
     const crestsSection = document.getElementById('crests-section');
     const socialCopySection = document.getElementById('social-copy-section');
+    const purchaseSection = document.getElementById('purchase-section');
+    const purchaseCardsGrid = document.getElementById('purchase-cards-grid');
+    const trophyCardGrid = document.getElementById('trophy-card-grid');
+    const accoladeCardGrid = document.getElementById('accolade-card-grid');
+    const trophyCardFull = document.getElementById('trophy-card-full');
+    const accoladeCardFull = document.getElementById('accolade-card-full');
     
     function showEmptyState() { 
       emptyState?.classList.remove('hidden'); 
       mainToolSection?.classList.add('hidden');
       crestsSection?.classList.add('hidden');
       socialCopySection?.classList.add('hidden');
+      purchaseSection?.classList.add('hidden');
     }
     function hideEmptyState() { 
       emptyState?.classList.add('hidden'); 
       mainToolSection?.classList.remove('hidden');
       crestsSection?.classList.remove('hidden');
       socialCopySection?.classList.remove('hidden');
+    }
+    
+    function updatePurchaseSection() {
+      if (!selectedFinalist) {
+        purchaseSection?.classList.add('hidden');
+        return;
+      }
+      
+      const isWinner = selectedFinalist.isWinner || false;
+      const hasAccolades = (selectedFinalist.accolades || []).length > 0;
+      
+      // Hide all cards first
+      purchaseCardsGrid?.classList.add('hidden');
+      trophyCardGrid?.classList.add('hidden');
+      accoladeCardGrid?.classList.add('hidden');
+      trophyCardFull?.classList.add('hidden');
+      accoladeCardFull?.classList.add('hidden');
+      
+      // Show section if winner or has accolades
+      if (isWinner || hasAccolades) {
+        purchaseSection?.classList.remove('hidden');
+        
+        if (isWinner && hasAccolades) {
+          // Both: show grid layout with both cards
+          purchaseCardsGrid?.classList.remove('hidden');
+          trophyCardGrid?.classList.remove('hidden');
+          accoladeCardGrid?.classList.remove('hidden');
+        } else if (isWinner) {
+          // Only winner: show full-width trophy card
+          trophyCardFull?.classList.remove('hidden');
+        } else if (hasAccolades) {
+          // Only accolades: show full-width accolade card
+          accoladeCardFull?.classList.remove('hidden');
+        }
+      } else {
+        purchaseSection?.classList.add('hidden');
+      }
     }
     function showPlaceholder() { previewPlaceholder?.classList.remove('hidden'); finalistImageContainer?.classList.add('hidden'); }
     function hidePlaceholder() { previewPlaceholder?.classList.add('hidden'); }
