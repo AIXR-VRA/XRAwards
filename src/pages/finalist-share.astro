@@ -11,7 +11,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import CTAFooter from '../components/CTAFooter.astro';
 import { Image } from 'astro:assets';
-import { getR2ImageUrl } from '../utils/r2';
+import { getR2ImageUrl, getOptimizedR2Image } from '../utils/r2';
 import { supabase } from '../utils/supabase';
 import { getEventPhase } from '../utils/date-checker';
 
@@ -463,22 +463,22 @@ const safeFinalists = finalists || [];
         <div id="purchase-cards-grid" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Trophy Card Grid Version -->
           <div id="trophy-card-grid" class="hidden bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div class="aspect-square bg-gray-50 p-6">
-              <img src={trophyImageUrl} alt="XR Awards Trophy" class="w-full h-full object-contain" loading="lazy" />
+            <div class="aspect-square bg-gray-50 overflow-hidden">
+              <img src={trophyImageUrl} alt="XR Awards Trophy" class="w-full h-full object-cover object-left" loading="lazy" />
             </div>
-            <div class="p-5">
-              <h3 class="text-base font-semibold text-gray-900 mb-2">Duplicate Trophy</h3>
-              <p class="text-sm text-gray-600 mb-4 leading-relaxed">
+            <div class="p-5 bg-[#0E1022] text-left">
+              <h3 class="text-base font-semibold text-white mb-2">Duplicate Trophy</h3>
+              <p class="text-sm text-gray-300 mb-4 leading-relaxed">
                 Want another trophy for your office or team? Each trophy is 100% custom made to order, fully handmade and machined in the UK.
               </p>
-              <ul class="text-xs text-gray-500 space-y-1 mb-4">
+              <ul class="text-xs text-gray-400 space-y-1 mb-4">
                 <li>• Only for Award Category Winners</li>
                 <li>• Manufacturing & insurance included</li>
               </ul>
-              <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+              <div class="flex items-center justify-between pt-4 border-t border-gray-700">
                 <div>
-                  <span class="text-base font-bold text-gray-900">£820</span>
-                  <span class="text-xs text-gray-500 ml-1">+VAT</span>
+                  <span class="text-base font-bold text-white">£820</span>
+                  <span class="text-xs text-gray-400 ml-1">+VAT</span>
                 </div>
                 <a 
                   href="https://buy.stripe.com/00w9AU99o28E7HdaEAa7C0g"
@@ -497,22 +497,22 @@ const safeFinalists = finalists || [];
           
           <!-- Accolade Card Grid Version -->
           <div id="accolade-card-grid" class="hidden bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div class="aspect-square bg-gray-50 p-6">
-              <img src={accoladesImageUrl} alt="XR Accolade Award" class="w-full h-full object-contain" loading="lazy" />
+            <div class="aspect-square bg-gray-50 overflow-hidden">
+              <img src={accoladesImageUrl} alt="XR Accolade Award" class="w-full h-full object-cover" loading="lazy" />
             </div>
-            <div class="p-5">
-              <h3 class="text-base font-semibold text-gray-900 mb-2">Physical Accolade</h3>
-              <p class="text-sm text-gray-600 mb-4 leading-relaxed">
-                Accolades are digital awards, but you can order a physical version to showcase your achievement. Half the size of the main trophy.
+            <div class="p-5 bg-[#0E1022]">
+              <h3 class="text-base font-semibold text-white mb-2">Physical Accolade</h3>
+              <p class="text-sm text-gray-300 mb-4 leading-relaxed">
+                Accolades are digital awards, but you can order a physical version to showcase your achievement. 100% solid metal, half the size of the main trophy.
               </p>
-              <ul class="text-xs text-gray-500 space-y-1 mb-4">
+              <ul class="text-xs text-gray-400 space-y-1 mb-4">
                 <li>• Only for Accolade Winners</li>
                 <li>• Manufacturing & insurance included</li>
               </ul>
-              <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+              <div class="flex items-center justify-between pt-4 border-t border-gray-700">
                 <div>
-                  <span class="text-base font-bold text-gray-900">£395</span>
-                  <span class="text-xs text-gray-500 ml-1">+VAT</span>
+                  <span class="text-base font-bold text-white">£395</span>
+                  <span class="text-xs text-gray-400 ml-1">+VAT</span>
                 </div>
                 <a 
                   href="https://buy.stripe.com/aFa7sMgBQ7sYaTp4gca7C0h"
@@ -534,15 +534,15 @@ const safeFinalists = finalists || [];
         <!-- Trophy Full Width -->
         <div id="trophy-card-full" class="hidden bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
-            <div class="bg-gray-50 p-6 md:p-8 flex items-center justify-center min-h-[300px] md:min-h-[400px]">
-              <img src={trophyImageUrl} alt="XR Awards Trophy" class="w-full h-full max-h-[400px] object-contain" loading="lazy" />
+            <div class="bg-gray-50 overflow-hidden min-h-[300px] md:min-h-[400px]">
+              <img src={trophyImageUrl} alt="XR Awards Trophy" class="w-full h-full object-cover object-left" loading="lazy" />
             </div>
-            <div class="p-6 md:p-8 flex flex-col justify-center">
-              <h3 class="text-xl font-semibold text-gray-900 mb-3">Duplicate Trophy</h3>
-              <p class="text-sm text-gray-600 mb-4 leading-relaxed">
+            <div class="p-6 md:p-8 flex flex-col justify-center bg-[#0E1022] text-left">
+              <h3 class="text-xl font-semibold text-white mb-3">Duplicate Trophy</h3>
+              <p class="text-sm text-gray-300 mb-4 leading-relaxed">
                 Want another trophy for your office or team? Each trophy is 100% custom made to order, fully handmade and machined in the UK. A perfect keepsake to celebrate your achievement.
               </p>
-              <ul class="text-sm text-gray-500 space-y-2 mb-6">
+              <ul class="text-sm text-gray-400 space-y-2 mb-6">
                 <li class="flex items-center gap-2">
                   <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -562,10 +562,10 @@ const safeFinalists = finalists || [];
                   Manufacturing & insurance included
                 </li>
               </ul>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-100">
+              <div class="flex items-center gap-4 pt-4 border-t border-gray-700">
                 <div>
-                  <span class="text-lg font-bold text-gray-900">£820</span>
-                  <span class="text-xs text-gray-500 ml-1">+VAT</span>
+                  <span class="text-lg font-bold text-white">£820</span>
+                  <span class="text-xs text-gray-400 ml-1">+VAT</span>
                 </div>
                 <a 
                   href="https://buy.stripe.com/00w9AU99o28E7HdaEAa7C0g"
@@ -586,15 +586,15 @@ const safeFinalists = finalists || [];
         <!-- Accolade Full Width -->
         <div id="accolade-card-full" class="hidden bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
-            <div class="bg-gray-50 p-6 md:p-8 flex items-center justify-center min-h-[300px] md:min-h-[400px]">
-              <img src={accoladesImageUrl} alt="XR Accolade Award" class="w-full h-full max-h-[400px] object-contain" loading="lazy" />
+            <div class="bg-gray-50 overflow-hidden min-h-[300px] md:min-h-[400px]">
+              <img src={accoladesImageUrl} alt="XR Accolade Award" class="w-full h-full object-cover" loading="lazy" />
             </div>
-            <div class="p-6 md:p-8 flex flex-col justify-center">
-              <h3 class="text-xl font-semibold text-gray-900 mb-3">Physical Accolade</h3>
-              <p class="text-sm text-gray-600 mb-4 leading-relaxed">
-                Accolades are digital awards, but you can order a physical version to showcase your achievement. Half the size of the main trophy, it's a perfect keepsake for your desk or office.
+            <div class="p-6 md:p-8 flex flex-col justify-center bg-[#0E1022]">
+              <h3 class="text-xl font-semibold text-white mb-3">Physical Accolade</h3>
+              <p class="text-sm text-gray-300 mb-4 leading-relaxed">
+                Accolades are digital awards, but you can order a physical version to showcase your achievement. 100% solid metal, half the size of the main trophy, it's a perfect keepsake for your desk or office.
               </p>
-              <ul class="text-sm text-gray-500 space-y-2 mb-6">
+              <ul class="text-sm text-gray-400 space-y-2 mb-6">
                 <li class="flex items-center gap-2">
                   <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -614,10 +614,10 @@ const safeFinalists = finalists || [];
                   Manufacturing & insurance included
                 </li>
               </ul>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-100">
+              <div class="flex items-center gap-4 pt-4 border-t border-gray-700">
                 <div>
-                  <span class="text-lg font-bold text-gray-900">£395</span>
-                  <span class="text-xs text-gray-500 ml-1">+VAT</span>
+                  <span class="text-lg font-bold text-white">£395</span>
+                  <span class="text-xs text-gray-400 ml-1">+VAT</span>
                 </div>
                 <a 
                   href="https://buy.stripe.com/aFa7sMgBQ7sYaTp4gca7C0h"
