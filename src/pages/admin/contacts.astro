@@ -38,6 +38,7 @@ import Modal from '../../components/admin/Modal.astro';
           <option value="finalist">Finalists</option>
           <option value="sponsor">Sponsors</option>
           <option value="attendee">Attendees</option>
+          <option value="general">General</option>
         </select>
         <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
           <option value="">All Status</option>
@@ -78,76 +79,113 @@ import Modal from '../../components/admin/Modal.astro';
               <option value="finalist">Finalist</option>
               <option value="sponsor">Sponsor</option>
               <option value="attendee">Attendee</option>
+              <option value="general">General</option>
             </select>
           </div>
         </div>
 
-        <!-- Judge Selection (only for judge contacts) -->
-        <div id="judgeSelection" class="space-y-4 hidden">
-          <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Judge</h3>
-          <div>
-            <label for="judge_id" class="block text-sm font-medium text-gray-700 mb-1">
-              Select Judge *
-            </label>
-            <div class="searchable-dropdown relative" data-select-id="judge_id">
-              <button
-                type="button"
-                id="judge_id_btn"
-                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg bg-white text-left flex items-center justify-between focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              >
-                <span id="judge_id_text" class="text-gray-400">Select a judge...</span>
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <input type="hidden" id="judge_id" name="judge_id" />
-              <div id="judge_id_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-300 max-h-60 overflow-hidden">
-                <div class="px-2 py-1 border-b border-gray-200">
-                  <input
-                    type="text"
-                    id="judge_id_search"
-                    placeholder="Search judges..."
-                    class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div id="judge_id_options" class="max-h-48 overflow-y-auto">
-                  <!-- Options will be populated here -->
+        <!-- Associations Section -->
+        <div id="associationsSection" class="space-y-6">
+          <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Associations</h3>
+          <p class="text-sm text-gray-500">Link this contact to finalists, judges, and/or sponsors. A contact can be associated with multiple entities.</p>
+          
+          <!-- Associated Finalists -->
+          <div class="space-y-3">
+            <label class="block text-sm font-medium text-gray-700">Finalists</label>
+            <div id="finalistAssociationsList" class="space-y-2 max-h-32 overflow-y-auto">
+              <!-- Will be populated with current associations -->
+            </div>
+            <div class="relative">
+              <div class="searchable-dropdown relative" data-select-id="finalist_id">
+                <button
+                  type="button"
+                  id="finalist_id_btn"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg bg-white text-left flex items-center justify-between focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <span id="finalist_id_text" class="text-gray-400">+ Add finalist...</span>
+                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <input type="hidden" id="finalist_id" name="finalist_id" />
+                <div id="finalist_id_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-300 max-h-60 overflow-hidden">
+                  <div class="px-2 py-1 border-b border-gray-200">
+                    <input
+                      type="text"
+                      id="finalist_id_search"
+                      placeholder="Search finalists..."
+                      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div id="finalist_id_options" class="max-h-48 overflow-y-auto"></div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Finalist Selection (only for finalist contacts) -->
-        <div id="finalistSelection" class="space-y-4 hidden">
-          <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Finalist</h3>
-          <div>
-            <label for="finalist_id" class="block text-sm font-medium text-gray-700 mb-1">
-              Select Finalist *
-            </label>
-            <div class="searchable-dropdown relative" data-select-id="finalist_id">
-              <button
-                type="button"
-                id="finalist_id_btn"
-                class="w-full px-2.5 py-2 border border-gray-300 rounded-lg bg-white text-left flex items-center justify-between focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              >
-                <span id="finalist_id_text" class="text-gray-400">Select a finalist...</span>
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <input type="hidden" id="finalist_id" name="finalist_id" />
-              <div id="finalist_id_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-300 max-h-60 overflow-hidden">
-                <div class="px-2 py-1 border-b border-gray-200">
-                  <input
-                    type="text"
-                    id="finalist_id_search"
-                    placeholder="Search finalists..."
-                    class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                  />
+          <!-- Associated Judges -->
+          <div class="space-y-3">
+            <label class="block text-sm font-medium text-gray-700">Judges</label>
+            <div id="judgeAssociationsList" class="space-y-2 max-h-32 overflow-y-auto">
+              <!-- Will be populated with current associations -->
+            </div>
+            <div class="relative">
+              <div class="searchable-dropdown relative" data-select-id="judge_id">
+                <button
+                  type="button"
+                  id="judge_id_btn"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg bg-white text-left flex items-center justify-between focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <span id="judge_id_text" class="text-gray-400">+ Add judge...</span>
+                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <input type="hidden" id="judge_id" name="judge_id" />
+                <div id="judge_id_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-300 max-h-60 overflow-hidden">
+                  <div class="px-2 py-1 border-b border-gray-200">
+                    <input
+                      type="text"
+                      id="judge_id_search"
+                      placeholder="Search judges..."
+                      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div id="judge_id_options" class="max-h-48 overflow-y-auto"></div>
                 </div>
-                <div id="finalist_id_options" class="max-h-48 overflow-y-auto">
-                  <!-- Options will be populated here -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Associated Sponsors -->
+          <div class="space-y-3">
+            <label class="block text-sm font-medium text-gray-700">Sponsors</label>
+            <div id="sponsorAssociationsList" class="space-y-2 max-h-32 overflow-y-auto">
+              <!-- Will be populated with current associations -->
+            </div>
+            <div class="relative">
+              <div class="searchable-dropdown relative" data-select-id="sponsor_id">
+                <button
+                  type="button"
+                  id="sponsor_id_btn"
+                  class="w-full px-2.5 py-2 border border-gray-300 rounded-lg bg-white text-left flex items-center justify-between focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <span id="sponsor_id_text" class="text-gray-400">+ Add sponsor...</span>
+                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <input type="hidden" id="sponsor_id" name="sponsor_id" />
+                <div id="sponsor_id_dropdown" class="hidden absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-300 max-h-60 overflow-hidden">
+                  <div class="px-2 py-1 border-b border-gray-200">
+                    <input
+                      type="text"
+                      id="sponsor_id_search"
+                      placeholder="Search sponsors..."
+                      class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div id="sponsor_id_options" class="max-h-48 overflow-y-auto"></div>
                 </div>
               </div>
             </div>
@@ -317,11 +355,39 @@ import Modal from '../../components/admin/Modal.astro';
   let contacts: any[] = [];
   let judges: any[] = [];
   let finalists: any[] = [];
+  let sponsors: any[] = [];
   let filters = {
     search: '',
     contact_type: '',
     status: ''
   };
+  
+  // Track pending association changes for the current edit
+  let pendingAssociations = {
+    finalists: [] as any[],
+    judges: [] as any[],
+    sponsors: [] as any[],
+    addFinalistIds: [] as string[],
+    removeFinalistIds: [] as string[],
+    addJudgeIds: [] as string[],
+    removeJudgeIds: [] as string[],
+    addSponsorIds: [] as string[],
+    removeSponsorIds: [] as string[],
+  };
+  
+  function resetPendingAssociations() {
+    pendingAssociations = {
+      finalists: [],
+      judges: [],
+      sponsors: [],
+      addFinalistIds: [],
+      removeFinalistIds: [],
+      addJudgeIds: [],
+      removeJudgeIds: [],
+      addSponsorIds: [],
+      removeSponsorIds: [],
+    };
+  }
 
   // Fetch contacts
   async function loadContacts() {
@@ -384,6 +450,18 @@ import Modal from '../../components/admin/Modal.astro';
     }
   }
 
+  async function loadSponsors() {
+    try {
+      const response = await fetch('/api/sponsors/');
+      if (response.ok) {
+        const data = await response.json();
+        sponsors = data.sponsors || [];
+      }
+    } catch (error) {
+      console.error('Error loading sponsors:', error);
+    }
+  }
+
   // Render contacts list
   function renderContacts() {
     const list = document.getElementById('contactsList')!;
@@ -400,6 +478,33 @@ import Modal from '../../components/admin/Modal.astro';
     const html = contacts.map(contact => {
       const typeLabel = contact.contact_type.charAt(0).toUpperCase() + contact.contact_type.slice(1);
       const name = [contact.first_name, contact.last_name].filter(Boolean).join(' ') || 'N/A';
+      
+      // Build associations display
+      let associationsHtml = '';
+      if (contact.finalists && contact.finalists.length > 0) {
+        const finalistNames = contact.finalists.map((f: any) => f?.title || 'Unknown').join(', ');
+        associationsHtml += `
+          <p class="text-sm text-gray-600 mb-1">
+            <span class="font-medium">Finalists:</span> ${escapeHtml(finalistNames)} <span class="text-gray-400">(${contact.finalists.length})</span>
+          </p>
+        `;
+      }
+      if (contact.judges && contact.judges.length > 0) {
+        const judgeNames = contact.judges.map((j: any) => j ? `${j.first_name} ${j.last_name}` : 'Unknown').join(', ');
+        associationsHtml += `
+          <p class="text-sm text-gray-600 mb-1">
+            <span class="font-medium">Judges:</span> ${escapeHtml(judgeNames)} <span class="text-gray-400">(${contact.judges.length})</span>
+          </p>
+        `;
+      }
+      if (contact.sponsors && contact.sponsors.length > 0) {
+        const sponsorNames = contact.sponsors.map((s: any) => s?.name || 'Unknown').join(', ');
+        associationsHtml += `
+          <p class="text-sm text-gray-600 mb-1">
+            <span class="font-medium">Sponsors:</span> ${escapeHtml(sponsorNames)} <span class="text-gray-400">(${contact.sponsors.length})</span>
+          </p>
+        `;
+      }
       
       return `
         <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-shadow">
@@ -436,6 +541,7 @@ import Modal from '../../components/admin/Modal.astro';
                   <span class="font-medium">Phone:</span> ${escapeHtml(contact.phone_number)}
                 </p>
               ` : ''}
+              ${associationsHtml}
               <p class="text-xs text-gray-400 mt-2 font-mono">ID: ${contact.id}</p>
             </div>
             <div class="flex space-x-2 ml-4">
@@ -501,16 +607,20 @@ import Modal from '../../components/admin/Modal.astro';
     if (phoneCountryCodeEl) phoneCountryCodeEl.value = '+1';
     if (phoneNumberEl) phoneNumberEl.value = '';
     
-    // Reset type-specific fields
-    const typeSelection = document.getElementById('contactTypeSelection');
-    const judgeSelection = document.getElementById('judgeSelection');
-    const finalistSelection = document.getElementById('finalistSelection');
+    // Reset type selection
     const typeSelect = document.getElementById('contact_type_select') as HTMLSelectElement;
-    
-    if (typeSelection) typeSelection.classList.remove('hidden');
-    if (judgeSelection) judgeSelection.classList.add('hidden');
-    if (finalistSelection) finalistSelection.classList.add('hidden');
     if (typeSelect) typeSelect.value = '';
+    
+    // Clear associations lists
+    const judgeAssociationsList = document.getElementById('judgeAssociationsList');
+    const finalistAssociationsList = document.getElementById('finalistAssociationsList');
+    const sponsorAssociationsList = document.getElementById('sponsorAssociationsList');
+    if (judgeAssociationsList) judgeAssociationsList.innerHTML = '<p class="text-xs text-gray-400 italic">No judges linked</p>';
+    if (finalistAssociationsList) finalistAssociationsList.innerHTML = '<p class="text-xs text-gray-400 italic">No finalists linked</p>';
+    if (sponsorAssociationsList) sponsorAssociationsList.innerHTML = '<p class="text-xs text-gray-400 italic">No sponsors linked</p>';
+    
+    // Reset pending associations
+    resetPendingAssociations();
     
     // Clear dropdowns
     if ((window as any).clearDropdown_judge_id) {
@@ -519,35 +629,23 @@ import Modal from '../../components/admin/Modal.astro';
     if ((window as any).clearDropdown_finalist_id) {
       (window as any).clearDropdown_finalist_id();
     }
+    if ((window as any).clearDropdown_sponsor_id) {
+      (window as any).clearDropdown_sponsor_id();
+    }
   }
 
   // Handle contact type selection
   document.getElementById('contact_type_select')?.addEventListener('change', (e) => {
     const type = (e.target as HTMLSelectElement).value;
     (document.getElementById('contactType') as HTMLInputElement).value = type;
-    
-    // Show/hide type-specific fields
-    document.getElementById('judgeSelection')!.classList.toggle('hidden', type !== 'judge');
-    document.getElementById('finalistSelection')!.classList.toggle('hidden', type !== 'finalist');
-    
-    // Populate dropdowns
-    if (type === 'judge') {
-      // Clear first, then populate
-      if ((window as any).clearDropdown_judge_id) {
-        (window as any).clearDropdown_judge_id();
-      }
-      populateJudgeDropdown();
-    } else if (type === 'finalist') {
-      // Clear first, then populate
-      if ((window as any).clearDropdown_finalist_id) {
-        (window as any).clearDropdown_finalist_id();
-      }
-      populateFinalistDropdown();
-    }
   });
 
   function populateJudgeDropdown() {
-    const options = judges.map(judge => ({
+    // Filter out already associated judges
+    const existingJudgeIds = pendingAssociations.judges.map((j: any) => j.id);
+    const availableJudges = judges.filter(j => !existingJudgeIds.includes(j.id));
+    
+    const options = availableJudges.map(judge => ({
       id: judge.id,
       text: `${judge.first_name} ${judge.last_name}${judge.organization ? ` - ${judge.organization}` : ''}`
     }));
@@ -558,7 +656,11 @@ import Modal from '../../components/admin/Modal.astro';
   }
 
   function populateFinalistDropdown() {
-    const options = finalists.map(finalist => ({
+    // Filter out already associated finalists
+    const existingFinalistIds = pendingAssociations.finalists.map((f: any) => f.id);
+    const availableFinalists = finalists.filter(f => !existingFinalistIds.includes(f.id));
+    
+    const options = availableFinalists.map(finalist => ({
       id: finalist.id,
       text: `${finalist.title}${finalist.organization ? ` - ${finalist.organization}` : ''}`
     }));
@@ -568,9 +670,36 @@ import Modal from '../../components/admin/Modal.astro';
     }
   }
 
+  function populateSponsorDropdown() {
+    // Filter out already associated sponsors
+    const existingSponsorIds = pendingAssociations.sponsors.map((s: any) => s.id);
+    const availableSponsors = sponsors.filter(s => !existingSponsorIds.includes(s.id));
+    
+    const options = availableSponsors.map(sponsor => ({
+      id: sponsor.id,
+      text: sponsor.name
+    }));
+    
+    if ((window as any).updateDropdown_sponsor_id) {
+      (window as any).updateDropdown_sponsor_id(options);
+    }
+  }
+  
+  function populateAllDropdowns() {
+    populateFinalistDropdown();
+    populateJudgeDropdown();
+    populateSponsorDropdown();
+  }
+
   // Add contact button
   document.getElementById('addContactBtn')!.addEventListener('click', () => {
     openContactModal('Add Contact');
+    // Reset associations and populate dropdowns for new contact
+    resetPendingAssociations();
+    renderAssociationsList('finalistAssociationsList', [], 'finalist');
+    renderAssociationsList('judgeAssociationsList', [], 'judge');
+    renderAssociationsList('sponsorAssociationsList', [], 'sponsor');
+    populateAllDropdowns();
   });
 
   // Form submission
@@ -597,25 +726,9 @@ import Modal from '../../components/admin/Modal.astro';
     const phoneNumber = (document.getElementById('phone_number') as HTMLInputElement).value;
     const fullPhoneNumber = phoneNumber ? `${countryCode}${phoneNumber}` : null;
     const isActive = (document.getElementById('is_active') as HTMLInputElement).checked;
-    const judgeId = (document.getElementById('judge_id') as HTMLInputElement)?.value || '';
-    const finalistId = (document.getElementById('finalist_id') as HTMLInputElement)?.value || '';
-
-    console.log('Form data:', { contactId, contactType, email, firstName, lastName, organization, jobTitle, fullPhoneNumber, isActive, judgeId, finalistId });
 
     if (!contactType) {
       modalError.textContent = 'Please select a contact type';
-      modalError.classList.remove('hidden');
-      return;
-    }
-
-    if (contactType === 'judge' && !judgeId) {
-      modalError.textContent = 'Please select a judge';
-      modalError.classList.remove('hidden');
-      return;
-    }
-
-    if (contactType === 'finalist' && !finalistId) {
-      modalError.textContent = 'Please select a finalist';
       modalError.classList.remove('hidden');
       return;
     }
@@ -640,11 +753,40 @@ import Modal from '../../components/admin/Modal.astro';
       };
 
       if (contactId) {
+        // Editing existing contact
         body.id = contactId;
+        // Include association changes
+        if (pendingAssociations.addFinalistIds.length > 0) {
+          body.add_finalist_ids = pendingAssociations.addFinalistIds;
+        }
+        if (pendingAssociations.removeFinalistIds.length > 0) {
+          body.remove_finalist_ids = pendingAssociations.removeFinalistIds;
+        }
+        if (pendingAssociations.addJudgeIds.length > 0) {
+          body.add_judge_ids = pendingAssociations.addJudgeIds;
+        }
+        if (pendingAssociations.removeJudgeIds.length > 0) {
+          body.remove_judge_ids = pendingAssociations.removeJudgeIds;
+        }
+        if (pendingAssociations.addSponsorIds.length > 0) {
+          body.add_sponsor_ids = pendingAssociations.addSponsorIds;
+        }
+        if (pendingAssociations.removeSponsorIds.length > 0) {
+          body.remove_sponsor_ids = pendingAssociations.removeSponsorIds;
+        }
       } else {
+        // Creating new contact
         body.contact_type = contactType;
-        if (contactType === 'judge') body.judge_id = judgeId;
-        if (contactType === 'finalist') body.finalist_id = finalistId;
+        // Include initial associations
+        if (pendingAssociations.finalists.length > 0) {
+          body.finalist_ids = pendingAssociations.finalists.map((f: any) => f.id);
+        }
+        if (pendingAssociations.judges.length > 0) {
+          body.judge_ids = pendingAssociations.judges.map((j: any) => j.id);
+        }
+        if (pendingAssociations.sponsors.length > 0) {
+          body.sponsor_ids = pendingAssociations.sponsors.map((s: any) => s.id);
+        }
       }
 
       console.log('Sending request:', { url, method, body });
@@ -673,9 +815,155 @@ import Modal from '../../components/admin/Modal.astro';
       const errorMessage = error instanceof Error ? error.message : 'Failed to save contact';
       modalError.textContent = errorMessage;
       modalError.classList.remove('hidden');
-      console.log('Error displayed in modal');
     }
   });
+
+  // Render associations list with remove button
+  function renderAssociationsList(containerId: string, items: any[], type: 'finalist' | 'judge' | 'sponsor') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    if (!items || items.length === 0) {
+      container.innerHTML = `<p class="text-xs text-gray-400 italic">No ${type}s linked</p>`;
+      return;
+    }
+    
+    const html = items.map(item => {
+      if (!item) return '';
+      let label: string;
+      if (type === 'finalist') {
+        label = `${item.title}${item.organization ? ` - ${item.organization}` : ''}`;
+      } else if (type === 'judge') {
+        label = `${item.first_name} ${item.last_name}${item.organization ? ` - ${item.organization}` : ''}`;
+      } else {
+        label = item.name;
+      }
+      return `
+        <div class="flex items-center justify-between px-2 py-1.5 bg-gray-50 rounded border border-gray-200 text-sm" data-id="${item.id}">
+          <span class="text-gray-700 truncate flex-1">${escapeHtml(label)}</span>
+          <button
+            type="button"
+            class="ml-2 text-red-500 hover:text-red-700 text-xs px-1"
+            onclick="removeAssociation('${type}', '${item.id}')"
+            title="Remove"
+          >✕</button>
+        </div>
+      `;
+    }).filter(Boolean).join('');
+    
+    container.innerHTML = html || `<p class="text-xs text-gray-400 italic">No ${type}s linked</p>`;
+  }
+  
+  // Handle adding association from dropdown
+  function handleAssociationAdd(type: 'finalist' | 'judge' | 'sponsor', id: string) {
+    const isEditing = !!(document.getElementById('contactId') as HTMLInputElement)?.value;
+    
+    if (type === 'finalist') {
+      const finalist = finalists.find(f => f.id === id);
+      if (finalist && !pendingAssociations.finalists.find((f: any) => f.id === id)) {
+        pendingAssociations.finalists.push(finalist);
+        if (isEditing) {
+          // Track as addition only if not in removeFinalistIds
+          const removeIdx = pendingAssociations.removeFinalistIds.indexOf(id);
+          if (removeIdx > -1) {
+            pendingAssociations.removeFinalistIds.splice(removeIdx, 1);
+          } else {
+            pendingAssociations.addFinalistIds.push(id);
+          }
+        }
+        renderAssociationsList('finalistAssociationsList', pendingAssociations.finalists, 'finalist');
+        populateFinalistDropdown();
+      }
+    } else if (type === 'judge') {
+      const judge = judges.find(j => j.id === id);
+      if (judge && !pendingAssociations.judges.find((j: any) => j.id === id)) {
+        pendingAssociations.judges.push(judge);
+        if (isEditing) {
+          const removeIdx = pendingAssociations.removeJudgeIds.indexOf(id);
+          if (removeIdx > -1) {
+            pendingAssociations.removeJudgeIds.splice(removeIdx, 1);
+          } else {
+            pendingAssociations.addJudgeIds.push(id);
+          }
+        }
+        renderAssociationsList('judgeAssociationsList', pendingAssociations.judges, 'judge');
+        populateJudgeDropdown();
+      }
+    } else if (type === 'sponsor') {
+      const sponsor = sponsors.find(s => s.id === id);
+      if (sponsor && !pendingAssociations.sponsors.find((s: any) => s.id === id)) {
+        pendingAssociations.sponsors.push(sponsor);
+        if (isEditing) {
+          const removeIdx = pendingAssociations.removeSponsorIds.indexOf(id);
+          if (removeIdx > -1) {
+            pendingAssociations.removeSponsorIds.splice(removeIdx, 1);
+          } else {
+            pendingAssociations.addSponsorIds.push(id);
+          }
+        }
+        renderAssociationsList('sponsorAssociationsList', pendingAssociations.sponsors, 'sponsor');
+        populateSponsorDropdown();
+      }
+    }
+    
+    // Clear the dropdown selection
+    if ((window as any)[`clearDropdown_${type}_id`]) {
+      (window as any)[`clearDropdown_${type}_id`]();
+    }
+  }
+  
+  // Remove association
+  (window as any).removeAssociation = function(type: 'finalist' | 'judge' | 'sponsor', id: string) {
+    const isEditing = !!(document.getElementById('contactId') as HTMLInputElement)?.value;
+    
+    if (type === 'finalist') {
+      const idx = pendingAssociations.finalists.findIndex((f: any) => f.id === id);
+      if (idx > -1) {
+        pendingAssociations.finalists.splice(idx, 1);
+        if (isEditing) {
+          // Track as removal only if not in addFinalistIds
+          const addIdx = pendingAssociations.addFinalistIds.indexOf(id);
+          if (addIdx > -1) {
+            pendingAssociations.addFinalistIds.splice(addIdx, 1);
+          } else {
+            pendingAssociations.removeFinalistIds.push(id);
+          }
+        }
+        renderAssociationsList('finalistAssociationsList', pendingAssociations.finalists, 'finalist');
+        populateFinalistDropdown();
+      }
+    } else if (type === 'judge') {
+      const idx = pendingAssociations.judges.findIndex((j: any) => j.id === id);
+      if (idx > -1) {
+        pendingAssociations.judges.splice(idx, 1);
+        if (isEditing) {
+          const addIdx = pendingAssociations.addJudgeIds.indexOf(id);
+          if (addIdx > -1) {
+            pendingAssociations.addJudgeIds.splice(addIdx, 1);
+          } else {
+            pendingAssociations.removeJudgeIds.push(id);
+          }
+        }
+        renderAssociationsList('judgeAssociationsList', pendingAssociations.judges, 'judge');
+        populateJudgeDropdown();
+      }
+    } else if (type === 'sponsor') {
+      const idx = pendingAssociations.sponsors.findIndex((s: any) => s.id === id);
+      if (idx > -1) {
+        pendingAssociations.sponsors.splice(idx, 1);
+        if (isEditing) {
+          const addIdx = pendingAssociations.addSponsorIds.indexOf(id);
+          if (addIdx > -1) {
+            pendingAssociations.addSponsorIds.splice(addIdx, 1);
+          } else {
+            pendingAssociations.removeSponsorIds.push(id);
+          }
+        }
+        renderAssociationsList('sponsorAssociationsList', pendingAssociations.sponsors, 'sponsor');
+        populateSponsorDropdown();
+      }
+    }
+  };
 
   // Edit contact
   (window as any).editContact = async function(id: string) {
@@ -684,20 +972,23 @@ import Modal from '../../components/admin/Modal.astro';
 
     openContactModal('Edit Contact');
     
-    // Hide type selection for editing
+    // Hide type selection for editing (type can't be changed)
     document.getElementById('contactTypeSelection')!.classList.add('hidden');
     (document.getElementById('contactType') as HTMLInputElement).value = contact.contact_type;
     
-    // Show type-specific fields if needed
-    if (contact.contact_type === 'judge') {
-      document.getElementById('judgeSelection')!.classList.remove('hidden');
-      populateJudgeDropdown();
-      (document.getElementById('judge_id') as HTMLSelectElement).value = contact.judge_id || '';
-    } else if (contact.contact_type === 'finalist') {
-      document.getElementById('finalistSelection')!.classList.remove('hidden');
-      populateFinalistDropdown();
-      (document.getElementById('finalist_id') as HTMLSelectElement).value = contact.finalist_id || '';
-    }
+    // Reset and initialize pending associations with current values
+    resetPendingAssociations();
+    pendingAssociations.finalists = [...(contact.finalists || [])].filter(Boolean);
+    pendingAssociations.judges = [...(contact.judges || [])].filter(Boolean);
+    pendingAssociations.sponsors = [...(contact.sponsors || [])].filter(Boolean);
+    
+    // Render all association lists
+    renderAssociationsList('finalistAssociationsList', pendingAssociations.finalists, 'finalist');
+    renderAssociationsList('judgeAssociationsList', pendingAssociations.judges, 'judge');
+    renderAssociationsList('sponsorAssociationsList', pendingAssociations.sponsors, 'sponsor');
+    
+    // Populate all dropdowns
+    populateAllDropdowns();
 
     // Populate form
     (document.getElementById('contactId') as HTMLInputElement).value = contact.id;
@@ -715,17 +1006,11 @@ import Modal from '../../components/admin/Modal.astro';
         const phoneNumber = phoneMatch[2];
         const countryCodeSelect = document.getElementById('phone_country_code') as HTMLSelectElement;
         if (countryCodeSelect) {
-          // Try to find matching country code, default to +1 if not found
           const option = Array.from(countryCodeSelect.options).find(opt => opt.value === countryCode);
-          if (option) {
-            countryCodeSelect.value = countryCode;
-          } else {
-            countryCodeSelect.value = '+1';
-          }
+          countryCodeSelect.value = option ? countryCode : '+1';
         }
         (document.getElementById('phone_number') as HTMLInputElement).value = phoneNumber;
       } else {
-        // If no country code, assume it's just the number
         (document.getElementById('phone_number') as HTMLInputElement).value = contact.phone_number;
       }
     } else {
@@ -783,8 +1068,8 @@ import Modal from '../../components/admin/Modal.astro';
     loadContacts();
   });
 
-  // Custom searchable dropdown functions (for finalist selection)
-  function initSearchableDropdown(dropdownId: string) {
+  // Custom searchable dropdown functions
+  function initSearchableDropdown(dropdownId: string, entityType: 'finalist' | 'judge' | 'sponsor') {
     const container = document.querySelector(`[data-select-id="${dropdownId}"]`) as HTMLElement;
     if (!container) return;
     
@@ -822,13 +1107,13 @@ import Modal from '../../components/admin/Modal.astro';
     // Render options
     const renderOptions = () => {
       if (filteredOptions.length === 0) {
-        optionsContainer.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">No options found</div>';
+        optionsContainer.innerHTML = '<div class="px-3 py-2 text-sm text-gray-500">No options found</div>';
         return;
       }
       
       optionsContainer.innerHTML = filteredOptions.map(opt => `
         <div
-          class="px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+          class="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
           data-value="${opt.id}"
         >
           ${escapeHtml(opt.text)}
@@ -847,16 +1132,10 @@ import Modal from '../../components/admin/Modal.astro';
       });
     };
     
-    // Select an option
+    // Select an option - adds to association list
     const selectOption = (option: { id: string; text: string }) => {
-      if (hiddenInput) {
-        hiddenInput.value = option.id;
-      }
-      if (textSpan) {
-        textSpan.textContent = option.text;
-        textSpan.classList.remove('text-gray-400');
-        textSpan.classList.add('text-gray-900');
-      }
+      // Add to associations
+      handleAssociationAdd(entityType, option.id);
       toggleDropdown();
     };
     
@@ -897,9 +1176,13 @@ import Modal from '../../components/admin/Modal.astro';
     (window as any)[`updateDropdown_${dropdownId}`] = updateOptions;
     (window as any)[`clearDropdown_${dropdownId}`] = () => {
       if (hiddenInput) hiddenInput.value = '';
+      const placeholders: Record<string, string> = {
+        'judge_id': '+ Add judge...',
+        'finalist_id': '+ Add finalist...',
+        'sponsor_id': '+ Add sponsor...'
+      };
       if (textSpan) {
-        const placeholder = dropdownId === 'judge_id' ? 'Select a judge...' : 'Select a finalist...';
-        textSpan.textContent = placeholder;
+        textSpan.textContent = placeholders[dropdownId] || '+ Add...';
         textSpan.classList.remove('text-gray-900');
         textSpan.classList.add('text-gray-400');
       }
@@ -908,12 +1191,13 @@ import Modal from '../../components/admin/Modal.astro';
 
   // Initialize
   (async () => {
-    await Promise.all([loadJudges(), loadFinalists()]);
+    await Promise.all([loadJudges(), loadFinalists(), loadSponsors()]);
     await loadContacts();
     
-    // Initialize searchable dropdowns for judge and finalist selection
-    initSearchableDropdown('judge_id');
-    initSearchableDropdown('finalist_id');
+    // Initialize searchable dropdowns for judge, finalist, and sponsor selection
+    initSearchableDropdown('judge_id', 'judge');
+    initSearchableDropdown('finalist_id', 'finalist');
+    initSearchableDropdown('sponsor_id', 'sponsor');
   })();
 </script>
 

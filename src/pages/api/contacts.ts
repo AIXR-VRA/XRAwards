@@ -36,6 +36,7 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
     const finalistId = searchParams.get('finalist_id');
     const sponsorId = searchParams.get('sponsor_id');
     const contactType = searchParams.get('contact_type');
+    const search = searchParams.get('search');
 
     // Build the query with junction table relationships
     let query = supabase
@@ -62,6 +63,11 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
       query = query.eq('contact_type', contactType);
     }
 
+    // Apply search filter (search in email, first_name, last_name, organization)
+    if (search) {
+      query = query.or(`email.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%,organization.ilike.%${search}%`);
+    }
+
     const { data, error } = await query;
 
     if (error) throw error;
@@ -71,33 +77,30 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
     // Filter by judge_id using junction table
     if (judgeId) {
       contacts = contacts.filter((c: any) => 
-        c.contact_judges?.some((cj: any) => cj.judge_id === judgeId) ||
-        c.judge_id === judgeId // Legacy support
+        c.contact_judges?.some((cj: any) => cj.judge_id === judgeId)
       );
     }
     
     // Filter by finalist_id using junction table
     if (finalistId) {
       contacts = contacts.filter((c: any) => 
-        c.contact_finalists?.some((cf: any) => cf.finalist_id === finalistId) ||
-        c.finalist_id === finalistId // Legacy support
+        c.contact_finalists?.some((cf: any) => cf.finalist_id === finalistId)
       );
     }
     
     // Filter by sponsor_id using junction table
     if (sponsorId) {
       contacts = contacts.filter((c: any) => 
-        c.contact_sponsors?.some((cs: any) => cs.sponsor_id === sponsorId) ||
-        c.sponsor_id === sponsorId // Legacy support
+        c.contact_sponsors?.some((cs: any) => cs.sponsor_id === sponsorId)
       );
     }
 
     // Transform to include flattened relationships
     const transformedContacts = contacts.map((c: any) => ({
       ...c,
-      finalists: c.contact_finalists?.map((cf: any) => cf.finalists) || [],
-      judges: c.contact_judges?.map((cj: any) => cj.judges) || [],
-      sponsors: c.contact_sponsors?.map((cs: any) => cs.sponsors) || [],
+      finalists: c.contact_finalists?.map((cf: any) => cf.finalists).filter(Boolean) || [],
+      judges: c.contact_judges?.map((cj: any) => cj.judges).filter(Boolean) || [],
+      sponsors: c.contact_sponsors?.map((cs: any) => cs.sponsors).filter(Boolean) || [],
     }));
 
     return new Response(
@@ -168,31 +171,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    // Validate contact_type-specific requirements (at least one relationship required except for general)
-    const hasJudge = judge_id || (judge_ids && judge_ids.length > 0);
-    const hasFinalist = finalist_id || (finalist_ids && finalist_ids.length > 0);
-    const hasSponsor = sponsor_id || (sponsor_ids && sponsor_ids.length > 0);
-
-    if (contact_type === 'judge' && !hasJudge) {
-      return new Response(
-        JSON.stringify({ error: 'At least one judge is required for judge contacts' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (contact_type === 'finalist' && !hasFinalist) {
-      return new Response(
-        JSON.stringify({ error: 'At least one finalist is required for finalist contacts' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (contact_type === 'sponsor' && !hasSponsor) {
-      return new Response(
-        JSON.stringify({ error: 'At least one sponsor is required for sponsor contacts' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
+    // Note: With junction tables, contacts can be linked to multiple entities
+    // Relationships are optional - contacts can exist without any associations
 
     // Build insert data (no longer setting direct FK columns)
     const insertData: any = {
@@ -291,7 +271,23 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { id, email, first_name, last_name, organization, job_title, phone_number, is_active } = body;
+    const { 
+      id, 
+      email, 
+      first_name, 
+      last_name, 
+      organization, 
+      job_title, 
+      phone_number, 
+      is_active,
+      // Association management
+      add_finalist_ids,
+      remove_finalist_ids,
+      add_judge_ids,
+      remove_judge_ids,
+      add_sponsor_ids,
+      remove_sponsor_ids
+    } = body;
 
     if (!id) {
       return new Response(
@@ -300,7 +296,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    // Build update data
+    // Build update data for contact fields
     const updateData: any = {};
     
     if (email !== undefined) updateData.email = email;
@@ -311,20 +307,97 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     if (phone_number !== undefined) updateData.phone_number = phone_number || null;
     if (is_active !== undefined) updateData.is_active = is_active;
 
-    const { data, error } = await supabase
-      .from('contacts')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
+    // Update contact if there are fields to update
+    let data;
+    if (Object.keys(updateData).length > 0) {
+      const result = await supabase
+        .from('contacts')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (result.error) throw result.error;
+      data = result.data;
+    } else {
+      // Just fetch the contact if no fields to update
+      const result = await supabase
+        .from('contacts')
+        .select()
+        .eq('id', id)
+        .single();
+      
+      if (result.error) throw result.error;
+      data = result.data;
+    }
 
     if (!data) {
       return new Response(
         JSON.stringify({ error: 'Contact not found' }),
         { status: 404, headers: { 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Handle association removals
+    if (remove_finalist_ids && remove_finalist_ids.length > 0) {
+      const { error: removeFinalistError } = await supabase
+        .from('contact_finalists')
+        .delete()
+        .eq('contact_id', id)
+        .in('finalist_id', remove_finalist_ids);
+      if (removeFinalistError) console.error('Error removing finalist associations:', removeFinalistError);
+    }
+
+    if (remove_judge_ids && remove_judge_ids.length > 0) {
+      const { error: removeJudgeError } = await supabase
+        .from('contact_judges')
+        .delete()
+        .eq('contact_id', id)
+        .in('judge_id', remove_judge_ids);
+      if (removeJudgeError) console.error('Error removing judge associations:', removeJudgeError);
+    }
+
+    if (remove_sponsor_ids && remove_sponsor_ids.length > 0) {
+      const { error: removeSponsorError } = await supabase
+        .from('contact_sponsors')
+        .delete()
+        .eq('contact_id', id)
+        .in('sponsor_id', remove_sponsor_ids);
+      if (removeSponsorError) console.error('Error removing sponsor associations:', removeSponsorError);
+    }
+
+    // Handle association additions
+    if (add_finalist_ids && add_finalist_ids.length > 0) {
+      const finalistInserts = add_finalist_ids.map((fId: string) => ({
+        contact_id: id,
+        finalist_id: fId,
+      }));
+      const { error: addFinalistError } = await supabase
+        .from('contact_finalists')
+        .upsert(finalistInserts, { onConflict: 'contact_id,finalist_id' });
+      if (addFinalistError) console.error('Error adding finalist associations:', addFinalistError);
+    }
+
+    if (add_judge_ids && add_judge_ids.length > 0) {
+      const judgeInserts = add_judge_ids.map((jId: string) => ({
+        contact_id: id,
+        judge_id: jId,
+      }));
+      const { error: addJudgeError } = await supabase
+        .from('contact_judges')
+        .upsert(judgeInserts, { onConflict: 'contact_id,judge_id' });
+      if (addJudgeError) console.error('Error adding judge associations:', addJudgeError);
+    }
+
+    if (add_sponsor_ids && add_sponsor_ids.length > 0) {
+      const sponsorInserts = add_sponsor_ids.map((sId: string) => ({
+        contact_id: id,
+        sponsor_id: sId,
+      }));
+      const { error: addSponsorError } = await supabase
+        .from('contact_sponsors')
+        .upsert(sponsorInserts, { onConflict: 'contact_id,sponsor_id' });
+      if (addSponsorError) console.error('Error adding sponsor associations:', addSponsorError);
     }
 
     return new Response(
