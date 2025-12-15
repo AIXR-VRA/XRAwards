@@ -783,11 +783,22 @@ The XR Awards Team"
       const isSelected = selectedContactIds.has(contact.id);
       const name = [contact.first_name, contact.last_name].filter(Boolean).join(' ') || contact.related_name || 'Unknown';
       const org = contact.organization || contact.related_org || '';
-      const typeLabel = contact.contact_type.charAt(0).toUpperCase() + contact.contact_type.slice(1);
-      const typeColor = contact.contact_type === 'judge' ? 'bg-purple-100 text-purple-800' :
-                       contact.contact_type === 'finalist' ? 'bg-blue-100 text-blue-800' :
-                       contact.contact_type === 'sponsor' ? 'bg-green-100 text-green-800' :
-                       'bg-gray-100 text-gray-800';
+      
+      // Build type badges from contact_types array (derived from junction tables)
+      const types = contact.contact_types || [];
+      let typeBadgesHtml = '';
+      if (types.length === 0) {
+        typeBadgesHtml = '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-gray-100 text-gray-800">General</span>';
+      } else {
+        typeBadgesHtml = types.map((t: string) => {
+          const label = t.charAt(0).toUpperCase() + t.slice(1);
+          const colorClass = t === 'judge' ? 'bg-purple-100 text-purple-800' :
+                            t === 'finalist' ? 'bg-blue-100 text-blue-800' :
+                            t === 'sponsor' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800';
+          return `<span class="px-1.5 py-0.5 text-[10px] font-medium rounded ${colorClass}">${escapeHtml(label)}</span>`;
+        }).join('');
+      }
       
       return `
         <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer ${isSelected ? 'bg-blue-50' : ''}">
@@ -798,9 +809,9 @@ The XR Awards Team"
             class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 contact-checkbox"
           />
           <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <span class="text-sm font-medium text-gray-900 truncate">${escapeHtml(name)}</span>
-              <span class="px-1.5 py-0.5 text-[10px] font-medium rounded ${typeColor}">${typeLabel}</span>
+              ${typeBadgesHtml}
               ${contact.is_winner ? '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-100 text-amber-800">Winner</span>' : ''}
             </div>
             <div class="flex items-center gap-2 text-xs text-gray-500">

@@ -13,7 +13,7 @@ import Modal from '../../components/admin/Modal.astro';
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-3xl font-bold text-gray-900">Contacts</h1>
-        <p class="mt-2 text-gray-600">Manage contacts for judges, finalists, sponsors, and attendees</p>
+        <p class="mt-2 text-gray-600">Manage contacts for communications. Types are derived from associations.</p>
       </div>
       <button
         id="addContactBtn"
@@ -60,34 +60,11 @@ import Modal from '../../components/admin/Modal.astro';
     <Modal id="contactModal" title="Add Contact">
       <form id="contactModalForm" class="space-y-6 max-w-full">
         <input type="hidden" id="contactId" name="id" />
-        <input type="hidden" id="contactType" name="contact_type" />
 
-        <!-- Contact Type Selection (only when adding) -->
-        <div id="contactTypeSelection" class="space-y-4">
-          <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Contact Type</h3>
-          <div>
-            <label for="contact_type_select" class="block text-sm font-medium text-gray-700 mb-1">
-              Type *
-            </label>
-            <select
-              id="contact_type_select"
-              required
-              class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select type...</option>
-              <option value="judge">Judge</option>
-              <option value="finalist">Finalist</option>
-              <option value="sponsor">Sponsor</option>
-              <option value="attendee">Attendee</option>
-              <option value="general">General</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Associations Section -->
+        <!-- Associations Section (types are derived from these) -->
         <div id="associationsSection" class="space-y-6">
           <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Associations</h3>
-          <p class="text-sm text-gray-500">Link this contact to finalists, judges, and/or sponsors. A contact can be associated with multiple entities.</p>
+          <p class="text-sm text-gray-500">Link this contact to finalists, judges, and/or sponsors. Contact types are derived from these associations.</p>
           
           <!-- Associated Finalists -->
           <div class="space-y-3">
@@ -358,7 +335,7 @@ import Modal from '../../components/admin/Modal.astro';
   let sponsors: any[] = [];
   let filters = {
     search: '',
-    contact_type: '',
+    contact_type: '', // Filter by derived type from junction tables
     status: ''
   };
   
@@ -476,8 +453,23 @@ import Modal from '../../components/admin/Modal.astro';
     }
 
     const html = contacts.map(contact => {
-      const typeLabel = contact.contact_type.charAt(0).toUpperCase() + contact.contact_type.slice(1);
       const name = [contact.first_name, contact.last_name].filter(Boolean).join(' ') || 'N/A';
+      
+      // Build type badges from contact_types array (derived from junction tables)
+      const types = contact.contact_types || [];
+      let typeBadgesHtml = '';
+      if (types.length === 0) {
+        typeBadgesHtml = '<span class="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-800">General</span>';
+      } else {
+        typeBadgesHtml = types.map((t: string) => {
+          const label = t.charAt(0).toUpperCase() + t.slice(1);
+          const colorClass = t === 'judge' ? 'bg-purple-100 text-purple-800' :
+                            t === 'finalist' ? 'bg-blue-100 text-blue-800' :
+                            t === 'sponsor' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800';
+          return `<span class="px-2 py-1 text-xs font-medium rounded ${colorClass}">${escapeHtml(label)}</span>`;
+        }).join('');
+      }
       
       // Build associations display
       let associationsHtml = '';
@@ -510,14 +502,9 @@ import Modal from '../../components/admin/Modal.astro';
         <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-shadow">
           <div class="flex items-start justify-between">
             <div class="flex-1">
-              <div class="flex items-center gap-3 mb-2">
+              <div class="flex items-center gap-2 flex-wrap mb-2">
                 <h3 class="text-lg font-semibold text-gray-900">${escapeHtml(name)}</h3>
-                <span class="px-2 py-1 text-xs font-medium rounded ${
-                  contact.contact_type === 'judge' ? 'bg-purple-100 text-purple-800' :
-                  contact.contact_type === 'finalist' ? 'bg-blue-100 text-blue-800' :
-                  contact.contact_type === 'sponsor' ? 'bg-green-100 text-green-800' :
-                  'bg-gray-100 text-gray-800'
-                }">${escapeHtml(typeLabel)}</span>
+                ${typeBadgesHtml}
                 ${contact.is_active ? 
                   '<span class="px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800">Active</span>' :
                   '<span class="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-800">Inactive</span>'
@@ -597,19 +584,13 @@ import Modal from '../../components/admin/Modal.astro';
     modal.classList.add('hidden');
     if (form) form.reset();
     const contactIdEl = document.getElementById('contactId') as HTMLInputElement;
-    const contactTypeEl = document.getElementById('contactType') as HTMLInputElement;
     if (contactIdEl) contactIdEl.value = '';
-    if (contactTypeEl) contactTypeEl.value = '';
     
     // Reset phone number fields
     const phoneCountryCodeEl = document.getElementById('phone_country_code') as HTMLSelectElement;
     const phoneNumberEl = document.getElementById('phone_number') as HTMLInputElement;
     if (phoneCountryCodeEl) phoneCountryCodeEl.value = '+1';
     if (phoneNumberEl) phoneNumberEl.value = '';
-    
-    // Reset type selection
-    const typeSelect = document.getElementById('contact_type_select') as HTMLSelectElement;
-    if (typeSelect) typeSelect.value = '';
     
     // Clear associations lists
     const judgeAssociationsList = document.getElementById('judgeAssociationsList');
@@ -633,12 +614,6 @@ import Modal from '../../components/admin/Modal.astro';
       (window as any).clearDropdown_sponsor_id();
     }
   }
-
-  // Handle contact type selection
-  document.getElementById('contact_type_select')?.addEventListener('change', (e) => {
-    const type = (e.target as HTMLSelectElement).value;
-    (document.getElementById('contactType') as HTMLInputElement).value = type;
-  });
 
   function populateJudgeDropdown() {
     // Filter out already associated judges
@@ -715,8 +690,6 @@ import Modal from '../../components/admin/Modal.astro';
     modalError.classList.add('hidden');
 
     const contactId = (document.getElementById('contactId') as HTMLInputElement).value;
-    const contactType = (document.getElementById('contactType') as HTMLInputElement).value || 
-                        (document.getElementById('contact_type_select') as HTMLSelectElement).value;
     const email = (document.getElementById('email') as HTMLInputElement).value;
     const firstName = (document.getElementById('first_name') as HTMLInputElement).value;
     const lastName = (document.getElementById('last_name') as HTMLInputElement).value;
@@ -726,12 +699,6 @@ import Modal from '../../components/admin/Modal.astro';
     const phoneNumber = (document.getElementById('phone_number') as HTMLInputElement).value;
     const fullPhoneNumber = phoneNumber ? `${countryCode}${phoneNumber}` : null;
     const isActive = (document.getElementById('is_active') as HTMLInputElement).checked;
-
-    if (!contactType) {
-      modalError.textContent = 'Please select a contact type';
-      modalError.classList.remove('hidden');
-      return;
-    }
 
     if (!email) {
       modalError.textContent = 'Email is required';
@@ -775,9 +742,7 @@ import Modal from '../../components/admin/Modal.astro';
           body.remove_sponsor_ids = pendingAssociations.removeSponsorIds;
         }
       } else {
-        // Creating new contact
-        body.contact_type = contactType;
-        // Include initial associations
+        // Creating new contact - include initial associations (types derived from these)
         if (pendingAssociations.finalists.length > 0) {
           body.finalist_ids = pendingAssociations.finalists.map((f: any) => f.id);
         }
@@ -971,10 +936,6 @@ import Modal from '../../components/admin/Modal.astro';
     if (!contact) return;
 
     openContactModal('Edit Contact');
-    
-    // Hide type selection for editing (type can't be changed)
-    document.getElementById('contactTypeSelection')!.classList.add('hidden');
-    (document.getElementById('contactType') as HTMLInputElement).value = contact.contact_type;
     
     // Reset and initialize pending associations with current values
     resetPendingAssociations();

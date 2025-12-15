@@ -4,15 +4,24 @@
  * 
  * This endpoint supports filtering contacts by:
  * - event_id: Filter by specific event year
- * - contact_type: Filter by judge, finalist, sponsor, attendee
+ * - contact_type: Filter by judge, finalist, sponsor (derived from junction tables)
  * - is_winner: For finalists, filter by winner status
  * - is_active: Filter by active status
  * 
- * Returns contacts joined with their related judge/finalist/sponsor data and event info
+ * Note: Contact types are derived from junction tables - a contact can have multiple types
  */
 
 import type { APIRoute } from 'astro';
 import { requireApiAuth } from '../../utils/supabase';
+
+// Helper to derive contact types from junction table relationships
+function deriveContactTypes(contact: any): string[] {
+  const types: string[] = [];
+  if (contact.contact_judges?.length > 0) types.push('judge');
+  if (contact.contact_finalists?.length > 0) types.push('finalist');
+  if (contact.contact_sponsors?.length > 0) types.push('sponsor');
+  return types;
+}
 
 export const GET: APIRoute = async ({ url, cookies, request }) => {
   try {
@@ -68,9 +77,16 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
                   )
                 )
               )
+            ),
+            contact_finalists (
+              finalist_id,
+              finalists (id, title, organization)
+            ),
+            contact_sponsors (
+              sponsor_id,
+              sponsors (id, name)
             )
-          `)
-          .eq('contact_type', 'judge');
+          `);
 
         if (judgeError) {
           console.error('Error fetching judge contacts:', judgeError);
@@ -85,8 +101,11 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
           allContacts.push(...contactsWithEvents.map((c: any) => {
             const judge = c.contact_judges?.[0]?.judges;
             const eventInfo = judge?.judge_events?.find((je: any) => je.event_id === eventId)?.event_details;
+            const types = deriveContactTypes(c);
             return {
               ...c,
+              contact_types: types,
+              contact_type: 'judge', // Primary type for this query
               event_info: eventInfo,
               related_name: judge ? `${judge.first_name} ${judge.last_name}` : null,
               related_org: judge?.organization,
@@ -117,9 +136,16 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
                   event_year
                 )
               )
+            ),
+            contact_judges (
+              judge_id,
+              judges (id, first_name, last_name, organization)
+            ),
+            contact_sponsors (
+              sponsor_id,
+              sponsors (id, name)
             )
-          `)
-          .eq('contact_type', 'finalist');
+          `);
 
         if (finalistError) {
           console.error('Error fetching finalist contacts:', finalistError);
@@ -135,8 +161,11 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
           );
           allContacts.push(...filtered.map((c: any) => {
             const finalist = c.contact_finalists?.find((cf: any) => cf.finalists?.event_id === eventId)?.finalists;
+            const types = deriveContactTypes(c);
             return {
               ...c,
+              contact_types: types,
+              contact_type: 'finalist', // Primary type for this query
               event_info: finalist?.event_details,
               related_name: finalist?.title,
               related_org: finalist?.organization,
@@ -168,9 +197,16 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
                   )
                 )
               )
+            ),
+            contact_judges (
+              judge_id,
+              judges (id, first_name, last_name, organization)
+            ),
+            contact_finalists (
+              finalist_id,
+              finalists (id, title, organization)
             )
-          `)
-          .eq('contact_type', 'sponsor');
+          `);
 
         if (sponsorError) {
           console.error('Error fetching sponsor contacts:', sponsorError);
@@ -184,8 +220,11 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
           allContacts.push(...filtered.map((c: any) => {
             const sponsor = c.contact_sponsors?.[0]?.sponsors;
             const eventInfo = sponsor?.sponsor_events?.find((se: any) => se.event_id === eventId)?.event_details;
+            const types = deriveContactTypes(c);
             return {
               ...c,
+              contact_types: types,
+              contact_type: 'sponsor', // Primary type for this query
               event_info: eventInfo,
               related_name: sponsor?.name,
               related_image: sponsor?.logo_url
@@ -235,11 +274,6 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
         `)
         .order('created_at', { ascending: false });
 
-      // Apply contact type filter
-      if (contactType) {
-        query = query.eq('contact_type', contactType);
-      }
-
       const { data, error } = await query;
 
       if (error) throw error;
@@ -252,14 +286,17 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
         let eventInfo = null;
         let winner = null;
 
-        if (c.contact_type === 'judge' && c.contact_judges?.length > 0) {
+        const types = deriveContactTypes(c);
+        const primaryType = types[0] || 'general';
+
+        if (types.includes('judge') && c.contact_judges?.length > 0) {
           const judge = c.contact_judges[0]?.judges;
           if (judge) {
             relatedName = `${judge.first_name} ${judge.last_name}`;
             relatedOrg = judge.organization;
             relatedImage = judge.profile_image_url;
           }
-        } else if (c.contact_type === 'finalist' && c.contact_finalists?.length > 0) {
+        } else if (types.includes('finalist') && c.contact_finalists?.length > 0) {
           const finalist = c.contact_finalists[0]?.finalists;
           if (finalist) {
             relatedName = finalist.title;
@@ -268,7 +305,7 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
             eventInfo = finalist.event_details;
             winner = finalist.is_winner;
           }
-        } else if (c.contact_type === 'sponsor' && c.contact_sponsors?.length > 0) {
+        } else if (types.includes('sponsor') && c.contact_sponsors?.length > 0) {
           const sponsor = c.contact_sponsors[0]?.sponsors;
           if (sponsor) {
             relatedName = sponsor.name;
@@ -278,6 +315,8 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
 
         return {
           ...c,
+          contact_types: types,
+          contact_type: primaryType,
           related_name: relatedName,
           related_org: relatedOrg,
           related_image: relatedImage,
@@ -286,11 +325,20 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
         };
       });
 
+      // Apply contact type filter
+      if (contactType) {
+        if (contactType === 'general') {
+          allContacts = allContacts.filter(c => c.contact_types.length === 0);
+        } else {
+          allContacts = allContacts.filter(c => c.contact_types.includes(contactType));
+        }
+      }
+
       // Apply winner filter if specified (for finalists without event filter)
       if (isWinner === 'true') {
-        allContacts = allContacts.filter(c => c.contact_type !== 'finalist' || c.is_winner === true);
+        allContacts = allContacts.filter(c => !c.contact_types.includes('finalist') || c.is_winner === true);
       } else if (isWinner === 'false') {
-        allContacts = allContacts.filter(c => c.contact_type !== 'finalist' || c.is_winner === false);
+        allContacts = allContacts.filter(c => !c.contact_types.includes('finalist') || c.is_winner === false);
       }
     }
 
@@ -324,4 +372,3 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
     );
   }
 };
-

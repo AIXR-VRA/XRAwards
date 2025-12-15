@@ -4,10 +4,22 @@
  * POST /api/contacts - Create a contact
  * PUT /api/contacts - Update a contact
  * DELETE /api/contacts - Delete a contact
+ * 
+ * Note: Contact "types" are derived from junction tables (contact_judges, contact_finalists, contact_sponsors)
+ * A contact can have multiple types simultaneously based on their associations
  */
 
 import type { APIRoute } from 'astro';
 import { requireApiAuth, createSecureSupabaseClient } from '../../utils/supabase';
+
+// Helper to derive contact types from junction table relationships
+function deriveContactTypes(contact: any): string[] {
+  const types: string[] = [];
+  if (contact.contact_judges?.length > 0) types.push('judge');
+  if (contact.contact_finalists?.length > 0) types.push('finalist');
+  if (contact.contact_sponsors?.length > 0) types.push('sponsor');
+  return types;
+}
 
 // GET - List contacts with optional filters
 export const GET: APIRoute = async ({ url, cookies, request }) => {
@@ -35,7 +47,7 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
     const judgeId = searchParams.get('judge_id');
     const finalistId = searchParams.get('finalist_id');
     const sponsorId = searchParams.get('sponsor_id');
-    const contactType = searchParams.get('contact_type');
+    const contactType = searchParams.get('contact_type'); // Filter by derived type
     const search = searchParams.get('search');
 
     // Build the query with junction table relationships
@@ -57,11 +69,6 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
         )
       `)
       .order('created_at', { ascending: false });
-
-    // Apply contact_type filter
-    if (contactType) {
-      query = query.eq('contact_type', contactType);
-    }
 
     // Apply search filter (search in email, first_name, last_name, organization)
     if (search) {
@@ -95,13 +102,31 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
       );
     }
 
-    // Transform to include flattened relationships
-    const transformedContacts = contacts.map((c: any) => ({
-      ...c,
-      finalists: c.contact_finalists?.map((cf: any) => cf.finalists).filter(Boolean) || [],
-      judges: c.contact_judges?.map((cj: any) => cj.judges).filter(Boolean) || [],
-      sponsors: c.contact_sponsors?.map((cs: any) => cs.sponsors).filter(Boolean) || [],
-    }));
+    // Transform to include flattened relationships and derived types
+    let transformedContacts = contacts.map((c: any) => {
+      const types = deriveContactTypes(c);
+      return {
+        ...c,
+        // Derived types from junction tables
+        contact_types: types,
+        // Legacy field for backward compatibility (primary type)
+        contact_type: types[0] || 'general',
+        // Flattened relationships
+        finalists: c.contact_finalists?.map((cf: any) => cf.finalists).filter(Boolean) || [],
+        judges: c.contact_judges?.map((cj: any) => cj.judges).filter(Boolean) || [],
+        sponsors: c.contact_sponsors?.map((cs: any) => cs.sponsors).filter(Boolean) || [],
+      };
+    });
+
+    // Filter by contact_type (derived from junction tables)
+    if (contactType) {
+      if (contactType === 'general') {
+        // General = contacts with no associations
+        transformedContacts = transformedContacts.filter((c: any) => c.contact_types.length === 0);
+      } else {
+        transformedContacts = transformedContacts.filter((c: any) => c.contact_types.includes(contactType));
+      }
+    }
 
     return new Response(
       JSON.stringify({ contacts: transformedContacts }),
@@ -145,14 +170,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       organization, 
       job_title,
       phone_number,
-      contact_type, 
       judge_id,
       judge_ids, // Support multiple judges
       finalist_id, 
       finalist_ids, // Support multiple finalists
       sponsor_id, 
       sponsor_ids, // Support multiple sponsors
-      attendee_id,
       is_active 
     } = body;
 
@@ -164,20 +187,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    if (!contact_type) {
-      return new Response(
-        JSON.stringify({ error: 'Contact type is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Note: With junction tables, contacts can be linked to multiple entities
-    // Relationships are optional - contacts can exist without any associations
-
-    // Build insert data (no longer setting direct FK columns)
+    // Build insert data (contact_type no longer exists)
     const insertData: any = {
       email,
-      contact_type,
       first_name: first_name || null,
       last_name: last_name || null,
       organization: organization || null,

@@ -463,7 +463,9 @@ const { id } = Astro.params;
         : 'Unknown';
       const email = contact?.email || '-';
       const org = contact?.organization || '';
-      const contactType = contact?.contact_type || '';
+      // contact_type is now derived from junction tables (contact_types array)
+      const contactTypes = contact?.contact_types || [];
+      const contactType = contactTypes[0] || 'general';
 
       // Tracking info (opens/clicks)
       let trackingInfo = '';

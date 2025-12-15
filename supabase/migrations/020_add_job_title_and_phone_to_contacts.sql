@@ -18,3 +18,4 @@ CREATE INDEX IF NOT EXISTS idx_contacts_phone_number ON contacts(phone_number) W
 COMMENT ON COLUMN contacts.job_title IS 'Job title of the contact';
 COMMENT ON COLUMN contacts.phone_number IS 'Phone number in E.164 format (e.g., +1234567890) with country dialing code';
 
+

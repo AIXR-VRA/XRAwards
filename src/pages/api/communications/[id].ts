@@ -28,6 +28,15 @@ function getClickedUrlsSummary(recipients: any[]): { url: string; clicks: number
     .sort((a, b) => b.clicks - a.clicks);
 }
 
+// Helper to derive contact types from junction table relationships
+function deriveContactTypes(contact: any): string[] {
+  const types: string[] = [];
+  if (contact?.contact_judges?.length > 0) types.push('judge');
+  if (contact?.contact_finalists?.length > 0) types.push('finalist');
+  if (contact?.contact_sponsors?.length > 0) types.push('sponsor');
+  return types;
+}
+
 // GET - Get single communication with recipients and stats
 export const GET: APIRoute = async ({ params, cookies, request }) => {
   try {
@@ -104,8 +113,10 @@ export const GET: APIRoute = async ({ params, cookies, request }) => {
           first_name,
           last_name,
           organization,
-          contact_type,
-          is_active
+          is_active,
+          contact_judges (judge_id),
+          contact_finalists (finalist_id),
+          contact_sponsors (sponsor_id)
         )
       `)
       .eq('communication_id', id)
@@ -151,10 +162,26 @@ export const GET: APIRoute = async ({ params, cookies, request }) => {
     const openRate = deliveredOrSent > 0 ? Math.round((stats.opened / deliveredOrSent) * 100) : 0;
     const clickRate = stats.opened > 0 ? Math.round((stats.clicked / stats.opened) * 100) : 0;
 
+    // Transform recipients to add derived contact_types
+    const transformedRecipients = (recipients || []).map((r: any) => {
+      if (r.contacts) {
+        const types = deriveContactTypes(r.contacts);
+        return {
+          ...r,
+          contacts: {
+            ...r.contacts,
+            contact_types: types,
+            contact_type: types[0] || 'general' // Legacy field for backwards compat
+          }
+        };
+      }
+      return r;
+    });
+
     return new Response(
       JSON.stringify({
         communication,
-        recipients: recipients || [],
+        recipients: transformedRecipients,
         stats: {
           ...stats,
           openRate,

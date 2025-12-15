@@ -1380,7 +1380,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
       if (contactId) {
         body.id = contactId;
       } else {
-        body.contact_type = 'finalist';
+        // Type is derived from association - just add the finalist_id
         body.finalist_id = currentFinalistId;
       }
 

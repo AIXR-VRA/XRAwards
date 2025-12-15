@@ -10,3 +10,4 @@ ADD COLUMN IF NOT EXISTS job_title TEXT;
 COMMENT ON COLUMN user_profiles.job_title IS 'Job title of the admin user (displayed in email templates)';
 
 
+

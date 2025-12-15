@@ -1015,7 +1015,7 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
       if (contactId) {
         body.id = contactId;
       } else {
-        body.contact_type = 'judge';
+        // Type is derived from association - just add the judge_id
         body.judge_id = currentJudgeId;
       }
 
