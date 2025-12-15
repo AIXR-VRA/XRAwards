@@ -6,10 +6,11 @@
  */
 
 import { requireAdminAuth } from '../../utils/supabase';
+import ProfileEditForm from './ProfileEditForm';
 
 interface Props {
   title: string;
-  activePage?: 'dashboard' | 'media-library' | 'categories' | 'finalists' | 'tags' | 'events' | 'sponsors' | 'judges' | 'accolades';
+  activePage?: 'dashboard' | 'media-library' | 'categories' | 'finalists' | 'tags' | 'events' | 'sponsors' | 'judges' | 'accolades' | 'contacts' | 'communications';
 }
 
 const { title, activePage } = Astro.props;
@@ -27,9 +28,11 @@ const { user, supabase: serverSupabase } = authResult;
 // Get the session to pass access token to client-side scripts
 const { data: { session } } = await serverSupabase.auth.getSession();
 const accessToken = session?.access_token || '';
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', href: '/admin/' },
+  { id: 'communications', label: 'Communications', href: '/admin/communications/' },
   { id: 'events', label: 'Event Details', href: '/admin/events/' },
   { id: 'media-library', label: 'Media Library', href: '/admin/media-library/' },
   { id: 'categories', label: 'Categories', href: '/admin/categories/' },
@@ -37,6 +40,7 @@ const navItems = [
   { id: 'finalists', label: 'Finalists', href: '/admin/finalists/' },
   { id: 'sponsors', label: 'Sponsors', href: '/admin/sponsors/' },
   { id: 'judges', label: 'Judges', href: '/admin/judges/' },
+  { id: 'contacts', label: 'Contacts', href: '/admin/contacts/' },
   { id: 'tags', label: 'Tags', href: '/admin/tags/' },
 ];
 ---
@@ -50,9 +54,10 @@ const navItems = [
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body class="bg-gray-50 min-h-screen">
-    <!-- Pass auth token to client-side scripts -->
-    <script is:inline define:vars={{ accessToken }}>
+    <!-- Pass auth token and Supabase URL to client-side scripts -->
+    <script is:inline define:vars={{ accessToken, supabaseUrl }}>
       window.__SUPABASE_ACCESS_TOKEN__ = accessToken;
+      window.__SUPABASE_URL__ = supabaseUrl;
     </script>
     <div class="flex h-screen">
       <!-- Sidebar -->
@@ -81,12 +86,40 @@ const navItems = [
 
         <!-- User Info & Logout -->
         <div class="p-4 border-t border-gray-200">
-          <div class="flex items-center justify-between mb-3">
-            <div class="text-sm">
-              <p class="text-gray-900 font-medium truncate">{user?.email || 'Admin'}</p>
+          <button
+            id="profileBtn"
+            class="w-full flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors mb-3 text-left"
+          >
+            <div
+              id="profileAvatar"
+              class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-medium text-sm flex-shrink-0"
+            >
+              <span id="avatarInitials">A</span>
+              <img
+                id="avatarImage"
+                src=""
+                alt="Profile"
+                class="w-full h-full rounded-full object-cover hidden"
+              />
+            </div>
+            <div class="flex-1 min-w-0 text-sm">
+              <p id="profileName" class="text-gray-900 font-medium truncate">{user?.email || 'Admin'}</p>
               <p class="text-gray-500 text-xs">Administrator</p>
             </div>
-          </div>
+            <svg
+              class="w-5 h-5 text-gray-400 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
+            </svg>
+          </button>
           <button
             id="signOutBtn"
             class="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -104,6 +137,9 @@ const navItems = [
       </main>
     </div>
 
+    <!-- Profile Edit Form -->
+    <ProfileEditForm client:only="react" />
+
     <script>
       const signOutBtn = document.getElementById('signOutBtn');
       if (signOutBtn) {
@@ -120,6 +156,73 @@ const navItems = [
           }
         });
       }
+
+      // Profile management
+      let profileData = null;
+      let profileModalOpen = false;
+
+      // Fetch profile data
+      async function fetchProfile() {
+        try {
+          const response = await fetch('/api/profile/');
+          if (response.ok) {
+            profileData = await response.json();
+            updateProfileDisplay();
+          }
+        } catch (error) {
+          console.error('Failed to fetch profile:', error);
+        }
+      }
+
+      // Update profile display in sidebar
+      function updateProfileDisplay() {
+        const profileNameEl = document.getElementById('profileName');
+        const avatarInitialsEl = document.getElementById('avatarInitials');
+        const avatarImageEl = document.getElementById('avatarImage');
+
+        if (profileData) {
+          const fullName = `${profileData.firstName || ''} ${profileData.lastName || ''}`.trim();
+          if (fullName && profileNameEl) {
+            profileNameEl.textContent = fullName;
+          }
+
+          // Update avatar
+          if (profileData.profilePhotoUrl && avatarImageEl && avatarInitialsEl) {
+            avatarImageEl.src = profileData.profilePhotoUrl;
+            avatarImageEl.classList.remove('hidden');
+            avatarInitialsEl.classList.add('hidden');
+          } else if (avatarInitialsEl && avatarImageEl) {
+            // Show initials
+            const initials = profileData.firstName?.[0] || profileData.lastName?.[0] || 'A';
+            avatarInitialsEl.textContent = initials.toUpperCase();
+            avatarInitialsEl.classList.remove('hidden');
+            avatarImageEl.classList.add('hidden');
+          }
+        }
+      }
+
+      // Open profile modal
+      function openProfileModal() {
+        profileModalOpen = true;
+        // Dispatch custom event to open modal
+        window.dispatchEvent(new CustomEvent('openProfileModal', {
+          detail: profileData
+        }));
+      }
+
+      // Handle profile save
+      window.addEventListener('profileSaved', async () => {
+        await fetchProfile();
+      });
+
+      // Initialize
+      const profileBtn = document.getElementById('profileBtn');
+      if (profileBtn) {
+        profileBtn.addEventListener('click', openProfileModal);
+      }
+
+      // Fetch profile on load
+      fetchProfile();
     </script>
   </body>
 </html>

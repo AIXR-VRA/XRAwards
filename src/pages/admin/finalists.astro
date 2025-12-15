@@ -298,6 +298,24 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
               </div>
             </div>
           </div>
+
+          <!-- Contacts Section -->
+          <div class="space-y-4">
+            <div class="flex items-center justify-between border-b pb-2">
+              <h3 class="text-lg font-medium text-gray-900">Contacts</h3>
+              <button
+                type="button"
+                id="addFinalistContactBtn"
+                class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                + Add Contact
+              </button>
+            </div>
+
+            <div id="finalistContactsList" class="space-y-2">
+              <!-- Contacts will be populated here -->
+            </div>
+          </div>
       </form>
     </Modal>
   </div>
@@ -972,6 +990,11 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
     updateFinalistTagSelector();
     updateFinalistAccoladeSelector();
     
+    // Clear contacts
+    currentFinalistId = null;
+    finalistContacts = [];
+    renderFinalistContacts();
+    
     // Clear custom dropdowns
     ['category_id', 'event_id', 'finalistAccoladeSelector', 'finalistTagSelector'].forEach(id => {
       if ((window as any)[`clearDropdown_${id}`]) {
@@ -1145,6 +1168,331 @@ import MediaSelector from '../../components/admin/MediaSelector.astro';
   (window as any).loadFinalists = loadFinalists;
 
   // Initial load
+  // Contacts management for finalists
+  let finalistContacts: any[] = [];
+  let currentFinalistId: string | null = null;
+
+  // Load contacts for a finalist
+  async function loadFinalistContacts(finalistId: string) {
+    try {
+      const accessToken = window.__SUPABASE_ACCESS_TOKEN__ || '';
+      const response = await fetch(`/api/contacts/?finalist_id=${finalistId}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch contacts');
+
+      const data = await response.json();
+      finalistContacts = data.contacts || [];
+      renderFinalistContacts();
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+      finalistContacts = [];
+      renderFinalistContacts();
+    }
+  }
+
+  // Render contacts list
+  function renderFinalistContacts() {
+    const list = document.getElementById('finalistContactsList')!;
+    
+    if (finalistContacts.length === 0) {
+      list.innerHTML = '<p class="text-sm text-gray-500">No contacts added yet.</p>';
+      return;
+    }
+
+    const html = finalistContacts.map(contact => {
+      const name = [contact.first_name, contact.last_name].filter(Boolean).join(' ') || 'N/A';
+      return `
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-start justify-between">
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">${escapeHtml(name)}</p>
+            <p class="text-xs text-gray-600">${escapeHtml(contact.email)}</p>
+            ${contact.organization ? `<p class="text-xs text-gray-500">${escapeHtml(contact.organization)}</p>` : ''}
+            ${contact.is_active ? 
+              '<span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded bg-green-100 text-green-800">Active</span>' :
+              '<span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800">Inactive</span>'
+            }
+          </div>
+          <div class="flex space-x-2 ml-3">
+            <button
+              onclick="event.stopPropagation(); event.preventDefault(); editFinalistContact('${contact.id}', event);"
+              class="px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
+            >
+              Edit
+            </button>
+            <button
+              onclick="event.stopPropagation(); event.preventDefault(); deleteFinalistContact('${contact.id}', '${escapeHtml(contact.email)}', event);"
+              class="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    list.innerHTML = html;
+  }
+
+  // Add contact button handler
+  document.getElementById('addFinalistContactBtn')?.addEventListener('click', () => {
+    if (!currentFinalistId) {
+      alert('Please save the finalist first before adding contacts.');
+      return;
+    }
+    openFinalistContactModal('Add Contact');
+  });
+
+  // Open contact modal
+  function openFinalistContactModal(title: string) {
+    const modal = document.getElementById('finalistContactModal')!;
+    const modalTitle = document.getElementById('finalistContactModalTitle')!;
+    if (modalTitle) modalTitle.textContent = title;
+    // Set higher z-index for nested modal
+    modal.style.zIndex = '60';
+    modal.classList.remove('hidden');
+    
+    // Prevent backdrop clicks from closing parent modal
+    const backdrop = modal.querySelector('.bg-black\\/50') as HTMLElement;
+    if (backdrop) {
+      backdrop.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
+    
+    // Prevent modal content clicks from bubbling
+    const modalContent = modal.querySelector('.bg-white') as HTMLElement;
+    if (modalContent) {
+      modalContent.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
+  }
+
+  function closeFinalistContactModal(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    const modal = document.getElementById('finalistContactModal')!;
+    const form = document.getElementById('finalistContactModalForm') as HTMLFormElement;
+    modal.classList.add('hidden');
+    if (form) form.reset();
+    const contactIdEl = document.getElementById('finalistContactId') as HTMLInputElement;
+    if (contactIdEl) contactIdEl.value = '';
+  }
+
+  // Edit contact
+  (window as any).editFinalistContact = function(id: string, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    const contact = finalistContacts.find(c => c.id === id);
+    if (!contact) return;
+
+    openFinalistContactModal('Edit Contact');
+    (document.getElementById('finalistContactId') as HTMLInputElement).value = contact.id;
+    (document.getElementById('finalistContactEmail') as HTMLInputElement).value = contact.email || '';
+    (document.getElementById('finalistContactFirstName') as HTMLInputElement).value = contact.first_name || '';
+    (document.getElementById('finalistContactLastName') as HTMLInputElement).value = contact.last_name || '';
+    (document.getElementById('finalistContactOrganization') as HTMLInputElement).value = contact.organization || '';
+    (document.getElementById('finalistContactIsActive') as HTMLInputElement).checked = contact.is_active !== false;
+  };
+
+  // Delete contact
+  (window as any).deleteFinalistContact = async function(id: string, email: string, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    if (!confirm(`Are you sure you want to delete the contact "${email}"?`)) return;
+
+    try {
+      const accessToken = window.__SUPABASE_ACCESS_TOKEN__ || '';
+      const response = await fetch('/api/contacts/', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ id })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to delete contact');
+
+      if (currentFinalistId) {
+        await loadFinalistContacts(currentFinalistId);
+      }
+    } catch (error: any) {
+      alert('Error deleting contact: ' + error.message);
+    }
+  };
+
+  // Contact modal close handlers
+  document.getElementById('finalistContactModalCloseBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeFinalistContactModal(e);
+  });
+  document.getElementById('finalistContactModalCancelBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeFinalistContactModal(e);
+  });
+
+  // Finalist contact form submission
+  const finalistContactForm = document.getElementById('finalistContactModalForm') as HTMLFormElement;
+  if (!finalistContactForm) {
+    console.error('Finalist contact form not found!');
+  } else {
+    console.log('Attaching finalist contact form submit handler');
+  }
+  
+  finalistContactForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    console.log('Finalist contact form submitted');
+    if (!currentFinalistId) {
+      alert('Please save the finalist first before adding contacts.');
+      return;
+    }
+
+    const contactId = (document.getElementById('finalistContactId') as HTMLInputElement).value;
+    const email = (document.getElementById('finalistContactEmail') as HTMLInputElement).value;
+    const firstName = (document.getElementById('finalistContactFirstName') as HTMLInputElement).value;
+    const lastName = (document.getElementById('finalistContactLastName') as HTMLInputElement).value;
+    const organization = (document.getElementById('finalistContactOrganization') as HTMLInputElement).value;
+    const isActive = (document.getElementById('finalistContactIsActive') as HTMLInputElement).checked;
+
+    try {
+      const accessToken = window.__SUPABASE_ACCESS_TOKEN__ || '';
+      const url = '/api/contacts/';
+      const method = contactId ? 'PUT' : 'POST';
+      const body: any = {
+        email,
+        first_name: firstName || null,
+        last_name: lastName || null,
+        organization: organization || null,
+        is_active: isActive
+      };
+
+      if (contactId) {
+        body.id = contactId;
+      } else {
+        // Type is derived from association - just add the finalist_id
+        body.finalist_id = currentFinalistId;
+      }
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(body)
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to save contact');
+
+      closeFinalistContactModal();
+      await loadFinalistContacts(currentFinalistId);
+    } catch (error: any) {
+      alert('Error saving contact: ' + error.message);
+    }
+  });
+
+  // Update editFinalist to load contacts
+  const originalEditFinalist = (window as any).editFinalist;
+  (window as any).editFinalist = async function(id: string) {
+    await originalEditFinalist(id);
+    currentFinalistId = id;
+    await loadFinalistContacts(id);
+  };
+
+  // Clear contacts when adding new finalist
+  const addFinalistBtn = document.getElementById('addFinalistBtn');
+  if (addFinalistBtn) {
+    const originalClick = addFinalistBtn.onclick;
+    addFinalistBtn.addEventListener('click', () => {
+      currentFinalistId = null;
+      finalistContacts = [];
+      renderFinalistContacts();
+      if (originalClick) originalClick.call(addFinalistBtn, new Event('click'));
+    });
+  }
+
   Promise.all([loadCategories(), loadEvents(), loadTags(), loadAccolades()]).then(() => loadFinalists(1));
 </script>
+
+<!-- Contact Modal for Finalists -->
+<Modal id="finalistContactModal" title="Add Contact">
+  <form id="finalistContactModalForm" class="space-y-4">
+    <input type="hidden" id="finalistContactId" />
+    
+    <div>
+      <label for="finalistContactEmail" class="block text-sm font-medium text-gray-700 mb-1">
+        Email *
+      </label>
+      <input
+        type="email"
+        id="finalistContactEmail"
+        required
+        class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+        placeholder="contact@example.com"
+      />
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label for="finalistContactFirstName" class="block text-sm font-medium text-gray-700 mb-1">
+          First Name
+        </label>
+        <input
+          type="text"
+          id="finalistContactFirstName"
+          class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+          placeholder="John"
+        />
+      </div>
+
+      <div>
+        <label for="finalistContactLastName" class="block text-sm font-medium text-gray-700 mb-1">
+          Last Name
+        </label>
+        <input
+          type="text"
+          id="finalistContactLastName"
+          class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+          placeholder="Doe"
+        />
+      </div>
+    </div>
+
+    <div>
+      <label for="finalistContactOrganization" class="block text-sm font-medium text-gray-700 mb-1">
+        Organization
+      </label>
+      <input
+        type="text"
+        id="finalistContactOrganization"
+        class="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+        placeholder="Company Name"
+      />
+    </div>
+
+    <div>
+      <label class="flex items-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+        <input
+          type="checkbox"
+          id="finalistContactIsActive"
+          checked
+          class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+        />
+        <span class="text-sm text-gray-700">Active (can receive emails)</span>
+      </label>
+    </div>
+  </form>
+</Modal>
 

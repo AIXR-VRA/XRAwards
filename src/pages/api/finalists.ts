@@ -41,6 +41,19 @@ export const GET: APIRoute = async ({ url, cookies }) => {
         finalist_accolades (
           accolade_id,
           accolades (*)
+        ),
+        contact_finalists (
+          contact_id,
+          contacts (
+            id,
+            email,
+            first_name,
+            last_name,
+            organization,
+            job_title,
+            phone_number,
+            is_active
+          )
         )
       `, { count: 'exact' });
 
@@ -73,11 +86,12 @@ export const GET: APIRoute = async ({ url, cookies }) => {
 
     if (error) throw error;
 
-    // Transform the data to include tags and accolades arrays
+    // Transform the data to include tags, accolades, and contacts arrays
     const finalistsWithTags = data?.map(finalist => ({
       ...finalist,
       tags: finalist.finalist_tags?.map((ft: any) => ft.tags) || [],
-      accolades: finalist.finalist_accolades?.map((fa: any) => fa.accolades) || []
+      accolades: finalist.finalist_accolades?.map((fa: any) => fa.accolades) || [],
+      contacts: finalist.contact_finalists?.map((cf: any) => cf.contacts) || []
     }));
 
     return new Response(

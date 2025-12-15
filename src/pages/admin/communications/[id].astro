@@ -1,0 +1,639 @@
+---
+/**
+ * Communication Detail Page
+ * Shows email preview, recipients, delivery stats, and allows editing scheduled communications
+ */
+import AdminLayout from '../../../components/admin/AdminLayout.astro';
+
+const { id } = Astro.params;
+---
+
+<AdminLayout title="Communication Details" activePage="communications">
+  <div class="space-y-6">
+    <!-- Header with Back Button -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a
+          href="/admin/communications/"
+          class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </a>
+        <div>
+          <h1 id="pageTitle" class="text-xl font-bold text-gray-900">Communication Details</h1>
+          <p id="pageSubtitle" class="text-sm text-gray-600">Loading...</p>
+        </div>
+      </div>
+      <div id="actionButtons" class="flex items-center gap-3 hidden">
+        <!-- Action buttons will be added dynamically for scheduled communications -->
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <p class="text-gray-500 mt-2">Loading communication details...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" class="hidden text-center py-12">
+      <svg class="w-12 h-12 mx-auto text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <p id="errorMessage" class="text-red-500 mb-4">Failed to load communication</p>
+      <a href="/admin/communications/" class="text-blue-600 hover:underline">← Back to Communications</a>
+    </div>
+
+    <!-- Content (hidden initially) -->
+    <div id="contentWrapper" class="hidden space-y-6">
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        <div class="bg-white border border-gray-200 rounded-lg p-3">
+          <p class="text-xs font-medium text-gray-500 uppercase">Delivered</p>
+          <p id="statDelivered" class="text-lg font-bold text-green-600">-</p>
+          <p id="statDeliveryRate" class="text-xs text-gray-400 mt-0.5">-</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg p-3">
+          <p class="text-xs font-medium text-gray-500 uppercase">Bounced</p>
+          <p id="statBounced" class="text-lg font-bold text-amber-600">-</p>
+          <p id="statBouncedDetail" class="text-xs text-gray-400 mt-0.5">-</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg p-3">
+          <p class="text-xs font-medium text-gray-500 uppercase">Opens</p>
+          <p class="text-lg font-bold text-purple-600">
+            <span id="statOpened">-</span>
+            <span id="statOpenRate" class="text-sm font-medium text-purple-400 ml-1">(-)</span>
+          </p>
+          <p class="text-xs text-gray-400 mt-0.5">
+            <span id="statTotalOpens">-</span> total views
+          </p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg p-3">
+          <p class="text-xs font-medium text-gray-500 uppercase">Clicks</p>
+          <p class="text-lg font-bold text-indigo-600">
+            <span id="statClicked">-</span>
+            <span id="statClickRate" class="text-sm font-medium text-indigo-400 ml-1">(-)</span>
+          </p>
+          <p class="text-xs text-gray-400 mt-0.5">
+            <span id="statTotalClicks">-</span> total clicks
+          </p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg p-3">
+          <p class="text-xs font-medium text-gray-500 uppercase">Status</p>
+          <p id="statStatus" class="text-lg font-bold text-gray-900">-</p>
+          <p id="statSentRate" class="text-xs text-gray-400 mt-0.5">-</p>
+        </div>
+      </div>
+
+      <!-- Clicked URLs Summary -->
+      <div id="clickedUrlsSection" class="hidden bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <h2 class="text-sm font-semibold text-gray-900">Clicked Links</h2>
+        </div>
+        <div id="clickedUrlsList" class="p-4">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Two Column Layout: Preview + Recipients -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Email Preview -->
+        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-gray-900">Email Preview</h2>
+            <button
+              id="togglePreviewBtn"
+              class="text-xs text-blue-600 hover:underline"
+            >
+              Show Full Preview
+            </button>
+          </div>
+          <div class="p-4">
+            <div class="mb-3 space-y-1">
+              <p class="text-xs text-gray-500">
+                <span class="font-medium">Subject:</span>
+                <span id="previewSubject" class="text-gray-900">-</span>
+              </p>
+              <p class="text-xs text-gray-500">
+                <span class="font-medium">From:</span>
+                <span id="previewFrom" class="text-gray-900">-</span>
+              </p>
+              <p class="text-xs text-gray-500">
+                <span class="font-medium">Template:</span>
+                <span id="previewTemplate" class="text-gray-900">-</span>
+              </p>
+              <p class="text-xs text-gray-500">
+                <span class="font-medium">Created:</span>
+                <span id="previewCreated" class="text-gray-900">-</span>
+              </p>
+              <p id="scheduledAtRow" class="text-xs text-gray-500 hidden">
+                <span class="font-medium">Scheduled:</span>
+                <span id="previewScheduled" class="text-amber-600 font-medium">-</span>
+              </p>
+            </div>
+            <div class="bg-gray-100 rounded-lg overflow-hidden">
+              <iframe
+                id="previewFrame"
+                class="w-full h-[400px] border-0"
+                sandbox="allow-same-origin"
+              ></iframe>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recipients List -->
+        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-gray-900">
+              Recipients
+              <span id="recipientCountBadge" class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-700">0</span>
+            </h2>
+            <div class="flex items-center gap-2">
+              <select id="recipientFilter" class="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-hidden focus:ring-1 focus:ring-blue-500">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="sent">Sent</option>
+                <option value="delivered">Delivered</option>
+                <option value="bounced">Bounced</option>
+                <option value="failed">Failed</option>
+                <option value="opened">Opened</option>
+                <option value="clicked">Clicked</option>
+              </select>
+            </div>
+          </div>
+          <div id="recipientsList" class="max-h-[480px] overflow-y-auto">
+            <div class="text-center py-8">
+              <p class="text-sm text-gray-500">Loading recipients...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message Content (Markdown) -->
+      <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <h2 class="text-sm font-semibold text-gray-900">Original Message Content (Markdown)</h2>
+        </div>
+        <div class="p-4">
+          <pre id="messageContent" class="text-sm text-gray-700 whitespace-pre-wrap font-mono bg-gray-50 p-4 rounded-lg">-</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Preview Modal -->
+  <div id="previewModal" class="hidden fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+    <div class="min-h-full flex items-center justify-center p-4">
+      <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900">Full Email Preview</h2>
+          <button id="closePreviewModal" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-4 bg-gray-100 overflow-y-auto" style="max-height: calc(90vh - 80px);">
+          <iframe
+            id="fullPreviewFrame"
+            class="w-full h-[800px] bg-white rounded shadow-sm border-0"
+            sandbox="allow-same-origin"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancel Confirmation Modal -->
+  <div id="cancelModal" class="hidden fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+    <div class="min-h-full flex items-center justify-center p-4">
+      <div class="bg-white rounded-lg w-full max-w-md">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900">Cancel Communication?</h2>
+        </div>
+        <div class="p-6">
+          <p class="text-sm text-gray-600 mb-4">
+            This will permanently delete this scheduled communication and all recipient records. This action cannot be undone.
+          </p>
+          <div id="cancelError" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4"></div>
+        </div>
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3">
+          <button
+            type="button"
+            id="closeCancelModal"
+            class="flex-1 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+          >
+            Keep It
+          </button>
+          <button
+            type="button"
+            id="confirmCancelBtn"
+            class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+          >
+            Cancel Communication
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script define:vars={{ communicationId: id }}>
+  const accessToken = window.__SUPABASE_ACCESS_TOKEN__ || '';
+  
+  // State
+  let communication = null;
+  let recipients = [];
+  let stats = {};
+  let recipientFilter = '';
+
+  // DOM Elements
+  const loadingState = document.getElementById('loadingState');
+  const errorState = document.getElementById('errorState');
+  const errorMessage = document.getElementById('errorMessage');
+  const contentWrapper = document.getElementById('contentWrapper');
+  const pageTitle = document.getElementById('pageTitle');
+  const pageSubtitle = document.getElementById('pageSubtitle');
+  const actionButtons = document.getElementById('actionButtons');
+
+  // Format date
+  function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  // Escape HTML
+  function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Get status badge HTML
+  function getStatusBadge(status) {
+    const styles = {
+      pending: 'bg-gray-100 text-gray-800',
+      scheduled: 'bg-amber-100 text-amber-800',
+      sending: 'bg-blue-100 text-blue-800',
+      sent: 'bg-blue-100 text-blue-800',
+      delivered: 'bg-green-100 text-green-800',
+      completed: 'bg-green-100 text-green-800',
+      failed: 'bg-red-100 text-red-800',
+      bounced: 'bg-red-100 text-red-800',
+      partially_failed: 'bg-orange-100 text-orange-800'
+    };
+    const style = styles[status] || 'bg-gray-100 text-gray-800';
+    const label = status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return `<span class="px-2 py-0.5 text-xs font-medium rounded ${style}">${label}</span>`;
+  }
+
+  // Load communication details
+  async function loadCommunication() {
+    try {
+      const response = await fetch(`/api/communications/${communicationId}/`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to load communication');
+      }
+
+      const data = await response.json();
+      communication = data.communication;
+      recipients = data.recipients || [];
+      stats = data.stats || {};
+
+      renderContent();
+    } catch (error) {
+      console.error('Error loading communication:', error);
+      loadingState.classList.add('hidden');
+      errorState.classList.remove('hidden');
+      errorMessage.textContent = error.message;
+    }
+  }
+
+  // Render content
+  function renderContent() {
+    loadingState.classList.add('hidden');
+    contentWrapper.classList.remove('hidden');
+
+    // Update page title
+    pageTitle.textContent = communication.subject || 'Communication Details';
+    pageSubtitle.innerHTML = getStatusBadge(communication.status);
+
+    // Render action buttons for scheduled communications
+    if (['scheduled', 'pending'].includes(communication.status)) {
+      actionButtons.classList.remove('hidden');
+      actionButtons.innerHTML = `
+        <button
+          type="button"
+          id="cancelCommBtn"
+          class="px-4 py-2 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
+        >
+          Cancel
+        </button>
+      `;
+
+      // Add event listener
+      document.getElementById('cancelCommBtn')?.addEventListener('click', openCancelModal);
+    }
+
+    // Render stats
+    const total = stats.total || 0;
+    const delivered = stats.delivered || 0;
+    const bounced = stats.bounced || 0;
+    const failed = stats.failed || 0;
+    const pending = stats.pending || 0;
+    const sent = stats.sent || 0;
+    
+    // Delivered card: X of Y delivered (Z%)
+    document.getElementById('statDelivered').textContent = delivered;
+    const deliveryRate = total > 0 ? Math.round((delivered / total) * 100) : 0;
+    document.getElementById('statDeliveryRate').textContent = `${delivered} of ${total} delivered (${deliveryRate}%)`;
+    
+    // Bounced card: shows bounces (post-delivery issues, not send failures)
+    document.getElementById('statBounced').textContent = bounced;
+    if (bounced > 0) {
+      document.getElementById('statBouncedDetail').textContent = 'Post-delivery bounce';
+    } else {
+      document.getElementById('statBouncedDetail').textContent = 'No bounces';
+    }
+    
+    // Opens and clicks
+    document.getElementById('statOpened').textContent = stats.opened || 0;
+    document.getElementById('statClicked').textContent = stats.clicked || 0;
+    document.getElementById('statTotalOpens').textContent = stats.totalOpens || 0;
+    document.getElementById('statTotalClicks').textContent = stats.totalClicks || 0;
+    document.getElementById('statOpenRate').textContent = `(${stats.openRate || 0}%)`;
+    document.getElementById('statClickRate').textContent = `(${stats.clickRate || 0}%)`;
+    
+    // Status card: X of Y sent (Z%) - sent = delivered + sent + bounced (all successfully sent)
+    document.getElementById('statStatus').innerHTML = getStatusBadge(communication.status);
+    const successfullySent = delivered + sent + bounced; // bounced emails WERE sent successfully
+    const sentRate = total > 0 ? Math.round((successfullySent / total) * 100) : 0;
+    document.getElementById('statSentRate').textContent = `${successfullySent} of ${total} sent (${sentRate}%)`;
+
+    // Render clicked URLs if any
+    if (stats.clickedUrls && stats.clickedUrls.length > 0) {
+      document.getElementById('clickedUrlsSection').classList.remove('hidden');
+      const urlsList = document.getElementById('clickedUrlsList');
+      urlsList.innerHTML = stats.clickedUrls.map(item => {
+        // Truncate long URLs for display
+        const displayUrl = item.url.length > 60 ? item.url.substring(0, 60) + '...' : item.url;
+        return `
+          <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+            <div class="flex-1 min-w-0 mr-4">
+              <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" 
+                 class="text-sm text-blue-600 hover:underline truncate block" title="${escapeHtml(item.url)}">
+                ${escapeHtml(displayUrl)}
+              </a>
+            </div>
+            <div class="flex-shrink-0">
+              <span class="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full">
+                ${item.clicks} click${item.clicks !== 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render preview info
+    const sender = communication.user_profiles;
+    const senderName = sender 
+      ? `${sender.first_name || ''} ${sender.last_name || ''}`.trim()
+      : 'Unknown';
+    
+    document.getElementById('previewSubject').textContent = communication.subject;
+    document.getElementById('previewFrom').textContent = senderName;
+    document.getElementById('previewTemplate').textContent = communication.template_name;
+    document.getElementById('previewCreated').textContent = formatDate(communication.created_at);
+    
+    if (communication.scheduled_at) {
+      document.getElementById('scheduledAtRow').classList.remove('hidden');
+      document.getElementById('previewScheduled').textContent = formatDate(communication.scheduled_at);
+    }
+
+    // Render email preview in iframe
+    const previewFrame = document.getElementById('previewFrame');
+    if (previewFrame && communication.html_content) {
+      const doc = previewFrame.contentDocument;
+      if (doc) {
+        doc.open();
+        doc.write(communication.html_content);
+        doc.close();
+      }
+    }
+
+    // Render message content
+    document.getElementById('messageContent').textContent = communication.message_content || '-';
+
+    // Render recipient count badge
+    document.getElementById('recipientCountBadge').textContent = recipients.length;
+
+    // Render recipients
+    renderRecipients();
+  }
+
+  // Render recipients list
+  function renderRecipients() {
+    const list = document.getElementById('recipientsList');
+    
+    let filtered = recipients;
+    if (recipientFilter) {
+      if (recipientFilter === 'opened') {
+        filtered = recipients.filter(r => r.opened_at);
+      } else if (recipientFilter === 'clicked') {
+        filtered = recipients.filter(r => r.clicked_at);
+      } else {
+        filtered = recipients.filter(r => r.status === recipientFilter);
+      }
+    }
+
+    if (filtered.length === 0) {
+      list.innerHTML = `
+        <div class="text-center py-8">
+          <p class="text-sm text-gray-500">${recipientFilter ? 'No recipients with this status' : 'No recipients'}</p>
+        </div>
+      `;
+      return;
+    }
+
+    const html = filtered.map(recipient => {
+      const contact = recipient.contacts;
+      const name = contact 
+        ? [contact.first_name, contact.last_name].filter(Boolean).join(' ') || 'Unknown'
+        : 'Unknown';
+      const email = contact?.email || '-';
+      const org = contact?.organization || '';
+      // contact_type is now derived from junction tables (contact_types array)
+      const contactTypes = contact?.contact_types || [];
+      const contactType = contactTypes[0] || 'general';
+
+      // Tracking info (opens/clicks)
+      let trackingInfo = '';
+      const openCount = recipient.open_count || (recipient.opened_at ? 1 : 0);
+      const clickData = recipient.click_data || { clicks: [], click_count: 0 };
+      const clickCount = clickData.click_count || (recipient.clicked_at ? 1 : 0);
+      
+      if (recipient.opened_at) {
+        trackingInfo += `<span class="text-purple-600" title="Opened ${openCount} time(s)">👁 ${openCount}x</span>`;
+      }
+      if (recipient.clicked_at) {
+        // Show click count and first URL if available
+        const firstClick = clickData.clicks?.[0];
+        const urlDisplay = firstClick?.url ? ` - ${firstClick.url.substring(0, 30)}${firstClick.url.length > 30 ? '...' : ''}` : '';
+        trackingInfo += `<span class="text-indigo-600 ml-2" title="${clickCount} click(s)${urlDisplay}">🔗 ${clickCount}x</span>`;
+      }
+      
+      // Error message if any
+      let errorInfo = '';
+      if (recipient.error_message) {
+        errorInfo = `<div class="text-red-600 text-xs mt-1">${escapeHtml(recipient.error_message)}</div>`;
+      }
+      
+      // Delivery timestamp
+      let deliveryTime = '';
+      if (recipient.delivered_at) {
+        deliveryTime = `<span class="text-green-600">Delivered: ${formatDate(recipient.delivered_at)}</span>`;
+      } else if (recipient.sent_at) {
+        deliveryTime = `<span class="text-blue-600">Sent: ${formatDate(recipient.sent_at)}</span>`;
+      } else if (recipient.created_at) {
+        deliveryTime = `<span class="text-gray-400">Created: ${formatDate(recipient.created_at)}</span>`;
+      }
+
+      // Build click details if available
+      let clickDetails = '';
+      if (clickData.clicks && clickData.clicks.length > 0) {
+        clickDetails = `
+          <div class="mt-2 pl-4 border-l-2 border-indigo-200">
+            <p class="text-xs font-medium text-gray-500 mb-1">Clicked links:</p>
+            ${clickData.clicks.slice(0, 5).map(click => {
+              const urlShort = click.url.length > 50 ? click.url.substring(0, 50) + '...' : click.url;
+              return `
+                <div class="text-xs text-gray-600 mb-1">
+                  <a href="${escapeHtml(click.url)}" target="_blank" rel="noopener noreferrer" 
+                     class="text-indigo-600 hover:underline" title="${escapeHtml(click.url)}">
+                    ${escapeHtml(urlShort)}
+                  </a>
+                  <span class="text-gray-400 ml-1">${formatDate(click.timestamp)}</span>
+                </div>
+              `;
+            }).join('')}
+            ${clickData.clicks.length > 5 ? `<p class="text-xs text-gray-400">+${clickData.clicks.length - 5} more clicks</p>` : ''}
+          </div>
+        `;
+      }
+
+      return `
+        <div class="px-4 py-3 border-b border-gray-100 hover:bg-gray-50">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-gray-900 truncate">${escapeHtml(name)}</span>
+                ${getStatusBadge(recipient.status)}
+              </div>
+              <p class="text-xs text-gray-500 truncate">${escapeHtml(email)}</p>
+              ${org ? `<p class="text-xs text-gray-400 truncate">${escapeHtml(org)}</p>` : ''}
+              ${errorInfo}
+              ${clickDetails}
+            </div>
+            <div class="text-right text-xs space-y-1">
+              <div>${deliveryTime}</div>
+              ${trackingInfo ? `<div>${trackingInfo}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    list.innerHTML = html;
+  }
+
+  // Filter recipients
+  document.getElementById('recipientFilter')?.addEventListener('change', (e) => {
+    recipientFilter = e.target.value;
+    renderRecipients();
+  });
+
+  // Toggle full preview modal
+  document.getElementById('togglePreviewBtn')?.addEventListener('click', () => {
+    const modal = document.getElementById('previewModal');
+    const fullFrame = document.getElementById('fullPreviewFrame');
+    
+    if (fullFrame && communication?.html_content) {
+      const doc = fullFrame.contentDocument;
+      if (doc) {
+        doc.open();
+        doc.write(communication.html_content);
+        doc.close();
+      }
+    }
+    
+    modal?.classList.remove('hidden');
+  });
+
+  document.getElementById('closePreviewModal')?.addEventListener('click', () => {
+    document.getElementById('previewModal')?.classList.add('hidden');
+  });
+
+  // Cancel modal
+  function openCancelModal() {
+    document.getElementById('cancelModal')?.classList.remove('hidden');
+  }
+
+  document.getElementById('closeCancelModal')?.addEventListener('click', () => {
+    document.getElementById('cancelModal')?.classList.add('hidden');
+  });
+
+  document.getElementById('confirmCancelBtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('confirmCancelBtn');
+    const errorDiv = document.getElementById('cancelError');
+    
+    btn.disabled = true;
+    btn.textContent = 'Cancelling...';
+    errorDiv?.classList.add('hidden');
+
+    try {
+      const response = await fetch(`/api/communications/${communicationId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to cancel communication');
+      }
+
+      // Redirect to communications list
+      window.location.href = '/admin/communications/';
+    } catch (error) {
+      console.error('Error cancelling communication:', error);
+      if (errorDiv) {
+        errorDiv.textContent = error.message;
+        errorDiv.classList.remove('hidden');
+      }
+      btn.disabled = false;
+      btn.textContent = 'Cancel Communication';
+    }
+  });
+
+  // Initialize
+  loadCommunication();
+</script>
+
