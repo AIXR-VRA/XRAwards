@@ -29,29 +29,69 @@ import AdminLayout from '../../../components/admin/AdminLayout.astro';
     <div class="bg-white border border-gray-200 rounded-lg p-4">
       <h2 class="text-sm font-semibold text-gray-900 mb-3">Recipients</h2>
       
-      <!-- Filters Row -->
-      <div class="flex flex-wrap gap-3 mb-4">
-        <select id="eventFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm">
-          <option value="">All Events</option>
-        </select>
-        <select id="contactTypeFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm">
-          <option value="">All Types</option>
-          <option value="judge">Judges</option>
-          <option value="finalist">Finalists</option>
-          <option value="sponsor">Sponsors</option>
-        </select>
-        <select id="winnerFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm">
-          <option value="">All (Winners & Finalists)</option>
-          <option value="true">Winners Only</option>
-          <option value="false">Finalists Only (No Winners)</option>
-        </select>
-        <button
-          type="button"
-          id="loadRecipientsBtn"
-          class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
-        >
-          Load Recipients
-        </button>
+      <!-- Filter Pills UI -->
+      <div class="relative mb-4">
+        <!-- Filter Buttons & Active Pills -->
+        <div id="filterContainer" class="flex flex-wrap gap-2 items-center">
+          <!-- Event Filter Button -->
+          <button
+            type="button"
+            data-filter="event"
+            class="filter-btn px-3 py-1.5 rounded-full text-sm border bg-white hover:ring-1 hover:ring-gray-200 flex items-center gap-2 cursor-pointer transition-colors border-gray-300"
+          >
+            <span>Event</span>
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <!-- Type Filter Button -->
+          <button
+            type="button"
+            data-filter="type"
+            class="filter-btn px-3 py-1.5 rounded-full text-sm border bg-white hover:ring-1 hover:ring-gray-200 flex items-center gap-2 cursor-pointer transition-colors border-gray-300"
+          >
+            <span>Type</span>
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <!-- Winner Type Filter Button -->
+          <button
+            type="button"
+            data-filter="winnerType"
+            class="filter-btn px-3 py-1.5 rounded-full text-sm border bg-white hover:ring-1 hover:ring-gray-200 flex items-center gap-2 cursor-pointer transition-colors border-gray-300"
+          >
+            <span>Winner Type</span>
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <!-- Active Filter Pills Container -->
+          <div id="activeFilterPills" class="contents"></div>
+          
+          <!-- Clear All Button (hidden when no filters) -->
+          <button
+            type="button"
+            id="clearAllFiltersBtn"
+            class="hidden items-center gap-1 text-sm text-gray-500 hover:text-gray-700 ml-2"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Clear all
+          </button>
+        </div>
+        
+        <!-- Filter Dropdown (hidden by default) -->
+        <div id="filterDropdown" class="hidden absolute z-50 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200">
+          <div class="p-4">
+            <h3 id="filterDropdownTitle" class="text-base font-medium mb-3 text-gray-900"></h3>
+            <div id="filterDropdownContent" class="max-h-[300px] overflow-y-auto space-y-1"></div>
+          </div>
+        </div>
       </div>
 
       <!-- Recipients Summary & List -->
@@ -80,7 +120,7 @@ import AdminLayout from '../../../components/admin/AdminLayout.astro';
           </div>
         </div>
         <div id="recipientsList" class="max-h-48 overflow-y-auto p-2">
-          <p class="text-sm text-gray-500 text-center py-4">Use filters above and click "Load Recipients" to see contacts</p>
+          <p class="text-sm text-gray-500 text-center py-4">Select filters above to load contacts</p>
         </div>
       </div>
     </div>
@@ -405,17 +445,44 @@ The XR Awards Team"
   let availableContacts: any[] = [];
   let selectedContactIds: Set<string> = new Set();
   let emailTemplate = '';
+  
+  // Filter state
+  interface ActiveFilter {
+    type: string;
+    value: string;
+    label: string;
+    mode: 'include' | 'exclude';
+  }
+  let activeFilters: ActiveFilter[] = [];
+  let activeFilterDropdown: string | null = null;
+
+  // Filter options definitions
+  const typeFilterOptions = [
+    { id: 'judge', name: 'Judge' },
+    { id: 'finalist', name: 'Finalist' },
+    { id: 'sponsor', name: 'Sponsor' }
+  ];
+  
+  const winnerTypeOptions = [
+    { id: 'category_winner', name: 'Category Winner' },
+    { id: 'accolade_winner', name: 'Accolade Winner' }
+  ];
 
   // DOM Elements
-  const eventFilter = document.getElementById('eventFilter') as HTMLSelectElement;
-  const contactTypeFilter = document.getElementById('contactTypeFilter') as HTMLSelectElement;
-  const winnerFilter = document.getElementById('winnerFilter') as HTMLSelectElement;
-  const loadRecipientsBtn = document.getElementById('loadRecipientsBtn') as HTMLButtonElement;
+  const filterContainer = document.getElementById('filterContainer') as HTMLElement;
+  const filterDropdown = document.getElementById('filterDropdown') as HTMLElement;
+  const filterDropdownTitle = document.getElementById('filterDropdownTitle') as HTMLElement;
+  const filterDropdownContent = document.getElementById('filterDropdownContent') as HTMLElement;
+  const activeFilterPills = document.getElementById('activeFilterPills') as HTMLElement;
+  const clearAllFiltersBtn = document.getElementById('clearAllFiltersBtn') as HTMLButtonElement;
   const recipientsList = document.getElementById('recipientsList') as HTMLElement;
   const recipientCount = document.getElementById('recipientCount') as HTMLElement;
   const selectAllBtn = document.getElementById('selectAllBtn') as HTMLButtonElement;
   const deselectAllBtn = document.getElementById('deselectAllBtn') as HTMLButtonElement;
   const senderSelect = document.getElementById('senderSelect') as HTMLSelectElement;
+  
+  // Filter button elements
+  const filterButtons = document.querySelectorAll('.filter-btn') as NodeListOf<HTMLButtonElement>;
   const subjectInput = document.getElementById('subjectInput') as HTMLInputElement;
   const preheaderInput = document.getElementById('preheaderInput') as HTMLInputElement;
   const messageContent = document.getElementById('messageContent') as HTMLTextAreaElement;
@@ -493,36 +560,48 @@ The XR Awards Team"
   function getAutoSubject(): string {
     if (!activeEvent) return 'You have a new update from the XR Awards team. 📬';
     
-    const contactType = contactTypeFilter.value;
+    // Get included contact types from active filters
+    const includedTypes = activeFilters
+      .filter(f => f.type === 'type' && f.mode === 'include')
+      .map(f => f.value);
+    
     const eventName = activeEvent.event_name || 'XR Awards';
     
-    if (contactType === 'finalist') {
-      return `You have a new update on your ${eventName} Entry. 📬`;
-    } else if (contactType === 'judge') {
-      return `You have an update on your ${eventName} judging. 📬`;
-    } else if (contactType === 'sponsor') {
-      return `You have an update on your ${eventName} sponsorship. 📬`;
-    } else {
-      // Mixed or all types
-      return `You have a new update from the ${eventName} team. 📬`;
+    if (includedTypes.length === 1) {
+      const contactType = includedTypes[0];
+      if (contactType === 'finalist') {
+        return `You have a new update on your ${eventName} Entry. 📬`;
+      } else if (contactType === 'judge') {
+        return `You have an update on your ${eventName} judging. 📬`;
+      } else if (contactType === 'sponsor') {
+        return `You have an update on your ${eventName} sponsorship. 📬`;
+      }
     }
+    // Mixed or all types
+    return `You have a new update from the ${eventName} team. 📬`;
   }
 
   // Get auto-generated preheader based on recipient types
   function getAutoPreheader(): string {
     const selectedOption = senderSelect.selectedOptions[0];
     const senderFirstName = selectedOption?.dataset.name?.split(' ')[0] || 'The team';
-    const contactType = contactTypeFilter.value;
     
-    if (contactType === 'finalist') {
-      return `${senderFirstName} has an update for you about your XR Awards entry.`;
-    } else if (contactType === 'judge') {
-      return `${senderFirstName} has an update for you about your judging duties.`;
-    } else if (contactType === 'sponsor') {
-      return `${senderFirstName} has an update about your sponsorship.`;
-    } else {
-      return `${senderFirstName} has an update for you from the XR Awards Gala.`;
+    // Get included contact types from active filters
+    const includedTypes = activeFilters
+      .filter(f => f.type === 'type' && f.mode === 'include')
+      .map(f => f.value);
+    
+    if (includedTypes.length === 1) {
+      const contactType = includedTypes[0];
+      if (contactType === 'finalist') {
+        return `${senderFirstName} has an update for you about your XR Awards entry.`;
+      } else if (contactType === 'judge') {
+        return `${senderFirstName} has an update for you about your judging duties.`;
+      } else if (contactType === 'sponsor') {
+        return `${senderFirstName} has an update about your sponsorship.`;
+      }
     }
+    return `${senderFirstName} has an update for you from the XR Awards Gala.`;
   }
 
   // Get current subject (user input or auto)
@@ -575,23 +654,245 @@ The XR Awards Team"
       
       // Find active event
       activeEvent = events.find(e => e.is_active) || events[0] || null;
-      
-      events.forEach(evt => {
-        const option = document.createElement('option');
-        option.value = evt.id;
-        option.textContent = `${evt.event_name} (${evt.event_year})`;
-        if (evt.is_active) option.textContent += ' ★';
-        eventFilter.appendChild(option);
-      });
-      
-      // Pre-select active event
-      if (activeEvent) {
-        eventFilter.value = activeEvent.id;
-      }
     } catch (error) {
       console.error('Error loading events:', error);
     }
   }
+  
+  // Filter dropdown management
+  function openFilterDropdown(filterType: string) {
+    activeFilterDropdown = filterType;
+    filterDropdown.classList.remove('hidden');
+    
+    // Update button states
+    filterButtons.forEach(btn => {
+      if (btn.dataset.filter === filterType) {
+        btn.classList.add('border-blue-500', 'ring-1', 'ring-blue-500');
+        btn.classList.remove('border-gray-300');
+      } else {
+        btn.classList.remove('border-blue-500', 'ring-1', 'ring-blue-500');
+        btn.classList.add('border-gray-300');
+      }
+    });
+    
+    // Position dropdown relative to the clicked button
+    const btn = document.querySelector(`[data-filter="${filterType}"]`) as HTMLElement;
+    if (btn) {
+      const rect = btn.getBoundingClientRect();
+      const containerRect = filterContainer.getBoundingClientRect();
+      filterDropdown.style.left = `${rect.left - containerRect.left}px`;
+    }
+    
+    renderFilterDropdownContent(filterType);
+  }
+  
+  function closeFilterDropdown() {
+    activeFilterDropdown = null;
+    filterDropdown.classList.add('hidden');
+    filterButtons.forEach(btn => {
+      btn.classList.remove('border-blue-500', 'ring-1', 'ring-blue-500');
+      btn.classList.add('border-gray-300');
+    });
+  }
+  
+  function renderFilterDropdownContent(filterType: string) {
+    let title = '';
+    let options: { id: string; name: string }[] = [];
+    
+    switch (filterType) {
+      case 'event':
+        title = 'Filter by event';
+        options = events.map(e => ({
+          id: e.id,
+          name: `${e.event_name} (${e.event_year})${e.is_active ? ' ★' : ''}`
+        }));
+        break;
+      case 'type':
+        title = 'Filter by type';
+        options = typeFilterOptions;
+        break;
+      case 'winnerType':
+        title = 'Filter by winner type';
+        options = winnerTypeOptions;
+        break;
+    }
+    
+    filterDropdownTitle.textContent = title;
+    
+    filterDropdownContent.innerHTML = options.map(opt => {
+      const isIncluded = activeFilters.some(f => f.type === filterType && f.value === opt.id && f.mode === 'include');
+      const isExcluded = activeFilters.some(f => f.type === filterType && f.value === opt.id && f.mode === 'exclude');
+      
+      return `
+        <div class="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg group">
+          <span class="text-sm text-gray-700 flex-1">${escapeHtml(opt.name)}</span>
+          <div class="flex items-center gap-1">
+            <button
+              type="button"
+              data-action="include"
+              data-filter-type="${filterType}"
+              data-value="${opt.id}"
+              data-label="${escapeHtml(opt.name)}"
+              class="w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold transition-colors ${
+                isIncluded 
+                  ? 'bg-green-500 text-white' 
+                  : 'bg-gray-100 text-gray-500 hover:bg-green-100 hover:text-green-600'
+              }"
+              title="Include"
+            >+</button>
+            <button
+              type="button"
+              data-action="exclude"
+              data-filter-type="${filterType}"
+              data-value="${opt.id}"
+              data-label="${escapeHtml(opt.name)}"
+              class="w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold transition-colors ${
+                isExcluded 
+                  ? 'bg-red-500 text-white' 
+                  : 'bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600'
+              }"
+              title="Exclude"
+            >−</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    // Add click handlers to the buttons
+    filterDropdownContent.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const target = e.currentTarget as HTMLButtonElement;
+        const action = target.dataset.action as 'include' | 'exclude';
+        const type = target.dataset.filterType!;
+        const value = target.dataset.value!;
+        const label = target.dataset.label!;
+        
+        toggleFilter(type, value, label, action);
+      });
+    });
+  }
+  
+  function toggleFilter(type: string, value: string, label: string, mode: 'include' | 'exclude') {
+    // Find existing filter with same type and value
+    const existingIndex = activeFilters.findIndex(f => f.type === type && f.value === value);
+    
+    if (existingIndex >= 0) {
+      const existing = activeFilters[existingIndex];
+      if (existing.mode === mode) {
+        // Same mode - remove filter
+        activeFilters.splice(existingIndex, 1);
+      } else {
+        // Different mode - update to new mode
+        activeFilters[existingIndex].mode = mode;
+      }
+    } else {
+      // Add new filter
+      activeFilters.push({ type, value, label, mode });
+    }
+    
+    renderActiveFilterPills();
+    renderFilterDropdownContent(type);
+    loadRecipients();
+  }
+  
+  function removeFilter(type: string, value: string) {
+    activeFilters = activeFilters.filter(f => !(f.type === type && f.value === value));
+    renderActiveFilterPills();
+    if (activeFilterDropdown) {
+      renderFilterDropdownContent(activeFilterDropdown);
+    }
+    loadRecipients();
+  }
+  
+  function clearAllFilters() {
+    activeFilters = [];
+    renderActiveFilterPills();
+    if (activeFilterDropdown) {
+      renderFilterDropdownContent(activeFilterDropdown);
+    }
+    loadRecipients();
+  }
+  
+  function renderActiveFilterPills() {
+    const pills = activeFilters.map(filter => {
+      const modeColor = filter.mode === 'include' 
+        ? 'bg-green-50 border-green-200' 
+        : 'bg-red-50 border-red-200';
+      const modeIcon = filter.mode === 'include' ? '+' : '−';
+      const modeTextColor = filter.mode === 'include' ? 'text-green-600' : 'text-red-600';
+      
+      // Get display type label
+      let typeLabel = '';
+      switch (filter.type) {
+        case 'event': typeLabel = 'Event'; break;
+        case 'type': typeLabel = 'Type'; break;
+        case 'winnerType': typeLabel = 'Winner'; break;
+      }
+      
+      return `
+        <div class="flex items-center gap-1.5 px-2.5 py-1 ${modeColor} border rounded-full text-sm">
+          <span class="${modeTextColor} font-bold text-xs">${modeIcon}</span>
+          <span class="text-gray-500">${escapeHtml(typeLabel)}</span>
+          <span class="font-medium text-gray-800">${escapeHtml(filter.label)}</span>
+          <button
+            type="button"
+            class="text-gray-400 hover:text-gray-600 ml-0.5"
+            data-remove-type="${filter.type}"
+            data-remove-value="${filter.value}"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      `;
+    }).join('');
+    
+    activeFilterPills.innerHTML = pills;
+    
+    // Add remove handlers
+    activeFilterPills.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const target = e.currentTarget as HTMLButtonElement;
+        removeFilter(target.dataset.removeType!, target.dataset.removeValue!);
+      });
+    });
+    
+    // Show/hide clear all button
+    if (activeFilters.length > 0) {
+      clearAllFiltersBtn.classList.remove('hidden');
+      clearAllFiltersBtn.classList.add('flex');
+    } else {
+      clearAllFiltersBtn.classList.add('hidden');
+      clearAllFiltersBtn.classList.remove('flex');
+    }
+  }
+  
+  // Set up filter button click handlers
+  filterButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const filterType = btn.dataset.filter!;
+      if (activeFilterDropdown === filterType) {
+        closeFilterDropdown();
+      } else {
+        openFilterDropdown(filterType);
+      }
+    });
+  });
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (!filterDropdown.contains(target) && !target.closest('.filter-btn')) {
+      closeFilterDropdown();
+    }
+  });
+  
+  // Clear all button handler
+  clearAllFiltersBtn.addEventListener('click', clearAllFilters);
 
   // Load user profiles for sender selection
   async function loadUserProfiles() {
@@ -730,23 +1031,50 @@ The XR Awards Team"
 
   // Load recipients based on filters
   async function loadRecipients() {
-    loadRecipientsBtn.disabled = true;
-    loadRecipientsBtn.textContent = 'Loading...';
+    // Show loading state
+    recipientsList.innerHTML = `<p class="text-sm text-gray-500 text-center py-4">Loading recipients...</p>`;
     
     try {
+      // Build filter parameters from activeFilters
+      const includeFilters: Record<string, string[]> = { event: [], type: [], winnerType: [] };
+      const excludeFilters: Record<string, string[]> = { event: [], type: [], winnerType: [] };
+      
+      activeFilters.forEach(f => {
+        if (f.mode === 'include') {
+          includeFilters[f.type].push(f.value);
+        } else {
+          excludeFilters[f.type].push(f.value);
+        }
+      });
+      
       const params = new URLSearchParams();
       
-      if (eventFilter.value) {
-        params.append('event_id', eventFilter.value);
-        // Update activeEvent based on selection
-        activeEvent = events.find(e => e.id === eventFilter.value) || activeEvent;
+      // Event filters
+      if (includeFilters.event.length > 0) {
+        params.append('event_ids', includeFilters.event.join(','));
+        // Update activeEvent based on first selected event
+        activeEvent = events.find(e => e.id === includeFilters.event[0]) || activeEvent;
       }
-      if (contactTypeFilter.value) {
-        params.append('contact_type', contactTypeFilter.value);
+      if (excludeFilters.event.length > 0) {
+        params.append('exclude_event_ids', excludeFilters.event.join(','));
       }
-      if (winnerFilter.value) {
-        params.append('is_winner', winnerFilter.value);
+      
+      // Type filters
+      if (includeFilters.type.length > 0) {
+        params.append('contact_types', includeFilters.type.join(','));
       }
+      if (excludeFilters.type.length > 0) {
+        params.append('exclude_contact_types', excludeFilters.type.join(','));
+      }
+      
+      // Winner type filters
+      if (includeFilters.winnerType.length > 0) {
+        params.append('winner_types', includeFilters.winnerType.join(','));
+      }
+      if (excludeFilters.winnerType.length > 0) {
+        params.append('exclude_winner_types', excludeFilters.winnerType.join(','));
+      }
+      
       params.append('is_active', 'true');
 
       const response = await fetch(`/api/contacts-with-events/?${params.toString()}`, {
@@ -770,14 +1098,18 @@ The XR Awards Team"
       recipientsList.innerHTML = `
         <p class="text-sm text-red-500 text-center py-4">Failed to load recipients. Please try again.</p>
       `;
-    } finally {
-      loadRecipientsBtn.disabled = false;
-      loadRecipientsBtn.textContent = 'Load Recipients';
     }
   }
 
   // Render recipients list
   function renderRecipients() {
+    if (activeFilters.length === 0) {
+      recipientsList.innerHTML = `
+        <p class="text-sm text-gray-500 text-center py-4">Select filters above to load contacts</p>
+      `;
+      return;
+    }
+    
     if (availableContacts.length === 0) {
       recipientsList.innerHTML = `
         <p class="text-sm text-gray-500 text-center py-4">No contacts found matching the filters</p>
@@ -818,7 +1150,8 @@ The XR Awards Team"
             <div class="flex items-center gap-2 flex-wrap">
               <span class="text-sm font-medium text-gray-900 truncate">${escapeHtml(name)}</span>
               ${typeBadgesHtml}
-              ${contact.is_winner ? '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-100 text-amber-800">Winner</span>' : ''}
+              ${contact.is_winner ? '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-100 text-amber-800">Category Winner</span>' : ''}
+              ${contact.has_accolades ? '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-orange-100 text-orange-800">Accolade Winner</span>' : ''}
             </div>
             <div class="flex items-center gap-2 text-xs text-gray-500">
               <span class="truncate">${escapeHtml(contact.email)}</span>
@@ -876,8 +1209,8 @@ The XR Awards Team"
     updateScheduleButton();
   });
 
-  // Load recipients button
-  loadRecipientsBtn.addEventListener('click', loadRecipients);
+  // Load recipients initially (will show "no filters" message if no filters)
+  // Recipients will be loaded automatically when filters change
 
   // Toggle CTA fields
   enableCta.addEventListener('change', () => {
@@ -1052,8 +1385,7 @@ The XR Awards Team"
   // Sender change
   senderSelect.addEventListener('change', updatePreview);
   
-  // Contact type filter change (updates auto subject/preheader)
-  contactTypeFilter.addEventListener('change', updatePreview);
+  // Note: Preview updates are handled in the filter change handlers
 
   // CTA input changes
   ctaText.addEventListener('input', updatePreview);
