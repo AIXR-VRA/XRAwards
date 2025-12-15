@@ -313,9 +313,20 @@ The XR Awards Team"
 
       <!-- Right Column: Live Preview -->
       <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
-          <h3 class="text-sm font-medium text-gray-700">Email Preview</h3>
-          <p id="previewSubjectLine" class="text-xs text-gray-500 mt-1 truncate">
+        <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-medium text-gray-700">Email Preview</h3>
+            <div class="flex items-center gap-2">
+              <label for="previewAsSelect" class="text-xs text-gray-600">Preview As:</label>
+              <select
+                id="previewAsSelect"
+                class="px-2 py-1 text-xs border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="">Select recipient...</option>
+              </select>
+            </div>
+          </div>
+          <p id="previewSubjectLine" class="text-xs text-gray-500 truncate">
             <span class="font-medium">Subject:</span> <span id="previewSubjectText">You have a new update on your XR Awards Entry. 📬</span>
           </p>
           <p id="previewPreheaderLine" class="text-xs text-gray-400 truncate">
@@ -522,6 +533,7 @@ The XR Awards Team"
   const previewFrame = document.getElementById('previewFrame') as HTMLIFrameElement;
   const previewSubjectText = document.getElementById('previewSubjectText') as HTMLElement;
   const previewPreheaderText = document.getElementById('previewPreheaderText') as HTMLElement;
+  const previewAsSelect = document.getElementById('previewAsSelect') as HTMLSelectElement;
   
   // CTA elements
   const enableCta = document.getElementById('enableCta') as HTMLInputElement;
@@ -1140,6 +1152,7 @@ The XR Awards Team"
       recipientsList.innerHTML = `
         <p class="text-sm text-gray-500 text-center py-4">Select filters above to load contacts</p>
       `;
+      updatePreviewDropdown();
       return;
     }
     
@@ -1147,6 +1160,7 @@ The XR Awards Team"
       recipientsList.innerHTML = `
         <p class="text-sm text-gray-500 text-center py-4">No contacts found matching the filters</p>
       `;
+      updatePreviewDropdown();
       return;
     }
 
@@ -1213,6 +1227,26 @@ The XR Awards Team"
         updateScheduleButton();
       });
     });
+    
+    // Populate preview dropdown
+    updatePreviewDropdown();
+  }
+  
+  // Update preview dropdown with available contacts
+  function updatePreviewDropdown() {
+    // Clear existing options except the first placeholder
+    previewAsSelect.innerHTML = '<option value="">Select recipient...</option>';
+    
+    // Add each available contact
+    availableContacts.forEach(contact => {
+      const name = [contact.first_name, contact.last_name].filter(Boolean).join(' ') || contact.related_name || 'Unknown';
+      const email = contact.email || '';
+      const option = document.createElement('option');
+      option.value = contact.id;
+      option.textContent = `${name}${email ? ` (${email})` : ''}`;
+      option.dataset.name = name;
+      previewAsSelect.appendChild(option);
+    });
   }
 
   // Update recipient count display
@@ -1255,11 +1289,11 @@ The XR Awards Team"
     updatePreview();
   });
 
-  // Replace dynamic text placeholders with sample data for preview
-  function replaceDynamicTextForPreview(text: string): string {
+  // Replace dynamic text placeholders with actual data for preview
+  function replaceDynamicTextForPreview(text: string, contactId?: string): string {
     if (!text) return text;
     
-    // Get sample data based on active event
+    // Get event data
     const eventName = activeEvent?.event_name || 'XR Awards 2025';
     const eventDate = activeEvent?.awards_ceremony 
       ? new Date(activeEvent.awards_ceremony).toLocaleDateString('en-GB', { 
@@ -1270,16 +1304,48 @@ The XR Awards Team"
       : 'TBA';
     const eventLocation = activeEvent?.location || 'Belgium';
     
-    // Sample categories and accolades for preview
-    const sampleCategories = 'Best VR Experience (Finalist), Innovation Award (Winner)';
-    const sampleAccolades = 'Excellence in Design in Best VR Experience, Technical Innovation in Innovation Award';
+    // Get actual categories and accolades from selected recipient
+    let categoriesText = '';
+    let accoladesText = '';
+    
+    if (contactId) {
+      const contact = availableContacts.find(c => c.id === contactId);
+      if (contact?.finalist_entries && contact.finalist_entries.length > 0) {
+        // Format categories with status
+        const categories = contact.finalist_entries
+          .filter((entry: any) => entry.category_name)
+          .map((entry: any) => {
+            const status = entry.is_winner ? 'Winner' : 'Finalist';
+            return `${entry.category_name} (${status})`;
+          });
+        categoriesText = categories.join(', ') || '';
+        
+        // Format accolades with category names
+        const accolades = contact.finalist_entries
+          .filter((entry: any) => entry.accolades && entry.accolades.length > 0)
+          .flatMap((entry: any) => 
+            entry.accolades.map((accolade: any) => 
+              `${accolade.name} in ${entry.category_name}`
+            )
+          );
+        accoladesText = accolades.join(', ') || '';
+      }
+    }
+    
+    // Fallback to sample data if no recipient selected or no data available
+    if (!categoriesText) {
+      categoriesText = 'Best VR Experience (Finalist), Innovation Award (Winner)';
+    }
+    if (!accoladesText) {
+      accoladesText = 'Excellence in Design in Best VR Experience, Technical Innovation in Innovation Award';
+    }
     
     return text
       .replace(/\{\{event_name\}\}/g, eventName)
       .replace(/\{\{event_date\}\}/g, eventDate)
       .replace(/\{\{event_location\}\}/g, eventLocation)
-      .replace(/\{\{categories_with_status\}\}/g, sampleCategories)
-      .replace(/\{\{accolades_with_categories\}\}/g, sampleAccolades);
+      .replace(/\{\{categories_with_status\}\}/g, categoriesText)
+      .replace(/\{\{accolades_with_categories\}\}/g, accoladesText);
   }
 
   // Update preview when inputs change
@@ -1291,8 +1357,13 @@ The XR Awards Team"
     const subject = getCurrentSubject();
     const preheader = getCurrentPreheader();
     
+    // Get recipient name and ID from preview dropdown
+    const previewRecipientOption = previewAsSelect.selectedOptions[0];
+    const recipientName = previewRecipientOption?.dataset.name || 'there';
+    const recipientId = previewRecipientOption?.value || undefined;
+    
     // Replace dynamic text in message content before converting to HTML
-    const messageWithDynamicText = replaceDynamicTextForPreview(messageContent.value);
+    const messageWithDynamicText = replaceDynamicTextForPreview(messageContent.value, recipientId);
     const content = markdownToHtml(messageWithDynamicText) || '<p>Your message content will appear here...</p>';
     
     // Update preview header
@@ -1314,7 +1385,7 @@ The XR Awards Team"
       .replace(/\{\{sender_name\}\}/g, escapeHtml(senderName))
       .replace(/\{\{sender_photo_url\}\}/g, senderPhoto || 'https://via.placeholder.com/80')
       .replace(/\{\{sender_title\}\}/g, escapeHtml(senderTitle))
-      .replace(/\{\{recipient_name_or_default\}\}/g, 'there')
+      .replace(/\{\{recipient_name_or_default\}\}/g, escapeHtml(recipientName))
       .replace(/\{\{message_content\}\}/g, content)
       .replace(/\{\{cta_section\}\}/g, ctaSection)
       .replace(/\{\{faq_content\}\}/g, faqContent);
@@ -1500,6 +1571,9 @@ The XR Awards Team"
 
   // Sender change
   senderSelect.addEventListener('change', updatePreview);
+  
+  // Preview recipient change
+  previewAsSelect.addEventListener('change', updatePreview);
   
   // Note: Preview updates are handled in the filter change handlers
 
