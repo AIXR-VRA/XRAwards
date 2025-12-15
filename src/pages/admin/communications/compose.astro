@@ -1,0 +1,1025 @@
+---
+/**
+ * Compose Communication Page
+ * Two-column layout: Editor (left) + Live Preview (right)
+ * Filter-based recipient selection at top
+ */
+import AdminLayout from '../../../components/admin/AdminLayout.astro';
+---
+
+<AdminLayout title="Compose Message" activePage="communications">
+  <div class="space-y-6">
+    <!-- Header with Back Button -->
+    <div class="flex items-center gap-4">
+      <a
+        href="/admin/communications/"
+        class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </a>
+      <div>
+        <h1 class="text-xl font-bold text-gray-900">Compose Message</h1>
+        <p class="text-sm text-gray-600">Select recipients and craft your email</p>
+      </div>
+    </div>
+
+    <!-- Recipient Selection Section -->
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <h2 class="text-sm font-semibold text-gray-900 mb-3">Recipients</h2>
+      
+      <!-- Filters Row -->
+      <div class="flex flex-wrap gap-3 mb-4">
+        <select id="eventFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm">
+          <option value="">All Events</option>
+        </select>
+        <select id="contactTypeFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm">
+          <option value="">All Types</option>
+          <option value="judge">Judges</option>
+          <option value="finalist">Finalists</option>
+          <option value="sponsor">Sponsors</option>
+        </select>
+        <select id="winnerFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm">
+          <option value="">All (Winners & Finalists)</option>
+          <option value="true">Winners Only</option>
+          <option value="false">Finalists Only (No Winners)</option>
+        </select>
+        <button
+          type="button"
+          id="loadRecipientsBtn"
+          class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+        >
+          Load Recipients
+        </button>
+      </div>
+
+      <!-- Recipients Summary & List -->
+      <div class="border border-gray-200 rounded-lg">
+        <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <div class="flex items-center gap-3">
+            <span class="text-sm font-medium text-gray-700">Selected Recipients:</span>
+            <span id="recipientCount" class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full">0</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              id="selectAllBtn"
+              class="text-xs text-blue-600 hover:underline"
+            >
+              Select All
+            </button>
+            <span class="text-gray-300">|</span>
+            <button
+              type="button"
+              id="deselectAllBtn"
+              class="text-xs text-gray-500 hover:underline"
+            >
+              Deselect All
+            </button>
+          </div>
+        </div>
+        <div id="recipientsList" class="max-h-48 overflow-y-auto p-2">
+          <p class="text-sm text-gray-500 text-center py-4">Use filters above and click "Load Recipients" to see contacts</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sender & Subject Row -->
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Sender Selection -->
+        <div>
+          <label for="senderSelect" class="block text-sm font-medium text-gray-700 mb-1">
+            Send As *
+          </label>
+          <select
+            id="senderSelect"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm"
+          >
+            <option value="">Select sender...</option>
+          </select>
+        </div>
+        <!-- Subject Line (Optional) -->
+        <div>
+          <label for="subjectInput" class="block text-sm font-medium text-gray-700 mb-1">
+            Subject Line <span class="text-gray-400 font-normal">(optional - auto-generated based on recipients)</span>
+          </label>
+          <input
+            type="text"
+            id="subjectInput"
+            placeholder="Leave empty for auto-generated subject..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm"
+          />
+        </div>
+      </div>
+      <!-- Preheader (Optional) -->
+      <div class="mt-4">
+        <label for="preheaderInput" class="block text-sm font-medium text-gray-700 mb-1">
+          Preheader <span class="text-gray-400 font-normal">(optional - preview text shown in inbox)</span>
+        </label>
+        <input
+          type="text"
+          id="preheaderInput"
+          placeholder="Leave empty for auto-generated preheader..."
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm"
+        />
+      </div>
+    </div>
+
+    <!-- Two Column Layout: Editor + Preview -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Left Column: Message Editor -->
+      <div class="space-y-4">
+        <div class="bg-white border border-gray-200 rounded-lg p-4">
+          <label for="messageContent" class="block text-sm font-medium text-gray-700 mb-2">
+            Message Content
+          </label>
+          <p class="text-xs text-gray-500 mb-3">
+            Write your message below. You can use simple formatting: **bold**, *italic*, bullet points (- item), and [links](url).
+          </p>
+          <textarea
+            id="messageContent"
+            rows="12"
+            placeholder="Hi there,
+
+Write your message here...
+
+Best regards,
+The XR Awards Team"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm font-mono resize-none"
+          ></textarea>
+          <div class="mt-2 text-xs text-gray-500">
+            <span id="charCount">0</span> characters
+          </div>
+        </div>
+
+        <!-- CTA Button (Optional) -->
+        <div class="bg-white border border-gray-200 rounded-lg p-4">
+          <div class="flex items-center gap-3 mb-3">
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="enableCta" class="sr-only peer">
+              <div class="w-9 h-5 bg-gray-200 peer-focus:outline-hidden peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+            <span class="text-sm font-medium text-gray-700">Include CTA Button</span>
+          </div>
+          <div id="ctaFields" class="hidden space-y-3">
+            <div>
+              <label for="ctaText" class="block text-sm font-medium text-gray-700 mb-1">Button Text</label>
+              <input
+                type="text"
+                id="ctaText"
+                placeholder="e.g. Get Your Tickets"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+            </div>
+            <div>
+              <label for="ctaLink" class="block text-sm font-medium text-gray-700 mb-1">Button Link</label>
+              <input
+                type="url"
+                id="ctaLink"
+                placeholder="https://..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Live Preview -->
+      <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <h3 class="text-sm font-medium text-gray-700">Email Preview</h3>
+          <p id="previewSubjectLine" class="text-xs text-gray-500 mt-1 truncate">
+            <span class="font-medium">Subject:</span> <span id="previewSubjectText">You have a new update on your XR Awards Entry. 📬</span>
+          </p>
+          <p id="previewPreheaderLine" class="text-xs text-gray-400 truncate">
+            <span class="font-medium">Preheader:</span> <span id="previewPreheaderText">Sender has an update for you about your XR Awards entry.</span>
+          </p>
+        </div>
+        <div id="emailPreview" class="bg-gray-100 p-4 h-[500px] overflow-auto">
+          <div class="bg-white rounded shadow-sm">
+            <iframe
+              id="previewFrame"
+              class="w-full h-[460px] border-0"
+              sandbox="allow-same-origin"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center justify-end gap-3 bg-white border border-gray-200 rounded-lg p-4">
+      <a
+        href="/admin/communications/"
+        class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+      >
+        Cancel
+      </a>
+      <button
+        type="button"
+        id="scheduleBtn"
+        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled
+      >
+        Schedule & Send
+      </button>
+    </div>
+  </div>
+
+  <!-- Schedule Modal -->
+  <div id="scheduleModal" class="hidden fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+    <div class="min-h-full flex items-center justify-center p-4">
+      <div class="bg-white rounded-lg w-full max-w-md">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900">Schedule & Send</h2>
+          <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="p-6 space-y-4">
+          <!-- Summary -->
+          <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Recipients:</span>
+              <span id="modalRecipientCount" class="font-semibold text-gray-900">0</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Sending As:</span>
+              <span id="modalSenderName" class="font-semibold text-gray-900">-</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Subject:</span>
+              <span id="modalSubject" class="font-semibold text-gray-900 truncate max-w-[200px]">-</span>
+            </div>
+          </div>
+
+          <!-- Schedule Option -->
+          <div class="space-y-3">
+            <label class="block text-sm font-medium text-gray-700">When to send?</label>
+            
+            <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input
+                type="radio"
+                name="sendTime"
+                value="now"
+                checked
+                class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <div>
+                <span class="text-sm font-medium text-gray-900">Send Immediately</span>
+                <p class="text-xs text-gray-500">Emails will be sent right away</p>
+              </div>
+            </label>
+
+            <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+              <input
+                type="radio"
+                name="sendTime"
+                value="scheduled"
+                class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+              />
+              <div class="flex-1">
+                <span class="text-sm font-medium text-gray-900">Schedule for Later</span>
+                <p class="text-xs text-gray-500">Choose a date and time</p>
+              </div>
+            </label>
+
+            <div id="scheduleDateTimeWrapper" class="hidden pl-7 space-y-2">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="scheduleDate" class="block text-xs text-gray-500 mb-1">Date</label>
+                  <input
+                    type="date"
+                    id="scheduleDate"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm"
+                  />
+                </div>
+                <div>
+                  <label for="scheduleTime" class="block text-xs text-gray-500 mb-1">Time</label>
+                  <input
+                    type="time"
+                    id="scheduleTime"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Message -->
+          <div id="modalError" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"></div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3">
+          <button
+            type="button"
+            id="cancelModalBtn"
+            class="flex-1 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            id="confirmSendBtn"
+            class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
+            Confirm & Send
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  const accessToken = window.__SUPABASE_ACCESS_TOKEN__ || '';
+  
+  // State
+  let events: any[] = [];
+  let activeEvent: any = null;
+  let userProfiles: any[] = [];
+  let availableContacts: any[] = [];
+  let selectedContactIds: Set<string> = new Set();
+  let emailTemplate = '';
+
+  // DOM Elements
+  const eventFilter = document.getElementById('eventFilter') as HTMLSelectElement;
+  const contactTypeFilter = document.getElementById('contactTypeFilter') as HTMLSelectElement;
+  const winnerFilter = document.getElementById('winnerFilter') as HTMLSelectElement;
+  const loadRecipientsBtn = document.getElementById('loadRecipientsBtn') as HTMLButtonElement;
+  const recipientsList = document.getElementById('recipientsList') as HTMLElement;
+  const recipientCount = document.getElementById('recipientCount') as HTMLElement;
+  const selectAllBtn = document.getElementById('selectAllBtn') as HTMLButtonElement;
+  const deselectAllBtn = document.getElementById('deselectAllBtn') as HTMLButtonElement;
+  const senderSelect = document.getElementById('senderSelect') as HTMLSelectElement;
+  const subjectInput = document.getElementById('subjectInput') as HTMLInputElement;
+  const preheaderInput = document.getElementById('preheaderInput') as HTMLInputElement;
+  const messageContent = document.getElementById('messageContent') as HTMLTextAreaElement;
+  const charCount = document.getElementById('charCount') as HTMLElement;
+  const scheduleBtn = document.getElementById('scheduleBtn') as HTMLButtonElement;
+  const previewFrame = document.getElementById('previewFrame') as HTMLIFrameElement;
+  const previewSubjectText = document.getElementById('previewSubjectText') as HTMLElement;
+  const previewPreheaderText = document.getElementById('previewPreheaderText') as HTMLElement;
+  
+  // CTA elements
+  const enableCta = document.getElementById('enableCta') as HTMLInputElement;
+  const ctaFields = document.getElementById('ctaFields') as HTMLElement;
+  const ctaText = document.getElementById('ctaText') as HTMLInputElement;
+  const ctaLink = document.getElementById('ctaLink') as HTMLInputElement;
+  
+  // Modal elements
+  const scheduleModal = document.getElementById('scheduleModal') as HTMLElement;
+  const closeModalBtn = document.getElementById('closeModalBtn') as HTMLButtonElement;
+  const cancelModalBtn = document.getElementById('cancelModalBtn') as HTMLButtonElement;
+  const confirmSendBtn = document.getElementById('confirmSendBtn') as HTMLButtonElement;
+  const modalRecipientCount = document.getElementById('modalRecipientCount') as HTMLElement;
+  const modalSenderName = document.getElementById('modalSenderName') as HTMLElement;
+  const modalSubject = document.getElementById('modalSubject') as HTMLElement;
+  const modalError = document.getElementById('modalError') as HTMLElement;
+  const scheduleDateTimeWrapper = document.getElementById('scheduleDateTimeWrapper') as HTMLElement;
+  const scheduleDate = document.getElementById('scheduleDate') as HTMLInputElement;
+  const scheduleTime = document.getElementById('scheduleTime') as HTMLInputElement;
+
+  // Escape HTML
+  function escapeHtml(text: string | null): string {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Simple markdown to HTML conversion
+  function markdownToHtml(text: string): string {
+    if (!text) return '';
+    
+    return text
+      // Bold
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      // Italic
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      // Links
+      .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" style="color: #4924EB; text-decoration: underline;">$1</a>')
+      // Line breaks to paragraphs
+      .split(/\n\n+/)
+      .map(para => para.trim())
+      .filter(para => para.length > 0)
+      .map(para => {
+        // Check if it's a bullet list
+        if (para.match(/^[-*]\s/m)) {
+          const items = para.split(/\n/).map(line => {
+            const match = line.match(/^[-*]\s(.+)/);
+            return match ? `<li>${match[1]}</li>` : '';
+          }).join('');
+          return `<ul style="margin: 0; padding-left: 20px;">${items}</ul>`;
+        }
+        return `<p style="margin: 0 0 12px 0;">${para.replace(/\n/g, '<br>')}</p>`;
+      })
+      .join('');
+  }
+
+  // Get auto-generated subject based on recipient types
+  function getAutoSubject(): string {
+    if (!activeEvent) return 'You have a new update from the XR Awards team. 📬';
+    
+    const contactType = contactTypeFilter.value;
+    const eventName = activeEvent.event_name || 'XR Awards';
+    
+    if (contactType === 'finalist') {
+      return `You have a new update on your ${eventName} Entry. 📬`;
+    } else if (contactType === 'judge') {
+      return `You have an update on your ${eventName} judging. 📬`;
+    } else if (contactType === 'sponsor') {
+      return `You have an update on your ${eventName} sponsorship. 📬`;
+    } else {
+      // Mixed or all types
+      return `You have a new update from the ${eventName} team. 📬`;
+    }
+  }
+
+  // Get auto-generated preheader based on recipient types
+  function getAutoPreheader(): string {
+    const selectedOption = senderSelect.selectedOptions[0];
+    const senderFirstName = selectedOption?.dataset.name?.split(' ')[0] || 'The team';
+    const contactType = contactTypeFilter.value;
+    
+    if (contactType === 'finalist') {
+      return `${senderFirstName} has an update for you about your XR Awards entry.`;
+    } else if (contactType === 'judge') {
+      return `${senderFirstName} has an update for you about your judging duties.`;
+    } else if (contactType === 'sponsor') {
+      return `${senderFirstName} has an update about your sponsorship.`;
+    } else {
+      return `${senderFirstName} has an update for you from the XR Awards Gala.`;
+    }
+  }
+
+  // Get current subject (user input or auto)
+  function getCurrentSubject(): string {
+    return subjectInput.value.trim() || getAutoSubject();
+  }
+
+  // Get current preheader (user input or auto)
+  function getCurrentPreheader(): string {
+    return preheaderInput.value.trim() || getAutoPreheader();
+  }
+
+  // Get FAQ content based on event status
+  function getFaqContent(): string {
+    const ticketsUrl = activeEvent?.tickets_portal_url || 'https://events.unitedxr.eu/2025';
+    const winnersUrl = activeEvent ? `/winners-and-finalists-${activeEvent.event_year}/` : '/finalists/';
+    
+    // Determine if ceremony has passed
+    const now = new Date();
+    const ceremonyDate = activeEvent?.awards_ceremony ? new Date(activeEvent.awards_ceremony) : null;
+    const isPastCeremony = ceremonyDate && now > ceremonyDate;
+    
+    // Format ceremony date for display
+    const formatDate = (date: Date) => {
+      return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    };
+    
+    let winnersQuestion = '';
+    if (isPastCeremony && ceremonyDate) {
+      winnersQuestion = `<li style="color:#333333;margin:0px 0px 15px;font-size:18px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'"><p style="Margin:0;mso-line-height-rule:exactly;mso-margin-bottom-alt:15px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';line-height:27px;letter-spacing:0;color:#333333;font-size:18px;mso-margin-top-alt:15px"><span style="font-size:16px"><strong>When were the winners announced?</strong><br/></span><span style="line-height:24px;font-size:16px">Winners were announced on ${formatDate(ceremonyDate)} live on stage in Belgium at the awards ceremony. <a href="${winnersUrl}" style="color:inherit;text-decoration:underline;">See the full list of winners</a>.</span></p></li>`;
+    } else {
+      winnersQuestion = `<li style="color:#333333;margin:0px 0px 15px;font-size:18px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'"><p style="Margin:0;mso-line-height-rule:exactly;mso-margin-bottom-alt:15px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';line-height:27px;letter-spacing:0;color:#333333;font-size:18px;mso-margin-top-alt:15px"><span style="font-size:16px"><strong>When and where are the winners announced?</strong><br/></span><span style="line-height:24px;font-size:16px">Winners will be revealed on the awards night. Join us in person on the red carpet!</span></p></li>`;
+    }
+
+    return `<ul style="font-family:'courier new', courier, 'lucida sans typewriter', 'lucida typewriter', monospace;padding:0px 0px 0px 40px;margin-top:15px;margin-bottom:15px">
+      <li style="color:#333333;margin:0px 0px 15px;font-size:18px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'"><p style="Margin:0;mso-line-height-rule:exactly;mso-margin-bottom-alt:15px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';line-height:27px;letter-spacing:0;color:#333333;font-size:18px;mso-margin-top-alt:15px"><span style="font-size:16px"><strong>How do I book tickets for my team?</strong><br/></span><span style="font-size:16px">Just head over to our <a href="${ticketsUrl}" style="color:inherit;text-decoration:underline;">ticketing page</a> to secure your seats. Don't forget to grab tickets early to save!</span></p></li>
+      ${winnersQuestion}
+      <li style="color:#333333;margin:0px 0px 15px;font-size:18px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'"><p style="Margin:0;mso-line-height-rule:exactly;mso-margin-bottom-alt:15px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';line-height:27px;letter-spacing:0;color:#333333;font-size:18px;mso-margin-top-alt:15px"><strong style="font-size:16px">Can you help me access more opportunities?</strong><br/><span style="font-size:16px;line-height:24px">Absolutely! We have ad slots, sponsorship or networking opportunities. Reach out to us, and we'll connect you with the right people.</span></p></li>
+    </ul>`;
+  }
+
+  // Load events for filter
+  async function loadEvents() {
+    try {
+      const response = await fetch('/api/events/');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      events = data.events || [];
+      
+      // Find active event
+      activeEvent = events.find(e => e.is_active) || events[0] || null;
+      
+      events.forEach(evt => {
+        const option = document.createElement('option');
+        option.value = evt.id;
+        option.textContent = `${evt.event_name} (${evt.event_year})`;
+        if (evt.is_active) option.textContent += ' ★';
+        eventFilter.appendChild(option);
+      });
+      
+      // Pre-select active event
+      if (activeEvent) {
+        eventFilter.value = activeEvent.id;
+      }
+    } catch (error) {
+      console.error('Error loading events:', error);
+    }
+  }
+
+  // Load user profiles for sender selection
+  async function loadUserProfiles() {
+    try {
+      const response = await fetch('/api/user-profiles/', {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      userProfiles = data.profiles || [];
+
+      userProfiles.forEach(profile => {
+        const option = document.createElement('option');
+        option.value = profile.id;
+        const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+        option.textContent = fullName || 'Unknown';
+        option.dataset.name = fullName;
+        option.dataset.photo = profile.profile_photo_url || '';
+        option.dataset.title = profile.job_title || '';
+        senderSelect.appendChild(option);
+      });
+
+      // Pre-select first profile if available
+      if (userProfiles.length > 0) {
+        senderSelect.value = userProfiles[0].id;
+        updatePreview();
+      }
+    } catch (error) {
+      console.error('Error loading user profiles:', error);
+    }
+  }
+
+  // Load email template
+  async function loadEmailTemplate() {
+    try {
+      emailTemplate = getDefaultEmailTemplate();
+      updatePreview();
+    } catch (error) {
+      console.error('Error loading template:', error);
+    }
+  }
+
+  // Get default email template
+  function getDefaultEmailTemplate(): string {
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{subject}}</title>
+  <style>
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #ffffff; }
+    .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
+    .header { padding: 40px 20px 30px; }
+    .logo { height: 54px; }
+    .title { padding: 20px; }
+    .title h1 { margin: 0; font-size: 28px; color: #434246; font-weight: bold; }
+    .intro { padding: 0 20px 20px; }
+    .intro p { margin: 0; font-size: 18px; color: #434246; line-height: 1.4; }
+    .message-wrapper { padding: 0 20px 20px; display: flex; gap: 15px; }
+    .sender-photo { width: 80px; height: 80px; border-radius: 0; flex-shrink: 0; object-fit: cover; }
+    .message-box { flex: 1; background: #4924EB; border-radius: 10px; padding: 12px 15px; color: #ffffff; }
+    .greeting { font-size: 18px; margin-bottom: 12px; }
+    .content { font-size: 18px; line-height: 1.4; }
+    .content p { margin: 0 0 12px 0; }
+    .content ul { margin: 0; padding-left: 20px; }
+    .sender-info { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2); }
+    .sender-name { font-size: 14px; color: #c3bdeb; font-family: 'Courier New', monospace; font-weight: bold; }
+    .sender-title { font-size: 14px; color: #c3bdeb; font-family: 'Courier New', monospace; }
+    .cta-wrapper { padding: 20px; text-align: right; }
+    .cta-btn { display: inline-block; padding: 16px 26px; background: #fe6802; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 14px; }
+    .faq { padding: 20px; }
+    .faq h2 { font-size: 18px; color: #434246; margin: 0 0 12px 0; }
+    .faq ul { margin: 0; padding-left: 40px; }
+    .faq li { margin-bottom: 15px; color: #333333; font-size: 16px; }
+    .footer { padding: 20px; }
+    .footer p { font-size: 14px; color: #3a3a3a; margin: 0 0 12px 0; }
+    .social-icons { display: flex; gap: 3px; margin-bottom: 20px; }
+    .social-icons img { width: 26px; height: 26px; }
+    .unsubscribe { font-size: 14px; color: #8b8b8b; }
+    .unsubscribe a { color: #8b8b8b; }
+  </style>
+</head>
+<body>
+  <span style="visibility:hidden;height:0;color:#ffffff;width:0;display:none !important;mso-hide:all;font-size:0px;line-height:0;opacity:0">{{preheader}}</span>
+  <div class="container">
+    <div class="header">
+      <img src="https://pub-8816934acbc2497196aa7525c50bc9cc.r2.dev/images/2025/12/eu_awards_1765796944333.png" alt="AIXR XR Awards" class="logo">
+    </div>
+    <div class="title">
+      <h1>New Message from the XR Awards Gala team!</h1>
+    </div>
+    <div class="intro">
+      <p>Check out your new message below.</p>
+    </div>
+    <div class="message-wrapper">
+      <img src="{{sender_photo_url}}" alt="{{sender_name}}" class="sender-photo">
+      <div class="message-box">
+        <div class="greeting">Hi {{recipient_name_or_default}},</div>
+        <div class="content">{{message_content}}</div>
+        <div class="sender-info">
+          <div class="sender-name">{{sender_name}}</div>
+          <div class="sender-title">{{sender_title}}</div>
+        </div>
+      </div>
+    </div>
+    {{cta_section}}
+    <div class="faq">
+      <h2>Frequently Asked Questions</h2>
+      {{faq_content}}
+    </div>
+    <div class="footer">
+      <p><strong>Team AIXR & UnitedXR</strong></p>
+      <div class="social-icons">
+        <img src="https://eotjkeb.stripocdn.email/content/assets/img/social-icons/logo-black/x-logo-black.png" alt="X">
+        <img src="https://eotjkeb.stripocdn.email/content/assets/img/social-icons/logo-black/facebook-logo-black.png" alt="Facebook">
+        <img src="https://eotjkeb.stripocdn.email/content/assets/img/messenger-icons/logo-black/discort-logo-black.png" alt="Discord">
+        <img src="https://eotjkeb.stripocdn.email/content/assets/img/social-icons/logo-black/youtube-logo-black.png" alt="YouTube">
+        <img src="https://eotjkeb.stripocdn.email/content/assets/img/social-icons/logo-black/instagram-logo-black.png" alt="Instagram">
+      </div>
+      <p>Have questions or need help? Reply to this email</p>
+      <p>15 Eastwood Road, Rayleigh, Essex, United Kingdom, SS6 7JD © 2025 The Academy of International Extended Reality</p>
+      <p class="unsubscribe">You are receiving this notification as you have interacted with the AIXR XR Awards. You can <a href="#">unsubscribe</a> from future scheduled notifications.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+  }
+
+  // Load recipients based on filters
+  async function loadRecipients() {
+    loadRecipientsBtn.disabled = true;
+    loadRecipientsBtn.textContent = 'Loading...';
+    
+    try {
+      const params = new URLSearchParams();
+      
+      if (eventFilter.value) {
+        params.append('event_id', eventFilter.value);
+        // Update activeEvent based on selection
+        activeEvent = events.find(e => e.id === eventFilter.value) || activeEvent;
+      }
+      if (contactTypeFilter.value) {
+        params.append('contact_type', contactTypeFilter.value);
+      }
+      if (winnerFilter.value) {
+        params.append('is_winner', winnerFilter.value);
+      }
+      params.append('is_active', 'true');
+
+      const response = await fetch(`/api/contacts-with-events/?${params.toString()}`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+
+      if (!response.ok) throw new Error('Failed to load recipients');
+
+      const data = await response.json();
+      availableContacts = data.contacts || [];
+      
+      // Select all by default
+      selectedContactIds = new Set(availableContacts.map(c => c.id));
+      
+      renderRecipients();
+      updateRecipientCount();
+      updateScheduleButton();
+      updatePreview(); // Update preview to reflect new subject/preheader
+    } catch (error) {
+      console.error('Error loading recipients:', error);
+      recipientsList.innerHTML = `
+        <p class="text-sm text-red-500 text-center py-4">Failed to load recipients. Please try again.</p>
+      `;
+    } finally {
+      loadRecipientsBtn.disabled = false;
+      loadRecipientsBtn.textContent = 'Load Recipients';
+    }
+  }
+
+  // Render recipients list
+  function renderRecipients() {
+    if (availableContacts.length === 0) {
+      recipientsList.innerHTML = `
+        <p class="text-sm text-gray-500 text-center py-4">No contacts found matching the filters</p>
+      `;
+      return;
+    }
+
+    const html = availableContacts.map(contact => {
+      const isSelected = selectedContactIds.has(contact.id);
+      const name = [contact.first_name, contact.last_name].filter(Boolean).join(' ') || contact.related_name || 'Unknown';
+      const org = contact.organization || contact.related_org || '';
+      const typeLabel = contact.contact_type.charAt(0).toUpperCase() + contact.contact_type.slice(1);
+      const typeColor = contact.contact_type === 'judge' ? 'bg-purple-100 text-purple-800' :
+                       contact.contact_type === 'finalist' ? 'bg-blue-100 text-blue-800' :
+                       contact.contact_type === 'sponsor' ? 'bg-green-100 text-green-800' :
+                       'bg-gray-100 text-gray-800';
+      
+      return `
+        <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer ${isSelected ? 'bg-blue-50' : ''}">
+          <input
+            type="checkbox"
+            data-contact-id="${contact.id}"
+            ${isSelected ? 'checked' : ''}
+            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 contact-checkbox"
+          />
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium text-gray-900 truncate">${escapeHtml(name)}</span>
+              <span class="px-1.5 py-0.5 text-[10px] font-medium rounded ${typeColor}">${typeLabel}</span>
+              ${contact.is_winner ? '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-100 text-amber-800">Winner</span>' : ''}
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+              <span class="truncate">${escapeHtml(contact.email)}</span>
+              ${org ? `<span>•</span><span class="truncate">${escapeHtml(org)}</span>` : ''}
+            </div>
+          </div>
+        </label>
+      `;
+    }).join('');
+
+    recipientsList.innerHTML = html;
+
+    // Add event listeners to checkboxes
+    recipientsList.querySelectorAll('.contact-checkbox').forEach(checkbox => {
+      checkbox.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement;
+        const contactId = target.dataset.contactId!;
+        if (target.checked) {
+          selectedContactIds.add(contactId);
+          target.closest('label')?.classList.add('bg-blue-50');
+        } else {
+          selectedContactIds.delete(contactId);
+          target.closest('label')?.classList.remove('bg-blue-50');
+        }
+        updateRecipientCount();
+        updateScheduleButton();
+      });
+    });
+  }
+
+  // Update recipient count display
+  function updateRecipientCount() {
+    recipientCount.textContent = selectedContactIds.size.toString();
+  }
+
+  // Select all recipients
+  selectAllBtn.addEventListener('click', () => {
+    selectedContactIds = new Set(availableContacts.map(c => c.id));
+    recipientsList.querySelectorAll('.contact-checkbox').forEach(checkbox => {
+      (checkbox as HTMLInputElement).checked = true;
+      checkbox.closest('label')?.classList.add('bg-blue-50');
+    });
+    updateRecipientCount();
+    updateScheduleButton();
+  });
+
+  // Deselect all recipients
+  deselectAllBtn.addEventListener('click', () => {
+    selectedContactIds.clear();
+    recipientsList.querySelectorAll('.contact-checkbox').forEach(checkbox => {
+      (checkbox as HTMLInputElement).checked = false;
+      checkbox.closest('label')?.classList.remove('bg-blue-50');
+    });
+    updateRecipientCount();
+    updateScheduleButton();
+  });
+
+  // Load recipients button
+  loadRecipientsBtn.addEventListener('click', loadRecipients);
+
+  // Toggle CTA fields
+  enableCta.addEventListener('change', () => {
+    if (enableCta.checked) {
+      ctaFields.classList.remove('hidden');
+    } else {
+      ctaFields.classList.add('hidden');
+    }
+    updatePreview();
+  });
+
+  // Update preview when inputs change
+  function updatePreview() {
+    const selectedOption = senderSelect.selectedOptions[0];
+    const senderName = selectedOption?.dataset.name || 'Sender Name';
+    const senderPhoto = selectedOption?.dataset.photo || 'https://via.placeholder.com/80';
+    const senderTitle = selectedOption?.dataset.title || 'XR Awards Team';
+    const subject = getCurrentSubject();
+    const preheader = getCurrentPreheader();
+    const content = markdownToHtml(messageContent.value) || '<p>Your message content will appear here...</p>';
+    
+    // Update preview header
+    previewSubjectText.textContent = subject;
+    previewPreheaderText.textContent = preheader;
+
+    // Build CTA section
+    let ctaSection = '';
+    if (enableCta.checked && ctaText.value && ctaLink.value) {
+      ctaSection = `<div class="cta-wrapper"><a href="${escapeHtml(ctaLink.value)}" class="cta-btn">${escapeHtml(ctaText.value)}</a></div>`;
+    }
+
+    // Build FAQ content
+    const faqContent = getFaqContent();
+
+    let html = emailTemplate
+      .replace(/\{\{subject\}\}/g, escapeHtml(subject))
+      .replace(/\{\{preheader\}\}/g, escapeHtml(preheader))
+      .replace(/\{\{sender_name\}\}/g, escapeHtml(senderName))
+      .replace(/\{\{sender_photo_url\}\}/g, senderPhoto || 'https://via.placeholder.com/80')
+      .replace(/\{\{sender_title\}\}/g, escapeHtml(senderTitle))
+      .replace(/\{\{recipient_name_or_default\}\}/g, 'there')
+      .replace(/\{\{message_content\}\}/g, content)
+      .replace(/\{\{cta_section\}\}/g, ctaSection)
+      .replace(/\{\{faq_content\}\}/g, faqContent);
+
+    // Update iframe content
+    const doc = previewFrame.contentDocument;
+    if (doc) {
+      doc.open();
+      doc.write(html);
+      doc.close();
+    }
+  }
+
+  // Update character count
+  messageContent.addEventListener('input', () => {
+    charCount.textContent = messageContent.value.length.toString();
+    updatePreview();
+  });
+
+  // Subject change
+  subjectInput.addEventListener('input', updatePreview);
+  
+  // Preheader change
+  preheaderInput.addEventListener('input', updatePreview);
+
+  // Sender change
+  senderSelect.addEventListener('change', updatePreview);
+  
+  // Contact type filter change (updates auto subject/preheader)
+  contactTypeFilter.addEventListener('change', updatePreview);
+
+  // CTA input changes
+  ctaText.addEventListener('input', updatePreview);
+  ctaLink.addEventListener('input', updatePreview);
+
+  // Update schedule button state
+  function updateScheduleButton() {
+    const hasRecipients = selectedContactIds.size > 0;
+    const hasSender = senderSelect.value !== '';
+    const hasContent = messageContent.value.trim() !== '';
+
+    scheduleBtn.disabled = !(hasRecipients && hasSender && hasContent);
+  }
+
+  // Watch all form inputs for validation
+  subjectInput.addEventListener('input', updateScheduleButton);
+  messageContent.addEventListener('input', updateScheduleButton);
+  senderSelect.addEventListener('change', updateScheduleButton);
+
+  // Open schedule modal
+  scheduleBtn.addEventListener('click', () => {
+    // Update modal summary
+    modalRecipientCount.textContent = selectedContactIds.size.toString();
+    
+    const selectedOption = senderSelect.selectedOptions[0];
+    modalSenderName.textContent = selectedOption?.dataset.name || 'Unknown';
+    modalSubject.textContent = getCurrentSubject();
+
+    // Reset modal state
+    modalError.classList.add('hidden');
+    (document.querySelector('input[name="sendTime"][value="now"]') as HTMLInputElement).checked = true;
+    scheduleDateTimeWrapper.classList.add('hidden');
+
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    scheduleDate.min = today;
+    scheduleDate.value = today;
+    scheduleTime.value = '09:00';
+
+    scheduleModal.classList.remove('hidden');
+  });
+
+  // Close modal
+  function closeModal() {
+    scheduleModal.classList.add('hidden');
+  }
+  closeModalBtn.addEventListener('click', closeModal);
+  cancelModalBtn.addEventListener('click', closeModal);
+
+  // Toggle schedule date/time inputs
+  document.querySelectorAll('input[name="sendTime"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      const value = (e.target as HTMLInputElement).value;
+      if (value === 'scheduled') {
+        scheduleDateTimeWrapper.classList.remove('hidden');
+      } else {
+        scheduleDateTimeWrapper.classList.add('hidden');
+      }
+    });
+  });
+
+  // Confirm and send
+  confirmSendBtn.addEventListener('click', async () => {
+    modalError.classList.add('hidden');
+    confirmSendBtn.disabled = true;
+    confirmSendBtn.textContent = 'Sending...';
+
+    try {
+      const selectedOption = senderSelect.selectedOptions[0];
+      const senderName = selectedOption?.dataset.name || 'Sender';
+      const senderPhoto = selectedOption?.dataset.photo || '';
+      const senderTitle = selectedOption?.dataset.title || '';
+      const subject = getCurrentSubject();
+      const preheader = getCurrentPreheader();
+      const content = markdownToHtml(messageContent.value);
+
+      // Build CTA section
+      let ctaSection = '';
+      if (enableCta.checked && ctaText.value && ctaLink.value) {
+        ctaSection = `<div class="cta-wrapper"><a href="${escapeHtml(ctaLink.value)}" class="cta-btn">${escapeHtml(ctaText.value)}</a></div>`;
+      }
+
+      // Build FAQ content
+      const faqContent = getFaqContent();
+
+      // Generate full HTML content
+      let html = emailTemplate
+        .replace(/\{\{subject\}\}/g, escapeHtml(subject))
+        .replace(/\{\{preheader\}\}/g, escapeHtml(preheader))
+        .replace(/\{\{sender_name\}\}/g, escapeHtml(senderName))
+        .replace(/\{\{sender_photo_url\}\}/g, senderPhoto || 'https://via.placeholder.com/80')
+        .replace(/\{\{sender_title\}\}/g, escapeHtml(senderTitle))
+        .replace(/\{\{recipient_name_or_default\}\}/g, '{{recipient_name_or_default}}') // Keep for server-side replacement
+        .replace(/\{\{message_content\}\}/g, content)
+        .replace(/\{\{cta_section\}\}/g, ctaSection)
+        .replace(/\{\{faq_content\}\}/g, faqContent);
+
+      // Get scheduled time if applicable
+      const sendTimeValue = (document.querySelector('input[name="sendTime"]:checked') as HTMLInputElement).value;
+      let scheduledAt = null;
+
+      if (sendTimeValue === 'scheduled') {
+        if (!scheduleDate.value || !scheduleTime.value) {
+          throw new Error('Please select a date and time for scheduled sending');
+        }
+        scheduledAt = new Date(`${scheduleDate.value}T${scheduleTime.value}`).toISOString();
+      }
+
+      // Create communication record
+      const response = await fetch('/api/communications/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          sent_by: senderSelect.value,
+          subject: subject,
+          message_content: messageContent.value,
+          html_content: html,
+          template_name: 'default',
+          contact_ids: Array.from(selectedContactIds),
+          scheduled_at: scheduledAt
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create communication');
+      }
+
+      // Success - redirect to communications list
+      window.location.href = '/admin/communications/';
+    } catch (error) {
+      console.error('Error sending communication:', error);
+      modalError.textContent = error instanceof Error ? error.message : 'Failed to send communication';
+      modalError.classList.remove('hidden');
+      confirmSendBtn.disabled = false;
+      confirmSendBtn.textContent = 'Confirm & Send';
+    }
+  });
+
+  // Initialize
+  async function init() {
+    await Promise.all([
+      loadEvents(),
+      loadUserProfiles(),
+      loadEmailTemplate()
+    ]);
+  }
+
+  init();
+</script>
