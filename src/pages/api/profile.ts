@@ -31,7 +31,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
     // Fetch user profile
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
-      .select('first_name, last_name, profile_photo_url')
+      .select('first_name, last_name, profile_photo_url, job_title')
       .eq('id', user.id)
       .single();
 
@@ -49,6 +49,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
         firstName: profile?.first_name || '',
         lastName: profile?.last_name || '',
         profilePhotoUrl: profile?.profile_photo_url || null,
+        jobTitle: profile?.job_title || '',
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
@@ -85,7 +86,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { firstName, lastName, profilePhotoUrl } = body;
+    const { firstName, lastName, profilePhotoUrl, jobTitle } = body;
 
     if (!firstName || !lastName) {
       return new Response(
@@ -102,6 +103,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         profile_photo_url: profilePhotoUrl || null,
+        job_title: (jobTitle || '').trim() || null,
         updated_at: new Date().toISOString(),
       }, {
         onConflict: 'id',

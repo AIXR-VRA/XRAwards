@@ -6,6 +6,7 @@ interface ProfileData {
   firstName: string;
   lastName: string;
   profilePhotoUrl: string | null;
+  jobTitle?: string;
 }
 
 interface ProfileEditFormProps {
@@ -24,6 +25,7 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -41,6 +43,7 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
           const profile = await response.json();
           setFirstName(profile.firstName || '');
           setLastName(profile.lastName || '');
+          setJobTitle(profile.jobTitle || '');
           setProfilePhotoUrl(profile.profilePhotoUrl || null);
           setProfilePhoto(null);
         } else {
@@ -48,6 +51,7 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
           if (data) {
             setFirstName(data.firstName || '');
             setLastName(data.lastName || '');
+            setJobTitle(data.jobTitle || '');
             setProfilePhotoUrl(data.profilePhotoUrl || null);
             setProfilePhoto(null);
           }
@@ -57,6 +61,7 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
         if (data) {
           setFirstName(data.firstName || '');
           setLastName(data.lastName || '');
+          setJobTitle(data.jobTitle || '');
           setProfilePhotoUrl(data.profilePhotoUrl || null);
           setProfilePhoto(null);
         }
@@ -76,6 +81,7 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
     if (propInitialData) {
       setFirstName(propInitialData.firstName || '');
       setLastName(propInitialData.lastName || '');
+      setJobTitle(propInitialData.jobTitle || '');
       setProfilePhotoUrl(propInitialData.profilePhotoUrl || null);
       setProfilePhoto(null);
     }
@@ -140,6 +146,7 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
         body: JSON.stringify({
           firstName: firstName.trim(),
           lastName: lastName.trim(),
+          jobTitle: jobTitle.trim(),
           profilePhotoUrl: photoUrl,
         }),
       });
@@ -154,6 +161,7 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
         await propOnSave({
           firstName: firstName.trim(),
           lastName: lastName.trim(),
+          jobTitle: jobTitle.trim(),
           profilePhotoUrl: photoUrl,
         });
       }
@@ -223,6 +231,27 @@ export const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             disabled={loading}
           />
+        </div>
+
+        <div>
+          <label
+            htmlFor="jobTitle"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Job Title (for email sender info)
+          </label>
+          <input
+            type="text"
+            id="jobTitle"
+            value={jobTitle}
+            onChange={(e) => setJobTitle(e.target.value)}
+            placeholder="e.g. Awards Director"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+            disabled={loading}
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            This appears under your name in XR Awards communication emails.
+          </p>
         </div>
 
         <div>
