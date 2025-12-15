@@ -125,7 +125,7 @@ serve(async (req: Request) => {
     // Find the recipient record by Resend email ID
     const { data: recipient, error: findError } = await supabase
       .from('communication_recipients')
-      .select('id, communication_id, status')
+      .select('id, communication_id, status, opened_at, clicked_at')
       .eq('resend_email_id', payload.data.email_id)
       .single()
 
@@ -185,12 +185,27 @@ serve(async (req: Request) => {
 
       case 'email.opened':
         // Email was opened (tracking)
-        updateData.opened_at = payload.created_at
+        // Set opened_at to first open time, increment open_count for subsequent opens
+        if (!recipient.opened_at) {
+          updateData.opened_at = payload.created_at
+        }
+        // Increment open count
+        await incrementOpenCount(supabase, recipient.id)
         break
 
       case 'email.clicked':
         // Link was clicked (tracking)
-        updateData.clicked_at = payload.created_at
+        // Set clicked_at to first click time
+        if (!recipient.clicked_at) {
+          updateData.clicked_at = payload.created_at
+        }
+        // Store detailed click data
+        await addClickData(supabase, recipient.id, {
+          url: payload.data.click?.link || 'unknown',
+          timestamp: payload.data.click?.timestamp || payload.created_at,
+          ip: payload.data.click?.ipAddress || '',
+          userAgent: payload.data.click?.userAgent || ''
+        })
         break
 
       case 'email.failed':
@@ -350,5 +365,60 @@ async function markContactBounced(supabase: any, recipientId: string) {
     
     console.log(`⚠️ Marked contact ${recipient.contact_id} as inactive due to bounce`)
   }
+}
+
+/**
+ * Increment open count for a recipient
+ */
+async function incrementOpenCount(supabase: any, recipientId: string) {
+  const { data: recipient } = await supabase
+    .from('communication_recipients')
+    .select('open_count')
+    .eq('id', recipientId)
+    .single()
+
+  const currentCount = recipient?.open_count || 0
+  
+  await supabase
+    .from('communication_recipients')
+    .update({ open_count: currentCount + 1 })
+    .eq('id', recipientId)
+  
+  console.log(`👁️ Open count incremented to ${currentCount + 1} for recipient ${recipientId}`)
+}
+
+/**
+ * Add click data to recipient record
+ */
+async function addClickData(
+  supabase: any, 
+  recipientId: string, 
+  clickInfo: { url: string; timestamp: string; ip: string; userAgent: string }
+) {
+  // Get current click_data
+  const { data: recipient } = await supabase
+    .from('communication_recipients')
+    .select('click_data')
+    .eq('id', recipientId)
+    .single()
+
+  const currentData = recipient?.click_data || { clicks: [], click_count: 0 }
+  
+  // Add new click to array
+  currentData.clicks.push({
+    url: clickInfo.url,
+    timestamp: clickInfo.timestamp,
+    ip: clickInfo.ip,
+    userAgent: clickInfo.userAgent
+  })
+  currentData.click_count = (currentData.click_count || 0) + 1
+
+  // Update the record
+  await supabase
+    .from('communication_recipients')
+    .update({ click_data: currentData })
+    .eq('id', recipientId)
+  
+  console.log(`🔗 Click recorded for ${recipientId}: ${clickInfo.url} (total: ${currentData.click_count})`)
 }
 

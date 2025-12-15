@@ -152,19 +152,41 @@ import AdminLayout from '../../../components/admin/AdminLayout.astro';
     }
   }
 
-  // Update stats
+  // Load stats (separate call for accurate counts)
+  async function loadStats() {
+    try {
+      // Fetch counts for each status
+      const statuses = ['', 'scheduled', 'completed', 'failed'];
+      const results = await Promise.all(
+        statuses.map(status => {
+          const params = new URLSearchParams({ limit: '1' });
+          if (status) params.append('status', status);
+          return fetch(`/api/communications/?${params.toString()}`, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+          }).then(r => r.json());
+        })
+      );
+
+      document.getElementById('statTotalSent')!.textContent = (results[0].pagination?.total || 0).toString();
+      document.getElementById('statScheduled')!.textContent = (results[1].pagination?.total || 0).toString();
+      document.getElementById('statCompleted')!.textContent = (results[2].pagination?.total || 0).toString();
+      
+      // Count failed + partially_failed
+      const failedParams = new URLSearchParams({ limit: '1', status: 'partially_failed' });
+      const partiallyFailed = await fetch(`/api/communications/?${failedParams.toString()}`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      }).then(r => r.json());
+      
+      const failedCount = (results[3].pagination?.total || 0) + (partiallyFailed.pagination?.total || 0);
+      document.getElementById('statFailed')!.textContent = failedCount.toString();
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    }
+  }
+
+  // Update stats (called after loading communications for backward compatibility)
   function updateStats() {
-    // For now, show total. In production, you'd want separate API calls for stats
-    document.getElementById('statTotalSent')!.textContent = pagination.total.toString();
-    
-    // Count by status from current page (this is approximate)
-    const scheduled = communications.filter(c => c.status === 'scheduled').length;
-    const completed = communications.filter(c => c.status === 'completed').length;
-    const failed = communications.filter(c => c.status === 'failed' || c.status === 'partially_failed').length;
-    
-    document.getElementById('statScheduled')!.textContent = scheduled.toString();
-    document.getElementById('statCompleted')!.textContent = completed.toString();
-    document.getElementById('statFailed')!.textContent = failed.toString();
+    // Stats are now loaded separately via loadStats()
   }
 
   // Render communications list
@@ -191,7 +213,7 @@ import AdminLayout from '../../../components/admin/AdminLayout.astro';
       const senderPhoto = comm.user_profiles?.profile_photo_url;
 
       return `
-        <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+        <a href="/admin/communications/${comm.id}/" class="block bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer">
           <div class="flex items-start justify-between gap-4">
             <div class="flex items-start gap-3 flex-1 min-w-0">
               ${senderPhoto 
@@ -226,9 +248,12 @@ import AdminLayout from '../../../components/admin/AdminLayout.astro';
                   ${comm.failed_count > 0 ? ` • <span class="text-red-600">${comm.failed_count} failed</span>` : ''}
                 </p>
               </div>
+              <div class="text-right mt-1">
+                <span class="text-xs text-blue-600 hover:underline">View Details →</span>
+              </div>
             </div>
           </div>
-        </div>
+        </a>
       `;
     }).join('');
 
@@ -284,5 +309,6 @@ import AdminLayout from '../../../components/admin/AdminLayout.astro';
 
   // Initial load
   loadCommunications();
+  loadStats();
 </script>
 
