@@ -482,7 +482,7 @@ The XR Awards Team"
             const match = line.match(/^[-*]\s(.+)/);
             return match ? `<li>${match[1]}</li>` : '';
           }).join('');
-          return `<ul style="margin: 0; padding-left: 20px;">${items}</ul>`;
+          return `<ul style="margin: 0 0 16px 0; padding-left: 20px;">${items}</ul>`;
         }
         return `<p style="margin: 0 0 12px 0;">${para.replace(/\n/g, '<br>')}</p>`;
       })
@@ -688,17 +688,23 @@ The XR Awards Team"
     <div class="intro">
       <p>Check out your new message below.</p>
     </div>
-    <div class="message-wrapper">
-      <img src="{{sender_photo_url}}" alt="{{sender_name}}" class="sender-photo">
-      <div class="message-box">
-        <div class="greeting">Hi {{recipient_name_or_default}},</div>
-        <div class="content">{{message_content}}</div>
-        <div class="sender-info">
-          <div class="sender-name">{{sender_name}}</div>
-          <div class="sender-title">{{sender_title}}</div>
-        </div>
-      </div>
-    </div>
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="padding: 0 20px 20px;">
+      <tr>
+        <td width="80" valign="top" style="padding-right: 12px;">
+          <img src="{{sender_photo_url}}" alt="{{sender_name}}" width="80" height="80" style="width: 80px; height: 80px; display: block;">
+        </td>
+        <td valign="top">
+          <div class="message-box" style="background: #4924EB; border-radius: 10px; padding: 12px 15px; color: #ffffff;">
+            <div class="greeting" style="font-size: 18px; margin-bottom: 12px;">Hi {{recipient_name_or_default}},</div>
+            <div class="content" style="font-size: 18px; line-height: 1.4;">{{message_content}}</div>
+            <div class="sender-info" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2);">
+              <div class="sender-name" style="font-size: 14px; color: #c3bdeb; font-family: 'Courier New', monospace; font-weight: bold;">{{sender_name}}</div>
+              <div class="sender-title" style="font-size: 14px; color: #c3bdeb; font-family: 'Courier New', monospace;">{{sender_title}}</div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
     {{cta_section}}
     <div class="faq">
       <h2>Frequently Asked Questions</h2>
@@ -897,10 +903,10 @@ The XR Awards Team"
     previewSubjectText.textContent = subject;
     previewPreheaderText.textContent = preheader;
 
-    // Build CTA section
+    // Build CTA section - using inline styles for email client compatibility
     let ctaSection = '';
     if (enableCta.checked && ctaText.value && ctaLink.value) {
-      ctaSection = `<div class="cta-wrapper"><a href="${escapeHtml(ctaLink.value)}" class="cta-btn">${escapeHtml(ctaText.value)}</a></div>`;
+      ctaSection = `<div class="cta-wrapper" style="padding: 20px; text-align: right;"><a href="${escapeHtml(ctaLink.value)}" class="cta-btn" style="display: inline-block; padding: 16px 26px; background-color: #fe6802; color: #ffffff !important; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 14px; mso-line-height-rule: exactly;">${escapeHtml(ctaText.value)}</a></div>`;
     }
 
     // Build FAQ content
@@ -1197,10 +1203,10 @@ The XR Awards Team"
       const preheader = getCurrentPreheader();
       const content = markdownToHtml(messageContent.value);
 
-      // Build CTA section
+      // Build CTA section - using inline styles for email client compatibility
       let ctaSection = '';
       if (enableCta.checked && ctaText.value && ctaLink.value) {
-        ctaSection = `<div class="cta-wrapper"><a href="${escapeHtml(ctaLink.value)}" class="cta-btn">${escapeHtml(ctaText.value)}</a></div>`;
+        ctaSection = `<div class="cta-wrapper" style="padding: 20px; text-align: right;"><a href="${escapeHtml(ctaLink.value)}" class="cta-btn" style="display: inline-block; padding: 16px 26px; background-color: #fe6802; color: #ffffff !important; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 14px; mso-line-height-rule: exactly;">${escapeHtml(ctaText.value)}</a></div>`;
       }
 
       // Build FAQ content
