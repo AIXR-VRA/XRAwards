@@ -174,14 +174,14 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
 
     if (contactsError) throw contactsError;
 
-    // Transform and filter contacts
-    allContacts = (contactsData || []).map((c: any) => {
+    // 1. Transform raw data into structured contact objects
+    const expandedContacts = (contactsData || []).map((c: any) => {
       let relatedName = null;
       let relatedOrg = null;
       let relatedImage = null;
       let eventInfo = null;
 
-      // Accumulate status flags across ALL entries
+      // Accumulate status flags across ALL entries for this specific contact record
       let isWinnerAnywhere = false;
       let hasAccoladesAnywhere = false;
 
@@ -215,8 +215,6 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
           }
         });
 
-        // Use the first finalist for display info if needed, or prefer one from active event context if possible
-        // (For simple display, just use the first one)
         const finalist = c.contact_finalists[0]?.finalists;
         if (finalist) {
           if (!relatedName) relatedName = finalist.title;
@@ -239,7 +237,7 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
         }
       }
 
-      // Collect all finalist entries with categories and accolades
+      // Collect all finalist entries with full details
       const finalistEntries = c.contact_finalists?.map((cf: any) => {
         const f = cf.finalists;
         if (!f) return null;
@@ -270,16 +268,62 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
         related_org: relatedOrg,
         related_image: relatedImage,
         event_info: eventInfo,
-        is_winner: isWinnerAnywhere, // True if winner in ANY category
-        has_accolades: hasAccoladesAnywhere, // True if accolades in ANY category
-        contact_event_ids: [...new Set(contactEventIds)], // Unique event IDs
-        finalist_entries: finalistEntries, // All finalist entries with full details
-        // Backward compatibility for contacts.astro
+        is_winner: isWinnerAnywhere,
+        has_accolades: hasAccoladesAnywhere,
+        contact_event_ids: [...new Set(contactEventIds)],
+        finalist_entries: finalistEntries,
+        // Backward compatibility
         finalists: c.contact_finalists?.map((cf: any) => cf.finalists).filter(Boolean) || [],
         judges: c.contact_judges?.map((cj: any) => cj.judges).filter(Boolean) || [],
         sponsors: c.contact_sponsors?.map((cs: any) => cs.sponsors).filter(Boolean) || []
       };
     });
+
+    // 2. Merge duplicate contacts by Email (Case Insensitive)
+    const mergedContactsMap = new Map<string, any>();
+    const contactsWithoutEmail: any[] = [];
+
+    expandedContacts.forEach((c: any) => {
+      if (!c.email) {
+        contactsWithoutEmail.push(c);
+        return;
+      }
+
+      const emailKey = c.email.trim().toLowerCase();
+
+      if (mergedContactsMap.has(emailKey)) {
+        const existing = mergedContactsMap.get(emailKey);
+
+        // Merge flags
+        existing.is_active = existing.is_active || c.is_active;
+        existing.is_winner = existing.is_winner || c.is_winner;
+        existing.has_accolades = existing.has_accolades || c.has_accolades;
+
+        // Merge Arrays (Deduplicate Strings)
+        existing.contact_event_ids = [...new Set([...existing.contact_event_ids, ...c.contact_event_ids])];
+        existing.contact_types = [...new Set([...existing.contact_types, ...c.contact_types])];
+
+        // Merge Arrays of Objects (Deduplicate by ID)
+        const mergeObjectArrays = (arr1: any[], arr2: any[]) => {
+          const map = new Map();
+          arr1.forEach(i => map.set(i.id, i));
+          arr2.forEach(i => map.set(i.id, i));
+          return Array.from(map.values());
+        };
+
+        existing.finalist_entries = mergeObjectArrays(existing.finalist_entries, c.finalist_entries);
+        existing.finalists = mergeObjectArrays(existing.finalists, c.finalists);
+        existing.judges = mergeObjectArrays(existing.judges, c.judges);
+        existing.sponsors = mergeObjectArrays(existing.sponsors, c.sponsors);
+      } else {
+        mergedContactsMap.set(emailKey, c);
+      }
+    });
+
+    // Recombine merged list
+    allContacts = [...mergedContactsMap.values(), ...contactsWithoutEmail];
+
+    // 3. Apply Filters to the Merged List
 
     // Apply event include filter
     if (eventIds.length > 0) {
@@ -298,59 +342,50 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
     // Apply contact type include filter
     if (contactTypes.length > 0) {
       allContacts = allContacts.filter(c =>
-        c.contact_types.some((t: string) => contactTypes.includes(t))
+        c.contact_types.some((bg: string) => contactTypes.includes(bg))
       );
     }
 
     // Apply contact type exclude filter
     if (excludeContactTypes.length > 0) {
       allContacts = allContacts.filter(c =>
-        !c.contact_types.some((t: string) => excludeContactTypes.includes(t))
+        !c.contact_types.some((bg: string) => excludeContactTypes.includes(bg))
       );
     }
 
-    // Apply winner type include filter
-    if (winnerTypes.length > 0) {
+    // Apply winner type filters
+    if (winnerTypes.length > 0 || excludeWinnerTypes.length > 0) {
       allContacts = allContacts.filter(c => {
-        // Non-finalists pass through if we're not exclusively filtering finalists
-        if (!c.contact_types.includes('finalist')) {
-          return true;
+        // Handle Inclusions (OR logic)
+        let matchesInclude = true;
+        if (winnerTypes.length > 0) {
+          matchesInclude = false;
+          if (winnerTypes.includes('category_winner') && c.is_winner === true) matchesInclude = true;
+          if (winnerTypes.includes('accolade_winner') && c.has_accolades === true) matchesInclude = true;
         }
-        // For finalists, check winner types
-        const matchesCategoryWinner = winnerTypes.includes('category_winner') && c.is_winner === true;
-        const matchesAccoladeWinner = winnerTypes.includes('accolade_winner') && c.has_accolades === true;
-        return matchesCategoryWinner || matchesAccoladeWinner;
-      });
-    }
 
-    // Apply winner type exclude filter
-    if (excludeWinnerTypes.length > 0) {
-      allContacts = allContacts.filter(c => {
-        // Non-finalists always pass
-        if (!c.contact_types.includes('finalist')) {
-          return true;
-        }
-        // For finalists, check exclusions
+        // Handle Exclusions (must NOT match any excluded criteria)
         const excludeCategoryWinner = excludeWinnerTypes.includes('category_winner') && c.is_winner === true;
         const excludeAccoladeWinner = excludeWinnerTypes.includes('accolade_winner') && c.has_accolades === true;
-        return !excludeCategoryWinner && !excludeAccoladeWinner;
+
+        return matchesInclude && !excludeCategoryWinner && !excludeAccoladeWinner;
       });
     }
 
     // Apply active filter
-    if (isActive === 'true') {
-      allContacts = allContacts.filter(c => c.is_active === true);
-    } else if (isActive === 'false') {
-      allContacts = allContacts.filter(c => c.is_active === false);
+    if (isActive !== null) {
+      const isActiveBool = isActive === 'true';
+      allContacts = allContacts.filter(c => c.is_active === isActiveBool);
     }
 
-    // Remove duplicate contacts (same id)
-    const uniqueContacts = allContacts.reduce((acc: any[], c: any) => {
-      if (!acc.find(existing => existing.id === c.id)) {
-        acc.push(c);
-      }
-      return acc;
-    }, []);
+    // Cleanup sort
+    allContacts.sort((a, b) => {
+      const nameA = a.last_name || a.email || '';
+      const nameB = b.last_name || b.email || '';
+      return nameA.localeCompare(nameB);
+    });
+
+    const uniqueContacts = allContacts;
 
     return new Response(
       JSON.stringify({
