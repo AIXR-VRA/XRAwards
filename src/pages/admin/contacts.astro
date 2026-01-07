@@ -32,6 +32,9 @@ import Modal from '../../components/admin/Modal.astro';
           placeholder="Search contacts..."
           class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 min-w-64"
         />
+        <select id="eventFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 max-w-xs">
+          <option value="">All Events</option>
+        </select>
         <select id="contactTypeFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
           <option value="">All Types</option>
           <option value="judge">Judges</option>
@@ -40,11 +43,26 @@ import Modal from '../../components/admin/Modal.astro';
           <option value="attendee">Attendees</option>
           <option value="general">General</option>
         </select>
+        <select id="winnerTypeFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <option value="">All Winner Types</option>
+          <option value="category_winner">Category Winner</option>
+          <option value="accolade_winner">Accolade Winner</option>
+        </select>
         <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500">
           <option value="">All Status</option>
           <option value="active">Active Only</option>
           <option value="inactive">Inactive Only</option>
         </select>
+        <div class="flex-1"></div>
+        <button
+          id="exportCsvBtn"
+          class="px-4 py-2 border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center gap-2"
+        >
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          Export CSV
+        </button>
       </div>
     </div>
 
@@ -335,7 +353,9 @@ import Modal from '../../components/admin/Modal.astro';
   let sponsors: any[] = [];
   let filters = {
     search: '',
+    event_id: '',
     contact_type: '', // Filter by derived type from junction tables
+    winner_type: '',
     status: ''
   };
   
@@ -370,10 +390,17 @@ import Modal from '../../components/admin/Modal.astro';
   async function loadContacts() {
     try {
       const params = new URLSearchParams();
+      // Only append search if it has value
       if (filters.search) params.append('search', filters.search);
-      if (filters.contact_type) params.append('contact_type', filters.contact_type);
       
-      const response = await fetch(`/api/contacts/?${params.toString()}`, {
+      // Handle filters for contacts-with-events API
+      if (filters.event_id) params.append('event_ids', filters.event_id);
+      if (filters.contact_type) params.append('contact_types', filters.contact_type);
+      if (filters.winner_type) params.append('winner_types', filters.winner_type);
+      if (filters.status === 'active') params.append('is_active', 'true');
+      else if (filters.status === 'inactive') params.append('is_active', 'false');
+      
+      const response = await fetch(`/api/contacts-with-events/?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`
         }
@@ -384,13 +411,6 @@ import Modal from '../../components/admin/Modal.astro';
       const data = await response.json();
       contacts = data.contacts || [];
       
-      // Filter by status if needed
-      if (filters.status === 'active') {
-        contacts = contacts.filter(c => c.is_active);
-      } else if (filters.status === 'inactive') {
-        contacts = contacts.filter(c => !c.is_active);
-      }
-
       renderContacts();
     } catch (error) {
       console.error('Error loading contacts:', error);
@@ -399,6 +419,103 @@ import Modal from '../../components/admin/Modal.astro';
           <p class="text-red-500">Failed to load contacts. Please refresh the page.</p>
         </div>
       `;
+    }
+  }
+
+  // Load events for filter
+  async function loadEvents() {
+    try {
+      const response = await fetch('/api/events/');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      const events = data.events || [];
+      const select = document.getElementById('eventFilter') as HTMLSelectElement;
+      
+      events.forEach((event: any) => {
+        const option = document.createElement('option');
+        option.value = event.id;
+        option.textContent = `${event.event_name} (${event.event_year})${event.is_active ? ' ★' : ''}`;
+        select.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error loading events:', error);
+    }
+  }
+
+  // Export contacts to CSV
+  async function exportContacts() {
+    const btn = document.getElementById('exportCsvBtn') as HTMLButtonElement;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<svg class="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Exporting...`;
+
+    try {
+      const params = new URLSearchParams();
+      // Use current filters
+      if (filters.search) params.append('search', filters.search);
+      if (filters.event_id) params.append('event_ids', filters.event_id);
+      if (filters.contact_type) params.append('contact_types', filters.contact_type);
+      if (filters.winner_type) params.append('winner_types', filters.winner_type);
+      if (filters.status === 'active') params.append('is_active', 'true');
+      else if (filters.status === 'inactive') params.append('is_active', 'false');
+      
+      // Fetch all matching contacts
+      const response = await fetch(`/api/contacts-with-events/?${params.toString()}`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch contacts for export');
+      
+      const data = await response.json();
+      const exportData = data.contacts || [];
+      
+      if (exportData.length === 0) {
+        alert('No contacts to export');
+        return;
+      }
+
+      // Convert to CSV
+      const headers = ['ID', 'Email', 'First Name', 'Last Name', 'Organization', 'Job Title', 'Phone', 'Type', 'Status', 'Event Info'];
+      const csvContent = [
+        headers.join(','),
+        ...exportData.map((c: any) => {
+          const typeStr = (c.contact_types || []).join('; ');
+          const statusStr = c.is_active ? 'Active' : 'Inactive';
+          const eventInfo = c.event_info ? `${c.event_info.event_name} (${c.event_info.event_year})` : '';
+          
+          return [
+            c.id,
+            c.email,
+            c.first_name || '',
+            c.last_name || '',
+            c.organization || '',
+            c.job_title || '',
+            c.phone_number || '',
+            typeStr,
+            statusStr,
+            eventInfo
+          ].map(field => `"${(field || '').toString().replace(/"/g, '""')}"`).join(',');
+        })
+      ].join('\n');
+
+      // Download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `contacts_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+    } catch (error) {
+      console.error('Error exporting contacts:', error);
+      alert('Failed to export contacts');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
     }
   }
 
@@ -1009,25 +1126,7 @@ import Modal from '../../components/admin/Modal.astro';
     }
   };
 
-  // Filters
-  let searchTimeout: NodeJS.Timeout;
-  document.getElementById('searchInput')!.addEventListener('input', (e) => {
-    filters.search = (e.target as HTMLInputElement).value;
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      loadContacts();
-    }, 500);
-  });
 
-  document.getElementById('contactTypeFilter')!.addEventListener('change', (e) => {
-    filters.contact_type = (e.target as HTMLSelectElement).value;
-    loadContacts();
-  });
-
-  document.getElementById('statusFilter')!.addEventListener('change', (e) => {
-    filters.status = (e.target as HTMLSelectElement).value;
-    loadContacts();
-  });
 
   // Custom searchable dropdown functions
   function initSearchableDropdown(dropdownId: string, entityType: 'finalist' | 'judge' | 'sponsor') {
@@ -1152,6 +1251,7 @@ import Modal from '../../components/admin/Modal.astro';
 
   // Initialize
   (async () => {
+    loadEvents();
     await Promise.all([loadJudges(), loadFinalists(), loadSponsors()]);
     await loadContacts();
     
@@ -1160,5 +1260,39 @@ import Modal from '../../components/admin/Modal.astro';
     initSearchableDropdown('finalist_id', 'finalist');
     initSearchableDropdown('sponsor_id', 'sponsor');
   })();
+
+  // Search input handler
+  let searchTimeout: any;
+  document.getElementById('searchInput')!.addEventListener('input', (e) => {
+    clearTimeout(searchTimeout);
+    filters.search = (e.target as HTMLInputElement).value;
+    searchTimeout = setTimeout(() => {
+      loadContacts();
+    }, 500);
+  });
+
+  // Filter handlers
+  document.getElementById('eventFilter')!.addEventListener('change', (e) => {
+    filters.event_id = (e.target as HTMLSelectElement).value;
+    loadContacts();
+  });
+  
+  document.getElementById('contactTypeFilter')!.addEventListener('change', (e) => {
+    filters.contact_type = (e.target as HTMLSelectElement).value;
+    loadContacts();
+  });
+  
+  document.getElementById('winnerTypeFilter')!.addEventListener('change', (e) => {
+    filters.winner_type = (e.target as HTMLSelectElement).value;
+    loadContacts();
+  });
+
+  document.getElementById('statusFilter')!.addEventListener('change', (e) => {
+    filters.status = (e.target as HTMLSelectElement).value;
+    loadContacts();
+  });
+  
+  // Export handler
+  document.getElementById('exportCsvBtn')!.addEventListener('click', exportContacts);
 </script>
 

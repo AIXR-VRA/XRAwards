@@ -33,14 +33,14 @@ function deriveContactTypes(contact: any): string[] {
 
 // Helper to check if a finalist is an accolade winner
 function isAccoladeWinner(contact: any): boolean {
-  return contact.contact_finalists?.some((cf: any) => 
+  return contact.contact_finalists?.some((cf: any) =>
     cf.finalists?.finalist_accolades?.length > 0
   ) ?? false;
 }
 
 // Helper to check if a finalist is a category winner
 function isCategoryWinner(contact: any): boolean {
-  return contact.contact_finalists?.some((cf: any) => 
+  return contact.contact_finalists?.some((cf: any) =>
     cf.finalists?.is_winner === true
   ) ?? false;
 }
@@ -66,7 +66,7 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
 
     // Parse query parameters
     const searchParams = url.searchParams;
-    
+
     // New multi-value parameters
     const eventIdsParam = searchParams.get('event_ids');
     const excludeEventIdsParam = searchParams.get('exclude_event_ids');
@@ -74,13 +74,13 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
     const excludeContactTypesParam = searchParams.get('exclude_contact_types');
     const winnerTypesParam = searchParams.get('winner_types');
     const excludeWinnerTypesParam = searchParams.get('exclude_winner_types');
-    
+
     // Legacy single-value parameters (backward compatibility)
     const eventId = searchParams.get('event_id');
     const contactType = searchParams.get('contact_type');
     const isWinner = searchParams.get('is_winner');
     const isActive = searchParams.get('is_active');
-    
+
     // Parse comma-separated values
     const eventIds = eventIdsParam ? eventIdsParam.split(',').filter(Boolean) : (eventId ? [eventId] : []);
     const excludeEventIds = excludeEventIdsParam ? excludeEventIdsParam.split(',').filter(Boolean) : [];
@@ -88,7 +88,7 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
     const excludeContactTypes = excludeContactTypesParam ? excludeContactTypesParam.split(',').filter(Boolean) : [];
     const winnerTypes = winnerTypesParam ? winnerTypesParam.split(',').filter(Boolean) : [];
     const excludeWinnerTypes = excludeWinnerTypesParam ? excludeWinnerTypesParam.split(',').filter(Boolean) : [];
-    
+
     // Convert legacy is_winner to winner_types if provided and no winner_types specified
     if (isWinner !== null && winnerTypes.length === 0) {
       if (isWinner === 'true') {
@@ -98,7 +98,7 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
 
     // Build response - get all contacts with full relationship data
     let allContacts: any[] = [];
-    
+
     // Fetch all contacts with their relationships (including accolades for winner type filtering)
     const { data: contactsData, error: contactsError } = await supabase
       .from('contacts')
@@ -180,8 +180,11 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
       let relatedOrg = null;
       let relatedImage = null;
       let eventInfo = null;
-      let winner = null;
-      let hasAccolades = false;
+
+      // Accumulate status flags across ALL entries
+      let isWinnerAnywhere = false;
+      let hasAccoladesAnywhere = false;
+
       let contactEventIds: string[] = [];
 
       const types = deriveContactTypes(c);
@@ -201,22 +204,28 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
           relatedImage = judge.profile_image_url;
         }
       }
-      
+
       if (c.contact_finalists?.length > 0) {
         c.contact_finalists.forEach((cf: any) => {
-          if (cf.finalists?.event_id) contactEventIds.push(cf.finalists.event_id);
+          const f = cf.finalists;
+          if (f) {
+            if (f.event_id) contactEventIds.push(f.event_id);
+            if (f.is_winner) isWinnerAnywhere = true;
+            if (f.finalist_accolades?.length > 0) hasAccoladesAnywhere = true;
+          }
         });
+
+        // Use the first finalist for display info if needed, or prefer one from active event context if possible
+        // (For simple display, just use the first one)
         const finalist = c.contact_finalists[0]?.finalists;
         if (finalist) {
           if (!relatedName) relatedName = finalist.title;
           if (!relatedOrg) relatedOrg = finalist.organization;
           if (!relatedImage) relatedImage = finalist.image_url;
           eventInfo = finalist.event_details;
-          winner = finalist.is_winner;
-          hasAccolades = finalist.finalist_accolades?.length > 0;
         }
       }
-      
+
       if (c.contact_sponsors?.length > 0) {
         c.contact_sponsors.forEach((cs: any) => {
           cs.sponsors?.sponsor_events?.forEach((se: any) => {
@@ -261,37 +270,41 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
         related_org: relatedOrg,
         related_image: relatedImage,
         event_info: eventInfo,
-        is_winner: winner,
-        has_accolades: hasAccolades,
+        is_winner: isWinnerAnywhere, // True if winner in ANY category
+        has_accolades: hasAccoladesAnywhere, // True if accolades in ANY category
         contact_event_ids: [...new Set(contactEventIds)], // Unique event IDs
-        finalist_entries: finalistEntries // All finalist entries with full details
+        finalist_entries: finalistEntries, // All finalist entries with full details
+        // Backward compatibility for contacts.astro
+        finalists: c.contact_finalists?.map((cf: any) => cf.finalists).filter(Boolean) || [],
+        judges: c.contact_judges?.map((cj: any) => cj.judges).filter(Boolean) || [],
+        sponsors: c.contact_sponsors?.map((cs: any) => cs.sponsors).filter(Boolean) || []
       };
     });
 
     // Apply event include filter
     if (eventIds.length > 0) {
-      allContacts = allContacts.filter(c => 
+      allContacts = allContacts.filter(c =>
         c.contact_event_ids.some((eid: string) => eventIds.includes(eid))
       );
     }
-    
+
     // Apply event exclude filter
     if (excludeEventIds.length > 0) {
-      allContacts = allContacts.filter(c => 
+      allContacts = allContacts.filter(c =>
         !c.contact_event_ids.some((eid: string) => excludeEventIds.includes(eid))
       );
     }
 
     // Apply contact type include filter
     if (contactTypes.length > 0) {
-      allContacts = allContacts.filter(c => 
+      allContacts = allContacts.filter(c =>
         c.contact_types.some((t: string) => contactTypes.includes(t))
       );
     }
-    
+
     // Apply contact type exclude filter
     if (excludeContactTypes.length > 0) {
-      allContacts = allContacts.filter(c => 
+      allContacts = allContacts.filter(c =>
         !c.contact_types.some((t: string) => excludeContactTypes.includes(t))
       );
     }
@@ -309,7 +322,7 @@ export const GET: APIRoute = async ({ url, cookies, request }) => {
         return matchesCategoryWinner || matchesAccoladeWinner;
       });
     }
-    
+
     // Apply winner type exclude filter
     if (excludeWinnerTypes.length > 0) {
       allContacts = allContacts.filter(c => {
