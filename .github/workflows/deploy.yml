@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy to Production
     needs: test
-    if: github.event_name == 'push' && github.repository == 'AIXR-VRA/XRAwards'
+    if: github.event_name == 'push'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
