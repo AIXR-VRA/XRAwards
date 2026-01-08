@@ -12,7 +12,10 @@ import Modal from '../../components/admin/Modal.astro';
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">Contacts</h1>
+        <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          Contacts
+          <span id="contactCount" class="text-sm font-normal bg-gray-100 text-gray-600 px-2 py-1 rounded-full hidden"></span>
+        </h1>
         <p class="mt-2 text-gray-600">Manage contacts for communications. Types are derived from associations.</p>
       </div>
       <button
@@ -910,6 +913,17 @@ import Modal from '../../components/admin/Modal.astro';
   // Render contacts list
   function renderContacts() {
     const list = document.getElementById('contactsList')!;
+    const countEl = document.getElementById('contactCount');
+    
+    // Update count display
+    if (countEl) {
+      if (contacts.length > 0) {
+        countEl.textContent = `${contacts.length} contact${contacts.length === 1 ? '' : 's'}`;
+        countEl.classList.remove('hidden');
+      } else {
+        countEl.classList.add('hidden');
+      }
+    }
     
     if (contacts.length === 0) {
       list.innerHTML = `
