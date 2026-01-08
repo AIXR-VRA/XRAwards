@@ -407,6 +407,7 @@ import Modal from '../../components/admin/Modal.astro';
   let judges: any[] = [];
   let finalists: any[] = [];
   let sponsors: any[] = [];
+  let events: any[] = [];
   // Filter State
   interface ActiveFilter {
     type: string;
@@ -1601,7 +1602,7 @@ import Modal from '../../components/admin/Modal.astro';
 
   // Initialize
   (async () => {
-    loadEvents();
+    await loadEvents();
     await Promise.all([loadJudges(), loadFinalists(), loadSponsors()]);
     await loadContacts();
     
